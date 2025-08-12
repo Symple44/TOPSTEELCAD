@@ -1,0 +1,587 @@
+import * as THREE from 'three';
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
+import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter';
+import { STLExporter } from 'three/examples/jsm/exporters/STLExporter';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
+import { EventBus } from '../core/EventBus';
+import { PivotElement } from '@/types/viewer';
+
+export enum FileFormat {
+  GLTF = 'gltf',
+  GLB = 'glb',
+  OBJ = 'obj',
+  STL = 'stl',
+  JSON = 'json',
+  DSTV = 'dstv',
+  IFC = 'ifc',
+  STEP = 'step'
+}
+
+export interface ExportOptions {
+  format: FileFormat;
+  binary?: boolean;
+  includeMetadata?: boolean;
+  selectedOnly?: boolean;
+  compression?: boolean;
+}
+
+export interface ImportOptions {
+  format?: FileFormat;
+  autoCenter?: boolean;
+  autoScale?: boolean;
+  mergeDuplicates?: boolean;
+}
+
+export interface FileInfo {
+  name: string;
+  size: number;
+  format: FileFormat;
+  lastModified: Date;
+}
+
+export class FileManager {
+  private scene: THREE.Scene;
+  private eventBus: EventBus;
+  
+  private gltfLoader: GLTFLoader;
+  private objLoader: OBJLoader;
+  private stlLoader: STLLoader;
+  
+  private gltfExporter: GLTFExporter;
+  private objExporter: OBJExporter;
+  private stlExporter: STLExporter;
+
+  constructor(scene: THREE.Scene, eventBus: EventBus) {
+    this.scene = scene;
+    this.eventBus = eventBus;
+    
+    // Initialize loaders
+    this.gltfLoader = new GLTFLoader();
+    this.objLoader = new OBJLoader();
+    this.stlLoader = new STLLoader();
+    
+    // Initialize exporters
+    this.gltfExporter = new GLTFExporter();
+    this.objExporter = new OBJExporter();
+    this.stlExporter = new STLExporter();
+  }
+
+  /**
+   * Import a file
+   */
+  public async importFile(file: File, options: ImportOptions = {}): Promise<PivotElement[]> {
+    const format = options.format || this.detectFormat(file.name);
+    
+    this.eventBus.emit('file:importing', { 
+      file: file.name, 
+      format,
+      size: file.size 
+    });
+    
+    try {
+      let elements: PivotElement[] = [];
+      
+      switch (format) {
+        case FileFormat.GLTF:
+        case FileFormat.GLB:
+          elements = await this.importGLTF(file, options);
+          break;
+        case FileFormat.OBJ:
+          elements = await this.importOBJ(file, options);
+          break;
+        case FileFormat.STL:
+          elements = await this.importSTL(file, options);
+          break;
+        case FileFormat.JSON:
+          elements = await this.importJSON(file, options);
+          break;
+        case FileFormat.DSTV:
+          elements = await this.importDSTV(file, options);
+          break;
+        default:
+          throw new Error(`Unsupported import format: ${format}`);
+      }
+      
+      if (options.autoCenter) {
+        this.centerElements(elements);
+      }
+      
+      if (options.autoScale) {
+        this.autoScaleElements(elements);
+      }
+      
+      this.eventBus.emit('file:imported', {
+        file: file.name,
+        format,
+        elementCount: elements.length
+      });
+      
+      return elements;
+      
+    } catch (error) {
+      this.eventBus.emit('file:error', {
+        file: file.name,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Export scene or selected elements
+   */
+  public async exportFile(
+    filename: string, 
+    options: ExportOptions,
+    elements?: PivotElement[]
+  ): Promise<Blob> {
+    this.eventBus.emit('file:exporting', { 
+      filename, 
+      format: options.format 
+    });
+    
+    try {
+      let blob: Blob;
+      
+      const objectsToExport = options.selectedOnly && elements 
+        ? this.getObjectsFromElements(elements)
+        : this.scene.children;
+      
+      switch (options.format) {
+        case FileFormat.GLTF:
+        case FileFormat.GLB:
+          blob = await this.exportGLTF(objectsToExport, options);
+          break;
+        case FileFormat.OBJ:
+          blob = await this.exportOBJ(objectsToExport, options);
+          break;
+        case FileFormat.STL:
+          blob = await this.exportSTL(objectsToExport, options);
+          break;
+        case FileFormat.JSON:
+          blob = await this.exportJSON(elements || [], options);
+          break;
+        default:
+          throw new Error(`Unsupported export format: ${options.format}`);
+      }
+      
+      this.eventBus.emit('file:exported', {
+        filename,
+        format: options.format,
+        size: blob.size
+      });
+      
+      return blob;
+      
+    } catch (error) {
+      this.eventBus.emit('file:error', {
+        filename,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Import GLTF/GLB file
+   */
+  private async importGLTF(file: File, options: ImportOptions): Promise<PivotElement[]> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        
+        this.gltfLoader.parse(
+          arrayBuffer,
+          '',
+          (gltf) => {
+            const elements = this.convertGLTFToElements(gltf);
+            resolve(elements);
+          },
+          (error) => {
+            reject(error);
+          }
+        );
+      };
+      
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  /**
+   * Import OBJ file
+   */
+  private async importOBJ(file: File, options: ImportOptions): Promise<PivotElement[]> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const object = this.objLoader.parse(text);
+        const elements = this.convertObjectToElements(object);
+        resolve(elements);
+      };
+      
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  }
+
+  /**
+   * Import STL file
+   */
+  private async importSTL(file: File, options: ImportOptions): Promise<PivotElement[]> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        const geometry = this.stlLoader.parse(arrayBuffer);
+        const mesh = new THREE.Mesh(geometry);
+        const elements = this.convertObjectToElements(mesh);
+        resolve(elements);
+      };
+      
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  /**
+   * Import JSON file (native format)
+   */
+  private async importJSON(file: File, options: ImportOptions): Promise<PivotElement[]> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const text = e.target?.result as string;
+          const data = JSON.parse(text);
+          
+          if (Array.isArray(data)) {
+            resolve(data as PivotElement[]);
+          } else if (data.elements && Array.isArray(data.elements)) {
+            resolve(data.elements as PivotElement[]);
+          } else {
+            reject(new Error('Invalid JSON format'));
+          }
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  }
+
+  /**
+   * Import DSTV file
+   */
+  private async importDSTV(file: File, options: ImportOptions): Promise<PivotElement[]> {
+    // TODO: Implement DSTV parser
+    throw new Error('DSTV import not yet implemented');
+  }
+
+  /**
+   * Export to GLTF/GLB
+   */
+  private async exportGLTF(
+    objects: THREE.Object3D[], 
+    options: ExportOptions
+  ): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const exportScene = new THREE.Scene();
+      objects.forEach(obj => exportScene.add(obj.clone()));
+      
+      this.gltfExporter.parse(
+        exportScene,
+        (result) => {
+          let blob: Blob;
+          
+          if (options.format === FileFormat.GLB) {
+            blob = new Blob([result as ArrayBuffer], { 
+              type: 'model/gltf-binary' 
+            });
+          } else {
+            const json = JSON.stringify(result);
+            blob = new Blob([json], { 
+              type: 'model/gltf+json' 
+            });
+          }
+          
+          resolve(blob);
+        },
+        (error) => {
+          reject(error);
+        },
+        {
+          binary: options.format === FileFormat.GLB,
+          includeCustomExtensions: options.includeMetadata
+        }
+      );
+    });
+  }
+
+  /**
+   * Export to OBJ
+   */
+  private async exportOBJ(
+    objects: THREE.Object3D[], 
+    options: ExportOptions
+  ): Promise<Blob> {
+    const exportScene = new THREE.Scene();
+    objects.forEach(obj => exportScene.add(obj.clone()));
+    
+    const result = this.objExporter.parse(exportScene);
+    return new Blob([result], { type: 'text/plain' });
+  }
+
+  /**
+   * Export to STL
+   */
+  private async exportSTL(
+    objects: THREE.Object3D[], 
+    options: ExportOptions
+  ): Promise<Blob> {
+    const exportScene = new THREE.Scene();
+    objects.forEach(obj => exportScene.add(obj.clone()));
+    
+    const result = this.stlExporter.parse(exportScene, { binary: options.binary });
+    
+    if (options.binary) {
+      return new Blob([result as ArrayBuffer], { 
+        type: 'application/octet-stream' 
+      });
+    } else {
+      return new Blob([result as string], { 
+        type: 'text/plain' 
+      });
+    }
+  }
+
+  /**
+   * Export to JSON (native format)
+   */
+  private async exportJSON(
+    elements: PivotElement[], 
+    options: ExportOptions
+  ): Promise<Blob> {
+    const data = {
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      elements: elements,
+      metadata: options.includeMetadata ? {
+        totalElements: elements.length,
+        totalWeight: elements.reduce((sum, el) => sum + (el.weight || 0), 0)
+      } : undefined
+    };
+    
+    const json = JSON.stringify(data, null, 2);
+    return new Blob([json], { type: 'application/json' });
+  }
+
+  /**
+   * Convert GLTF to PivotElements
+   */
+  private convertGLTFToElements(gltf: any): PivotElement[] {
+    const elements: PivotElement[] = [];
+    
+    gltf.scene.traverse((child: THREE.Object3D) => {
+      if (child instanceof THREE.Mesh) {
+        // Convert mesh to PivotElement
+        // This is a simplified conversion
+        const element: PivotElement = {
+          id: `imported-${Date.now()}-${Math.random()}`,
+          name: child.name || 'Imported Object',
+          materialType: 'BEAM' as any, // Default type
+          dimensions: this.extractDimensions(child),
+          position: [child.position.x, child.position.y, child.position.z],
+          rotation: [child.rotation.x, child.rotation.y, child.rotation.z],
+          scale: [child.scale.x, child.scale.y, child.scale.z],
+          material: this.extractMaterial(child),
+          visible: child.visible,
+          metadata: {
+            imported: true,
+            originalFormat: 'gltf'
+          }
+        };
+        
+        elements.push(element);
+      }
+    });
+    
+    return elements;
+  }
+
+  /**
+   * Convert Three.js object to PivotElements
+   */
+  private convertObjectToElements(object: THREE.Object3D): PivotElement[] {
+    const elements: PivotElement[] = [];
+    
+    object.traverse((child: THREE.Object3D) => {
+      if (child instanceof THREE.Mesh) {
+        const element: PivotElement = {
+          id: `imported-${Date.now()}-${Math.random()}`,
+          name: child.name || 'Imported Object',
+          materialType: 'BEAM' as any,
+          dimensions: this.extractDimensions(child),
+          position: [child.position.x, child.position.y, child.position.z],
+          rotation: [child.rotation.x, child.rotation.y, child.rotation.z],
+          scale: [child.scale.x, child.scale.y, child.scale.z],
+          material: this.extractMaterial(child),
+          visible: child.visible,
+          metadata: {
+            imported: true
+          }
+        };
+        
+        elements.push(element);
+      }
+    });
+    
+    return elements;
+  }
+
+  /**
+   * Extract dimensions from mesh
+   */
+  private extractDimensions(mesh: THREE.Mesh): any {
+    const box = new THREE.Box3().setFromObject(mesh);
+    const size = box.getSize(new THREE.Vector3());
+    
+    return {
+      length: size.x,
+      width: size.y,
+      height: size.z
+    };
+  }
+
+  /**
+   * Extract material properties
+   */
+  private extractMaterial(mesh: THREE.Mesh): any {
+    const mat = mesh.material as THREE.MeshStandardMaterial;
+    
+    return {
+      grade: 'S355',
+      density: 7850,
+      color: mat.color ? `#${mat.color.getHexString()}` : '#8b9dc3',
+      opacity: mat.opacity || 1,
+      metallic: mat.metalness || 0.9,
+      roughness: mat.roughness || 0.4,
+      reflectivity: 0.5
+    };
+  }
+
+  /**
+   * Get Three.js objects from PivotElements
+   */
+  private getObjectsFromElements(elements: PivotElement[]): THREE.Object3D[] {
+    // This would need to be implemented based on how elements are stored in the scene
+    return [];
+  }
+
+  /**
+   * Center elements at origin
+   */
+  private centerElements(elements: PivotElement[]): void {
+    if (elements.length === 0) return;
+    
+    // Calculate bounding box
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    
+    elements.forEach(el => {
+      minX = Math.min(minX, el.position[0]);
+      minY = Math.min(minY, el.position[1]);
+      minZ = Math.min(minZ, el.position[2]);
+      maxX = Math.max(maxX, el.position[0]);
+      maxY = Math.max(maxY, el.position[1]);
+      maxZ = Math.max(maxZ, el.position[2]);
+    });
+    
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const centerZ = (minZ + maxZ) / 2;
+    
+    // Center all elements
+    elements.forEach(el => {
+      el.position[0] -= centerX;
+      el.position[1] -= centerY;
+      el.position[2] -= centerZ;
+    });
+  }
+
+  /**
+   * Auto-scale elements to fit view
+   */
+  private autoScaleElements(elements: PivotElement[]): void {
+    // Implementation for auto-scaling
+  }
+
+  /**
+   * Detect file format from filename
+   */
+  private detectFormat(filename: string): FileFormat {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    
+    switch (ext) {
+      case 'gltf': return FileFormat.GLTF;
+      case 'glb': return FileFormat.GLB;
+      case 'obj': return FileFormat.OBJ;
+      case 'stl': return FileFormat.STL;
+      case 'json': return FileFormat.JSON;
+      case 'nc':
+      case 'dstv': return FileFormat.DSTV;
+      case 'ifc': return FileFormat.IFC;
+      case 'step':
+      case 'stp': return FileFormat.STEP;
+      default:
+        throw new Error(`Unknown file format: ${ext}`);
+    }
+  }
+
+  /**
+   * Download file to user's computer
+   */
+  public downloadFile(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Get supported formats
+   */
+  public getSupportedFormats(): {
+    import: FileFormat[];
+    export: FileFormat[];
+  } {
+    return {
+      import: [
+        FileFormat.GLTF,
+        FileFormat.GLB,
+        FileFormat.OBJ,
+        FileFormat.STL,
+        FileFormat.JSON
+      ],
+      export: [
+        FileFormat.GLTF,
+        FileFormat.GLB,
+        FileFormat.OBJ,
+        FileFormat.STL,
+        FileFormat.JSON
+      ]
+    };
+  }
+}

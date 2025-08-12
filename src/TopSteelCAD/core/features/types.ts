@@ -1,0 +1,225 @@
+/**
+ * Types et interfaces pour le système de features
+ */
+
+import * as THREE from 'three';
+import { PivotElement } from '@/types/viewer';
+
+/**
+ * Types de features supportées
+ */
+export enum FeatureType {
+  // Trous et perçages
+  HOLE = 'hole',
+  TAPPED_HOLE = 'tapped_hole',
+  COUNTERSINK = 'countersink',
+  COUNTERBORE = 'counterbore',
+  DRILL_PATTERN = 'drill_pattern',
+  
+  // Découpes et contours
+  SLOT = 'slot',
+  CUTOUT = 'cutout',
+  CONTOUR = 'contour',
+  NOTCH = 'notch',
+  COPING = 'coping',
+  
+  // Finitions
+  CHAMFER = 'chamfer',
+  BEVEL = 'bevel',
+  
+  // Marquages et textes
+  MARKING = 'marking',
+  TEXT = 'text',
+  
+  // Soudures
+  WELD = 'weld'
+}
+
+/**
+ * Système de coordonnées pour les features
+ */
+export enum CoordinateSystem {
+  LOCAL = 'local',    // Relatif à l'élément
+  GLOBAL = 'global',  // Relatif à la scène
+  FACE = 'face'       // Relatif à une face spécifique
+}
+
+/**
+ * Face d'un profil métallique
+ */
+export enum ProfileFace {
+  WEB = 'web',
+  TOP_FLANGE = 'top_flange',
+  BOTTOM_FLANGE = 'bottom_flange',
+  LEFT_LEG = 'left_leg',
+  RIGHT_LEG = 'right_leg',
+  TOP = 'top',
+  BOTTOM = 'bottom',
+  LEFT = 'left',
+  RIGHT = 'right',
+  FRONT = 'front',
+  BACK = 'back'
+}
+
+/**
+ * Interface de base pour une feature
+ */
+export interface Feature {
+  id: string;
+  type: FeatureType;
+  coordinateSystem: CoordinateSystem;
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
+  face?: ProfileFace;
+  parameters: FeatureParameters;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Paramètres spécifiques selon le type de feature
+ */
+export interface FeatureParameters {
+  // Pour trous standards
+  diameter?: number;
+  depth?: number;
+  
+  // Pour trous taraudés
+  threadPitch?: number;
+  threadType?: string;
+  threadClass?: string;
+  
+  // Pour fraisages
+  sinkDiameter?: number;
+  sinkDepth?: number;
+  sinkAngle?: number;
+  sinkType?: string;
+  
+  // Pour motifs de perçage
+  patternType?: string;
+  count?: number;
+  spacing?: number;
+  radius?: number;
+  rows?: number;
+  columns?: number;
+  rowSpacing?: number;
+  columnSpacing?: number;
+  startAngle?: number;
+  customPositions?: Array<{x: number, y: number, z?: number}>;
+  
+  // Pour oblongs
+  length?: number;
+  width?: number;
+  
+  // Pour contours
+  points?: THREE.Vector2[];
+  closed?: boolean;
+  bulge?: number[];  // Pour les arcs dans les contours
+  
+  // Pour entailles
+  notchType?: string;
+  copingProfile?: string;
+  webThickness?: number;
+  flangeThickness?: number;
+  
+  // Pour chanfreins et biseaux
+  angle?: number;
+  size?: number;
+  bevelType?: string;
+  edgePosition?: string;
+  startSize?: number;
+  endSize?: number;
+  
+  // Pour marquages
+  markingType?: string;
+  
+  // Pour texte
+  text?: string;
+  font?: string;
+  fontSize?: number;
+  textType?: string;
+  
+  // Pour soudures
+  weldType?: 'fillet' | 'butt' | 'spot' | 'seam';
+  weldSize?: number;
+  
+  // Pour coping
+  copingType?: string;
+  targetProfile?: string;
+  clearance?: number;
+}
+
+/**
+ * Résultat de l'application d'une feature
+ */
+export interface FeatureResult {
+  geometry: THREE.BufferGeometry;
+  boundingBox: THREE.Box3;
+  volume: number;
+  success: boolean;
+  errors?: string[];
+  warnings?: string[];
+}
+
+/**
+ * Interface pour les processeurs de features
+ */
+export interface IFeatureProcessor {
+  process(
+    geometry: THREE.BufferGeometry,
+    feature: Feature,
+    element: PivotElement
+  ): ProcessorResult;
+  
+  validateFeature(feature: Feature, element: PivotElement): string[];
+  
+  dispose?(): void;
+}
+
+/**
+ * Résultat du traitement d'une feature
+ */
+export interface ProcessorResult {
+  success: boolean;
+  geometry?: THREE.BufferGeometry;
+  error?: string;
+  warning?: string;
+}
+
+/**
+ * Configuration pour le système de features
+ */
+export interface FeatureSystemConfig {
+  cacheEnabled: boolean;
+  cacheSize: number;
+  validateFeatures: boolean;
+  optimizeGeometry: boolean;
+  mergeVertices: boolean;
+  tolerances: {
+    position: number;
+    angle: number;
+    hole: number;
+    cut: number;
+  };
+}
+
+/**
+ * Contexte de traitement d'une feature
+ */
+export interface FeatureContext {
+  element: PivotElement;
+  featureIndex: number;
+  totalFeatures: number;
+  previousGeometry?: THREE.BufferGeometry;
+  csgEvaluator?: any;  // THREE-BVH-CSG Evaluator
+}
+
+/**
+ * Informations de positionnement 3D
+ */
+export interface Position3D {
+  position: [number, number, number];
+  rotation: [number, number, number];
+  face: ProfileFace;
+  depth: number;
+  normal: THREE.Vector3;
+}
