@@ -37,16 +37,14 @@ export { AxesHelper } from './ui/AxesHelper';
 // MAIN COMPONENTS - Composants principaux
 // ========================================
 export { default } from './TopSteelCAD';
-export { SimplifiedViewer } from './SimplifiedViewer';
-export type { SimplifiedViewerProps } from './SimplifiedViewer';
 
 // ========================================
 // TOOLS & I/O - Outils et fichiers
 // ========================================
 export { MeasurementTool } from './tools/MeasurementTool';
 export type { MeasurementType, Measurement } from './tools/MeasurementTool';
-export { FileManager } from './io/FileManagerStub';
-export type { FileFormat, ExportOptions, ImportOptions } from './io/FileManagerStub';
+export { FileManager } from './io/FileManager';
+export type { FileFormat, ExportOptions, ImportOptions } from './io/FileManager';
 
 // ========================================
 // 3D LIBRARY - Architecture Strategy/Factory
@@ -95,43 +93,42 @@ export { FeatureSystem } from './core/features/FeatureSystem';
 export type * from './core/features/types';
 
 // ========================================
-// PARSERS - Parseurs de fichiers (existants)
+// PARSERS - Parseurs de fichiers
 // ========================================
-// TODO: Parsers non encore implémentés
-// export { DSTVParser } from './parsers/dstv-parser-complete';
-// export { IFCParser } from './parsers/ifc-parser';
-// export { STEPParser } from './parsers/step-parser';
+export { DSTVParser } from './parsers/DSTVParser';
+// TODO: Parsers à implémenter
+// export { IFCParser } from './parsers/IFCParser';
+// export { STEPParser } from './parsers/STEPParser';
 
 // ========================================
 // PLUGINS - Système de plugins
 // ========================================
-// TODO: Plugins non encore implémentés
-// export { PluginManager } from './plugins/PluginManager';
+export { PluginManager } from './plugins/PluginManager';
 // export { MeasurementPlugin } from './plugins/presets/MeasurementPlugin';
-// export type { ViewerPlugin, PluginConfig } from './plugins/types';
+export type { ViewerPlugin, PluginConfig } from './plugins/types';
 
 // ========================================
 // THÈMES - Système de thèmes
 // ========================================
-// TODO: Thèmes non encore implémentés
-// export { ThemeProvider, useTheme } from './themes/ThemeProvider';
-// export { lightTheme, darkTheme } from './themes/presets';
-// export { createTheme, applyTheme } from './themes/helpers';
-// export type { ThemeConfig, ThemeColors } from './themes/types';
+export { ThemeProvider } from './themes/ThemeProvider';
+export { lightTheme, darkTheme } from './themes/presets';
+export { createTheme, applyTheme } from './themes/helpers';
+export type { ThemeConfig, ThemeColors } from './themes/types';
 
 // ========================================
 // MODES - Modes de visualisation
 // ========================================
-// TODO: Modes non encore implémentés
-// export { minimalMode, standardMode, professionalMode } from './modes/presets';
-// export type { ViewerModeConfig, ModeConfig } from './modes/types';
+// Export des composants de viewer au lieu des configs
+export { MinimalViewer } from './MinimalViewer';
+export { StandardViewer } from './StandardViewer'; 
+export { ProfessionalViewer } from './ProfessionalViewer';
+export type { ViewerModeConfig, ModeConfig } from './modes/types';
 
 // ========================================
 // HOOKS - Hooks React personnalisés
 // ========================================
-// TODO: Hooks non encore implémentés
-// export { useViewer } from './hooks/useViewer';
-// export type { UseViewerReturn } from './hooks/useViewer';
+export { useViewer } from './hooks/useViewer';
+export type { UseViewerReturn } from './hooks/useViewer';
 
 // ========================================
 // COMPONENTS - Composant viewer principal
@@ -174,12 +171,10 @@ export const defaultConfig = {
 /**
  * Initialise la 3DLibrary
  */
-export async function initialize3DLibrary() {
-  // TODO: Implémenter l'initialisation
-  return {
-    profiles: null,
-    materials: null
-  };
+export async function initialize3DLibrary(): Promise<void> {
+  // L'initialisation est maintenant gérée en interne par la 3DLibrary
+  // Cette fonction est conservée pour la compatibilité
+  return;
 }
 
 /**

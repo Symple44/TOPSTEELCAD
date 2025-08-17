@@ -13,6 +13,13 @@
 export { DatabaseGeometryBridge } from './integration/DatabaseGeometryBridge';
 export type { GeometryGenerationResult } from './integration/DatabaseGeometryBridge';
 
+// Import des générateurs pour ShapeFactory
+import { FastenerGenerator } from './geometry-generators/generators/FastenerGenerator';
+import { WeldGenerator } from './geometry-generators/generators/WeldGenerator';
+import { ProfileType } from './types/profile.types';
+import * as THREE from 'three';
+import { GeometryGeneratorFactory } from './geometry-generators/GeometryGeneratorFactory';
+
 // Nouvelle architecture avec Factory Pattern
 export { GeometryGeneratorFactory, geometryFactory } from './geometry-generators/GeometryGeneratorFactory';
 export type { ProfileGeometryGenerator } from './geometry-generators/interfaces/ProfileGeometryGenerator';
@@ -65,12 +72,121 @@ export async function initialize3DLibrary(): Promise<void> {
 }
 
 /**
+ * Factory pour créer rapidement des formes 3D
+ */
+export class ShapeFactory {
+  private static geometryFactory = new GeometryGeneratorFactory();
+  private static bridge = new DatabaseGeometryBridge();
+  
+  /**
+   * Crée une forme basique
+   */
+  static createBasicShape(type: string, params: ShapeParams): THREE.BufferGeometry | null {
+    switch (type.toLowerCase()) {
+      case 'box':
+        return new THREE.BoxGeometry(
+          params.width || 100,
+          params.height || 100,
+          params.depth || 100
+        );
+        
+      case 'sphere':
+        return new THREE.SphereGeometry(
+          params.radius || 50,
+          params.widthSegments || 32,
+          params.heightSegments || 16
+        );
+        
+      case 'cylinder':
+        return new THREE.CylinderGeometry(
+          params.radiusTop || 50,
+          params.radiusBottom || 50,
+          params.height || 100,
+          params.radialSegments || 32
+        );
+        
+      case 'plane':
+        return new THREE.PlaneGeometry(
+          params.width || 100,
+          params.height || 100,
+          params.widthSegments || 1,
+          params.heightSegments || 1
+        );
+        
+      default:
+        return null;
+    }
+  }
+  
+  /**
+   * Crée un profil métallique
+   */
+  static async createSteelProfile(designation: string, length: number = 6000): Promise<import('./integration/DatabaseGeometryBridge').GeometryGenerationResult | null> {
+    try {
+      await this.bridge.initialize();
+      return await this.bridge.generateFromDesignation(designation, length);
+    } catch (error) {
+      console.error('Erreur lors de la création du profil:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Crée une plaque métallique
+   */
+  static createPlate(width: number, height: number, thickness: number): THREE.BufferGeometry {
+    const geometry = new THREE.BoxGeometry(width, thickness, height);
+    geometry.userData = {
+      type: 'PLATE',
+      dimensions: { width, height, thickness },
+      weight: (width * height * thickness * 7850) / 1e9 // kg
+    };
+    return geometry;
+  }
+  
+  /**
+   * Crée un boulon
+   */
+  static createBolt(diameter: number, length: number): THREE.BufferGeometry {
+    const fastenerGen = new FastenerGenerator();
+    return fastenerGen.generate({
+      designation: `M${diameter}`,
+      type: ProfileType.FASTENER,
+      dimensions: { diameter, length }
+    } as any, length);
+  }
+  
+  /**
+   * Crée une soudure
+   */
+  static createWeld(type: 'fillet' | 'butt', size: number, length: number): THREE.BufferGeometry {
+    const weldGen = new WeldGenerator();
+    return weldGen.generate({
+      designation: type.toUpperCase(),
+      type: ProfileType.WELD,
+      dimensions: { thickness: size, length }
+    } as any, length);
+  }
+}
+
+// Interface pour les paramètres de forme
+interface ShapeParams {
+  width?: number;
+  height?: number;
+  depth?: number;
+  radius?: number;
+  radiusTop?: number;
+  radiusBottom?: number;
+  widthSegments?: number;
+  heightSegments?: number;
+  radialSegments?: number;
+}
+
+/**
  * Fonction utilitaire pour créer rapidement une forme
  */
-export function createShape(type: string, params: any) {
-  // TODO: Implémenter shapeFactory
-  console.warn('shapeFactory not yet implemented');
-  return null;
+export function createShape(type: string, params: any = {}) {
+  return ShapeFactory.createBasicShape(type, params);
 }
 
 /**

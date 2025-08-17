@@ -12,6 +12,14 @@ import { IProfileGenerator } from './generators/IProfileGenerator';
 import { UProfileGenerator } from './generators/UProfileGenerator';
 import { LProfileGenerator } from './generators/LProfileGenerator';
 import { TubeGenerator } from './generators/TubeGenerator';
+import { PlateGenerator } from './generators/PlateGenerator';
+import { FastenerGenerator } from './generators/FastenerGenerator';
+import { WeldGenerator } from './generators/WeldGenerator';
+import { CProfileGenerator } from './generators/CProfileGenerator';
+import { ZProfileGenerator } from './generators/ZProfileGenerator';
+import { TProfileGenerator } from './generators/TProfileGenerator';
+import { FlatBarGenerator } from './generators/FlatBarGenerator';
+import { SpecialProfileGenerator } from './generators/SpecialProfileGenerator';
 
 /**
  * Résultat d'une génération avec métadonnées
@@ -64,7 +72,15 @@ export class GeometryGeneratorFactory {
       new IProfileGenerator(),
       new UProfileGenerator(), 
       new LProfileGenerator(),
-      new TubeGenerator()
+      new TubeGenerator(),
+      new PlateGenerator(),
+      new FastenerGenerator(),
+      new WeldGenerator(),
+      new CProfileGenerator(),
+      new ZProfileGenerator(),
+      new TProfileGenerator(),
+      new FlatBarGenerator(),
+      new SpecialProfileGenerator()
     ];
 
     // Pré-calculer le cache des correspondances

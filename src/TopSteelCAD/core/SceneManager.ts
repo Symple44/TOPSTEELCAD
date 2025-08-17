@@ -3,6 +3,7 @@ import { EventBus } from './EventBus';
 import { PivotElement } from '@/types/viewer';
 import { GeometryConverter } from '../viewer/GeometryConverter';
 import { VisualFeatureRenderer } from '../viewer/VisualFeatureRenderer';
+import { FeatureOutlineRenderer } from '../viewer/FeatureOutlineRenderer';
 
 /**
  * Configuration de la scène
@@ -59,6 +60,7 @@ export class SceneManager {
   // Renderers
   private geometryConverter: GeometryConverter;
   private visualFeatureRenderer: VisualFeatureRenderer;
+  private featureOutlineRenderer: FeatureOutlineRenderer;
   
   // Configuration
   private config: SceneConfig = {
@@ -111,6 +113,7 @@ export class SceneManager {
     // Initialiser les renderers
     this.geometryConverter = new GeometryConverter();
     this.visualFeatureRenderer = new VisualFeatureRenderer();
+    this.featureOutlineRenderer = new FeatureOutlineRenderer();
     
     this.setupEventListeners();
   }
@@ -218,7 +221,7 @@ export class SceneManager {
     
     this.grid = new THREE.GridHelper(size, divisions, color1, color2);
     this.grid.name = 'Grid';
-    this.grid.position.y = -200; // Légèrement en dessous pour éviter le z-fighting
+    this.grid.position.y = 0; // Quadrillage au niveau 0
     this.helpersGroup.add(this.grid);
   }
   
@@ -252,34 +255,74 @@ export class SceneManager {
     elementGroup.name = element.name || `Element_${element.id}`;
     elementGroup.userData = { element };
     
-    // Créer la géométrie principale
-    const geometry = this.geometryConverter.createGeometry(element);
-    const material = this.geometryConverter.createMaterial(element);
+    // Utiliser convertElement qui applique les features
+    const object3d = this.geometryConverter.convertElement(element);
     
-    if (!geometry) {
-      console.error(`❌ Impossible de créer la géométrie pour ${element.name}`);
+    if (!object3d) {
+      console.error(`❌ Impossible de créer le mesh pour ${element.name}`);
       return;
     }
     
+    // Vérifier que c'est bien un Mesh
+    let mesh: THREE.Mesh;
+    if (object3d instanceof THREE.Mesh) {
+      mesh = object3d;
+    } else {
+      console.error(`❌ L'objet créé n'est pas un Mesh pour ${element.name}`);
+      return;
+    }
     
-    const mesh = new THREE.Mesh(geometry, material);
     mesh.name = 'MainGeometry';
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    mesh.userData = { elementId: element.id, element };
+    mesh.userData.elementId = element.id;
     
     // Appliquer la transformation
-    mesh.position.set(...element.position);
+    // Calculer la hauteur minimale de la géométrie pour la positionner au-dessus du quadrillage
+    mesh.geometry.computeBoundingBox();
+    const boundingBox = mesh.geometry.boundingBox;
+    let yOffset = 0;
+    
+    if (boundingBox) {
+      // La base de l'élément doit être au niveau y=0 (quadrillage)
+      // Si minY est négatif, on doit remonter l'élément
+      const minY = boundingBox.min.y;
+      if (minY < 0) {
+        yOffset = -minY; // Remonter pour que le bas soit à y=0
+      }
+    }
+    
+    // Stocker le décalage Y dans les userData pour les features
+    mesh.userData.yOffset = yOffset;
+    mesh.geometry.userData.yOffset = yOffset;
+    
+    mesh.position.set(
+      element.position[0],
+      element.position[1] + yOffset,
+      element.position[2]
+    );
     mesh.rotation.set(...(element.rotation || [0, 0, 0]));
     mesh.scale.set(...(element.scale || [1, 1, 1]));
     
     elementGroup.add(mesh);
     
-    // Ajouter les features visuelles
-    const visualFeatures = this.visualFeatureRenderer.createVisualFeatures(element);
-    if (visualFeatures.children.length > 0) {
-      visualFeatures.name = 'VisualFeatures';
-      elementGroup.add(visualFeatures);
+    // Ajouter les contours visuels pour les features (trous, etc.)
+    const featureOutlines = this.featureOutlineRenderer.createFeatureOutlines(element, mesh);
+    if (featureOutlines.children.length > 0) {
+      featureOutlines.name = 'FeatureOutlines';
+      elementGroup.add(featureOutlines);
+      console.log(`✨ Added ${featureOutlines.children.length} feature outlines for ${element.name}`);
+    }
+    
+    // Ajouter les markings comme décalcomanies visuelles sur la surface
+    // En complément du CSG pour une meilleure visibilité
+    if (mesh.geometry?.userData?.markings) {
+      console.log(`📝 Markings have been engraved into the geometry via CSG:`, mesh.geometry.userData.markings);
+      const markingsGroup = this.createVisibleMarkings(mesh.geometry.userData.markings, element, mesh);
+      if (markingsGroup.children.length > 0) {
+        markingsGroup.name = 'VisibleMarkings';
+        elementGroup.add(markingsGroup);
+      }
     }
     
     // Ajouter à la scène
@@ -291,6 +334,262 @@ export class SceneManager {
       id: element.id,
       object3D: elementGroup
     });
+  }
+  
+  /**
+   * Crée des markings visibles sur la surface (en complément du CSG)
+   */
+  private createVisibleMarkings(markings: any[], element: PivotElement, mesh: THREE.Mesh): THREE.Group {
+    const group = new THREE.Group();
+    
+    markings.forEach((marking, index) => {
+      const text = marking.text || 'X';
+      const size = marking.size || 20;
+      
+      // Créer une géométrie 3D plus grande pour le texte
+      const scaleFactor = 3; // Augmenter la taille pour la visibilité
+      const textGeometry = new THREE.PlaneGeometry(size * scaleFactor, size * scaleFactor * 0.6);
+      
+      // Créer un canvas pour le texte
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      
+      canvas.width = 512;
+      canvas.height = 256;
+      
+      // Fond transparent
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Texte gravé style industriel
+      context.font = `bold ${canvas.height * 0.7}px Arial Black`;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      
+      // Contour noir pour visibilité
+      context.strokeStyle = '#000000';
+      context.lineWidth = 4;
+      context.strokeText(text, canvas.width / 2, canvas.height / 2);
+      
+      // Texte jaune/doré (couleur de marquage industriel)
+      context.fillStyle = '#FFD700';
+      context.fillText(text, canvas.width / 2, canvas.height / 2);
+      
+      const texture = new THREE.CanvasTexture(canvas);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.9,
+        side: THREE.DoubleSide
+      });
+      
+      const textMesh = new THREE.Mesh(textGeometry, material);
+      textMesh.name = `Marking_${index}_${text}`;
+      
+      // Positionner sur la surface
+      if (marking.position) {
+        const thickness = element.dimensions.thickness || 15;
+        const length = element.dimensions.length || 220;
+        const width = element.dimensions.width || 120;
+        
+        // Les positions dans marking.position sont déjà les coordonnées DSTV originales
+        // DSTV utilise le coin inférieur gauche comme origine (0,0)
+        // Three.js utilise le centre comme origine
+        
+        // Pour les formes complexes avec contour, appliquer le même système de coordonnées
+        let x, z;
+        
+        // Récupérer les metadata de la géométrie
+        const centerOffset = marking.centerOffset || mesh.geometry?.userData?.centerOffset;
+        const isMirrored = marking.isMirrored || mesh.geometry?.userData?.isMirrored;
+        
+        if (element.metadata?.contour && centerOffset) {
+          // La géométrie est centrée et potentiellement inversée
+          console.log(`   ✅ Using centerOffset: x=${centerOffset.x?.toFixed(1)}, y=${centerOffset.y?.toFixed(1)}`);
+          
+          // Appliquer le centrage
+          x = marking.position[0] - centerOffset.x;
+          z = marking.position[1] - centerOffset.y;
+          
+          // Si la géométrie est inversée (miroir), inverser aussi la position X du marking
+          if (isMirrored) {
+            console.log(`   🔄 Applying mirror transformation`);
+            x = -x;
+          }
+        } else if (element.metadata?.contour) {
+          // Pour les formes avec contour centrées (ancienne méthode)
+          console.log(`   ⚠️ Using centered coordinates, calculating offset`);
+          
+          // Trouver les bornes du contour
+          const contourPoints = element.metadata.contour;
+          let minX = Infinity, maxX = -Infinity;
+          let minY = Infinity, maxY = -Infinity;
+          
+          contourPoints.forEach((point: [number, number]) => {
+            minX = Math.min(minX, point[0]);
+            maxX = Math.max(maxX, point[0]);
+            minY = Math.min(minY, point[1]);
+            maxY = Math.max(maxY, point[1]);
+          });
+          
+          const centerX = (minX + maxX) / 2;
+          const centerY = (minY + maxY) / 2;
+          
+          console.log(`   Calculated center: x=${centerX.toFixed(1)}, y=${centerY.toFixed(1)}`);
+          
+          x = marking.position[0] - centerX;
+          z = marking.position[1] - centerY;
+        } else {
+          // Pour les formes rectangulaires simples
+          const offsetX = marking.position[0] + 15;
+          const offsetY = marking.position[1] + 15;
+          x = offsetX - length / 2;
+          z = offsetY - width / 2;
+        }
+        
+        const y = thickness / 2 + 0.1; // Sur la surface supérieure
+        
+        textMesh.position.set(x, y, z);
+        textMesh.rotation.x = -Math.PI / 2; // Rotation pour être lisible du dessus
+        
+        console.log(`📍 Marking positioned at: [${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        console.log(`   From DSTV coords: [${marking.position[0]}, ${marking.position[1]}]`);
+        console.log(`   Plate dimensions: ${length}x${width}x${thickness}mm`);
+        if (element.metadata?.contour) {
+          console.log(`   Contour points: ${element.metadata.contour.length}`);
+        }
+      }
+      
+      group.add(textMesh);
+      console.log(`🎯 Created visible marking: "${text}" at position ${marking.position}`);
+    });
+    
+    return group;
+  }
+  
+  /**
+   * Crée des gravures réalistes sur la surface pour les markings/scribbings (ancienne méthode)
+   */
+  private createMarkingSprites(markings: any[], element: PivotElement): THREE.Group {
+    const group = new THREE.Group();
+    
+    markings.forEach((marking, index) => {
+      const text = marking.text || 'X';
+      
+      // Créer un plan pour la gravure (decal) - taille plus grande pour être visible
+      const markingSize = marking.size || 20;
+      const decalGeometry = new THREE.PlaneGeometry(markingSize * 4, markingSize * 2);
+      
+      // Créer un canvas pour le texte gravé
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      
+      // Canvas haute résolution pour une gravure nette
+      canvas.width = 512;
+      canvas.height = 256;
+      
+      // Fond transparent
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Style de gravure réaliste avec meilleur contraste
+      if (marking.type === 'scribbing') {
+        // Scribbing : trait profond blanc/jaune visible sur métal
+        // Fond légèrement sombre pour simuler la gravure
+        context.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Texte blanc/jaune pour contraste
+        context.strokeStyle = '#FFFF00';
+        context.lineWidth = 4;
+        context.font = `bold ${canvas.height * 0.7}px "Arial Black"`;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        
+        // Contour noir pour lisibilité
+        context.strokeStyle = '#000000';
+        context.lineWidth = 6;
+        context.strokeText(text, canvas.width / 2, canvas.height / 2);
+        
+        // Texte jaune vif
+        context.fillStyle = '#FFFF00';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        
+        // Contour jaune plus fin
+        context.strokeStyle = '#FFD700';
+        context.lineWidth = 2;
+        context.strokeText(text, canvas.width / 2, canvas.height / 2);
+      } else {
+        // Marking : gravure blanche/noire contrastée
+        // Fond semi-transparent
+        context.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        context.font = `bold ${canvas.height * 0.6}px "Arial"`;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        
+        // Contour noir épais
+        context.strokeStyle = '#000000';
+        context.lineWidth = 4;
+        context.strokeText(text, canvas.width / 2, canvas.height / 2);
+        
+        // Texte blanc
+        context.fillStyle = '#FFFFFF';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+      }
+      
+      // Créer la texture
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      
+      // Matériau opaque pour une meilleure visibilité
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 1.0, // Complètement opaque
+        side: THREE.DoubleSide,
+        depthWrite: true,
+        depthTest: true,
+        alphaTest: 0.01
+      });
+      
+      const decal = new THREE.Mesh(decalGeometry, material);
+      decal.name = `Marking_${index}`;
+      
+      // Positionner le decal sur la surface
+      if (marking.position) {
+        // Pour une plaque, l'épaisseur est sur Y
+        // La surface supérieure est à thickness/2
+        const surfaceY = element.dimensions.thickness ? element.dimensions.thickness / 2 + 0.5 : marking.position[1] + 0.5;
+        
+        decal.position.set(
+          marking.position[0],
+          surfaceY, // Sur la surface supérieure
+          marking.position[2]
+        );
+        
+        console.log(`📍 Decal position: x=${marking.position[0]}, y=${surfaceY}, z=${marking.position[2]}`);
+      }
+      
+      // Orienter selon la face
+      if (marking.rotation) {
+        decal.rotation.set(
+          marking.rotation[0],
+          marking.rotation[1],
+          marking.rotation[2]
+        );
+      } else if (marking.face === 'top') {
+        // Pour une plaque horizontale, rotation pour que le texte soit lisible du dessus
+        decal.rotation.x = -Math.PI / 2;
+      }
+      
+      group.add(decal);
+      
+      console.log(`🔤 Created ${marking.type} engraving: "${text}" at position ${marking.position}`);
+    });
+    
+    return group;
   }
   
   /**
@@ -488,6 +787,7 @@ export class SceneManager {
     // Nettoyer les renderers
     this.geometryConverter.clearCache();
     this.visualFeatureRenderer.dispose();
+    this.featureOutlineRenderer.dispose();
     
     // Émettre l'événement de nettoyage
     this.eventBus.emit('scene:disposed');

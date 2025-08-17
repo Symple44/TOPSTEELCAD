@@ -381,7 +381,9 @@ export class ProfileDatabase {
     
     for (const profiles of this.profiles.values()) {
       for (const profile of profiles) {
-        sources.add(profile.source);
+        if (profile.source) {
+          sources.add(profile.source);
+        }
       }
     }
     

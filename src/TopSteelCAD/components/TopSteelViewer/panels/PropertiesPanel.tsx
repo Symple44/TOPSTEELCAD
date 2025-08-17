@@ -99,6 +99,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     const labels: Record<MaterialType, string> = {
       [MaterialType.PLATE]: 'Plaque',
       [MaterialType.BEAM]: 'Poutre',
+      [MaterialType.COLUMN]: 'Colonne',
       [MaterialType.TUBE]: 'Tube',
       [MaterialType.ANGLE]: 'Cornière',
       [MaterialType.CHANNEL]: 'Profil U',

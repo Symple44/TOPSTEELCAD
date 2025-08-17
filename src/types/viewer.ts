@@ -12,6 +12,7 @@ import { Vector3, Euler, Matrix4 } from 'three';
 export enum MaterialType {
   PLATE = 'plate',           // Tôle/plaque
   BEAM = 'beam',             // Poutre (IPE, HEB, etc.)
+  COLUMN = 'column',         // Colonne/Poteau
   TUBE = 'tube',             // Tube rond/carré
   ANGLE = 'angle',           // Cornière (L)
   CHANNEL = 'channel',       // UPN, UAP

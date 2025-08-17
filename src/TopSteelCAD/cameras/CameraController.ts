@@ -23,11 +23,13 @@ export class CameraController {
   // Configuration
   private config: CameraConfig = {
     fov: 35, // FOV réduit pour vue plus serrée (défaut était 45)
-    near: 1,
-    far: 50000,
+    near: 0.1,  // Plus proche pour les petites pièces
+    far: 100000, // Plus loin pour les grandes structures
     defaultPosition: new THREE.Vector3(2000, 2000, 2000),
     animationDuration: 500,
-    zoomMargin: 1.2,
+    zoomMargin: 1.5, // Marge plus grande pour mieux voir la pièce
+    minZoom: 0.1,   // Zoom minimum (très proche)
+    maxZoom: 100,   // Zoom maximum (très loin)
   };
   
   // État
@@ -413,6 +415,9 @@ export class CameraController {
   public fitToElements(elements: PivotElement[], animated: boolean = true): void {
     if (elements.length === 0) return;
     
+    // Mettre à jour les limites pour tous les éléments
+    this.updateControlsLimits(elements);
+    
     const box = new THREE.Box3();
     elements.forEach(element => {
       const pos = new THREE.Vector3(...element.position);
@@ -451,6 +456,99 @@ export class CameraController {
   }
   
   /**
+   * Zoom to fit sur l'élément sélectionné ou tous les éléments
+   */
+  public zoomToFit(selectedId?: string | null, elements?: PivotElement[], animated: boolean = true): void {
+    if (!elements || elements.length === 0) return;
+    
+    let box = new THREE.Box3();
+    
+    if (selectedId) {
+      // Zoom sur l'élément sélectionné
+      const element = elements.find(e => e.id === selectedId);
+      if (element) {
+        const pos = new THREE.Vector3(...element.position);
+        const halfSize = new THREE.Vector3(
+          (element.dimensions.length || 100) / 2,
+          (element.dimensions.height || element.dimensions.thickness || 10) / 2,
+          (element.dimensions.width || 100) / 2
+        );
+        box.setFromCenterAndSize(pos, halfSize.multiplyScalar(2));
+        
+        // Mettre à jour les limites pour cet élément
+        this.updateControlsLimits(elements, selectedId);
+      }
+    } else {
+      // Zoom sur tous les éléments
+      elements.forEach(element => {
+        const pos = new THREE.Vector3(...element.position);
+        const halfSize = new THREE.Vector3(
+          (element.dimensions.length || 100) / 2,
+          (element.dimensions.height || element.dimensions.thickness || 10) / 2,
+          (element.dimensions.width || 100) / 2
+        );
+        box.expandByPoint(pos.clone().add(halfSize));
+        box.expandByPoint(pos.clone().sub(halfSize));
+      });
+      
+      // Mettre à jour les limites pour tous les éléments
+      this.updateControlsLimits(elements);
+    }
+    
+    if (box.isEmpty()) return;
+    
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    
+    // Calculer la distance optimale avec un peu plus de marge
+    const distance = this.isOrthographic
+      ? maxDim * 2
+      : Math.abs(maxDim / Math.tan((this.perspectiveCamera.fov * Math.PI / 180) / 2)) * 2.5;
+    
+    // Garder la direction actuelle de la caméra
+    const currentDirection = this.activeCamera.position.clone().sub(
+      this.controls ? this.controls.target : new THREE.Vector3()
+    ).normalize();
+    
+    const newPosition = center.clone().add(currentDirection.multiplyScalar(distance));
+    
+    if (animated && this.controls) {
+      // Animation fluide
+      const startTarget = this.controls.target.clone();
+      const startPosition = this.activeCamera.position.clone();
+      const duration = 600;
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const eased = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        
+        this.controls.target.lerpVectors(startTarget, center, eased);
+        this.activeCamera.position.lerpVectors(startPosition, newPosition, eased);
+        this.activeCamera.lookAt(this.controls.target);
+        this.controls.update();
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      animate();
+    } else if (this.controls) {
+      // Application immédiate
+      this.controls.target.copy(center);
+      this.activeCamera.position.copy(newPosition);
+      this.activeCamera.lookAt(center);
+      this.controls.update();
+    }
+  }
+  
+  /**
    * Gère le redimensionnement
    */
   private handleResize(): void {
@@ -476,18 +574,70 @@ export class CameraController {
     if (data.elementId) {
       const element = data.elements.find(e => e.id === data.elementId);
       if (element) {
-        // Centrer sur l'élément sélectionné
-        const center = new THREE.Vector3(...element.position);
-        if (this.controls) {
-          this.controls.target.copy(center);
-          this.controls.update();
-        }
+        // Mettre à jour les limites des contrôles pour l'élément sélectionné
+        this.updateControlsLimits(data.elements, data.elementId);
         
-        // Ajuster le zoom si orthographique
-        if (this.isOrthographic) {
-          this.updateOrthographicZoom(data.elements, data.elementId, this.currentView);
+        // Créer une boîte englobante pour l'élément
+        const box = new THREE.Box3();
+        const pos = new THREE.Vector3(...element.position);
+        const halfSize = new THREE.Vector3(
+          (element.dimensions.length || 100) / 2,
+          (element.dimensions.height || element.dimensions.thickness || 10) / 2,
+          (element.dimensions.width || 100) / 2
+        );
+        box.setFromCenterAndSize(pos, halfSize.multiplyScalar(2));
+        
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        
+        // Calculer la distance optimale pour voir l'élément
+        let optimalDistance = maxDim * 2.5; // Distance pour bien voir la pièce
+        
+        if (this.controls) {
+          // Animation fluide vers le nouvel élément
+          const startTarget = this.controls.target.clone();
+          const startPosition = this.activeCamera.position.clone();
+          
+          // Calculer la nouvelle position en gardant la même direction relative
+          const direction = startPosition.clone().sub(startTarget).normalize();
+          const newPosition = center.clone().add(direction.multiplyScalar(optimalDistance));
+          
+          // Animer la transition
+          const duration = 800;
+          const startTime = Date.now();
+          
+          const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing smooth
+            const eased = progress < 0.5
+              ? 2 * progress * progress
+              : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            
+            // Interpoler target et position
+            this.controls.target.lerpVectors(startTarget, center, eased);
+            this.activeCamera.position.lerpVectors(startPosition, newPosition, eased);
+            this.activeCamera.lookAt(this.controls.target);
+            this.controls.update();
+            
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            } else {
+              // Ajuster le zoom final si orthographique
+              if (this.isOrthographic) {
+                this.updateOrthographicZoom(data.elements, data.elementId, this.currentView);
+              }
+            }
+          };
+          
+          animate();
         }
       }
+    } else {
+      // Aucune sélection : réinitialiser les limites pour tous les éléments
+      this.updateControlsLimits(data.elements);
     }
   }
   
@@ -517,7 +667,113 @@ export class CameraController {
   public attachControls(controls: any): void {
     this.controls = controls;
     this.controls.object = this.activeCamera;
+    
+    // Configurer les limites de zoom adaptatives
+    this.updateControlsLimits();
+    
     this.controls.update();
+  }
+  
+  /**
+   * Met à jour les limites des contrôles en fonction du contexte
+   */
+  private updateControlsLimits(elements?: PivotElement[], selectedId?: string | null): void {
+    if (!this.controls) return;
+    
+    // Calculer la taille de la cible
+    const targetSize = this.calculateTargetSize(elements, selectedId);
+    const maxDim = Math.max(targetSize.width, targetSize.height, targetSize.depth);
+    const minDim = Math.min(targetSize.width, targetSize.height, targetSize.depth);
+    
+    // Adapter les limites de distance pour OrbitControls
+    // Distance minimale : permettre de s'approcher très près pour les détails
+    this.controls.minDistance = minDim * 0.1; // 10% de la plus petite dimension
+    
+    // Distance maximale : permettre de voir toute la structure avec de la marge
+    this.controls.maxDistance = maxDim * 10; // 10x la plus grande dimension
+    
+    // Limites de zoom pour la caméra orthographique
+    if (this.isOrthographic && this.orthographicCamera) {
+      this.controls.minZoom = 0.01; // Permet de zoomer très proche
+      this.controls.maxZoom = 100;  // Permet de dézoomer très loin
+    }
+    
+    console.log(`📐 Updated camera limits: minDist=${this.controls.minDistance}, maxDist=${this.controls.maxDistance}`);
+  }
+  
+  /**
+   * Bascule vers la caméra orthographique
+   */
+  public switchToOrthographic(): void {
+    if (!this.isOrthographic) {
+      // Préserver la position et l'orientation actuelles
+      const currentPosition = this.activeCamera.position.clone();
+      const currentTarget = this.controls ? this.controls.target.clone() : new THREE.Vector3(0, 0, 0);
+      
+      // Calculer la distance pour ajuster le zoom orthographique
+      const distance = currentPosition.distanceTo(currentTarget);
+      const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+      
+      // Ajuster la taille du frustum basé sur la distance
+      const frustumSize = distance * 0.5; // Ajustez ce facteur selon les besoins
+      
+      this.orthographicCamera.left = -frustumSize * aspect;
+      this.orthographicCamera.right = frustumSize * aspect;
+      this.orthographicCamera.top = frustumSize;
+      this.orthographicCamera.bottom = -frustumSize;
+      this.orthographicCamera.updateProjectionMatrix();
+      
+      // Transférer position et orientation
+      this.orthographicCamera.position.copy(currentPosition);
+      this.orthographicCamera.lookAt(currentTarget);
+      
+      // Changer la caméra active
+      this.activeCamera = this.orthographicCamera;
+      this.isOrthographic = true;
+      
+      // Mettre à jour les contrôles
+      if (this.controls) {
+        this.controls.object = this.activeCamera;
+        this.controls.target.copy(currentTarget);
+        this.controls.update();
+      }
+      
+      this.eventBus.emit('camera:projectionChanged', { 
+        type: 'orthographic',
+        camera: this.activeCamera 
+      });
+    }
+  }
+  
+  /**
+   * Bascule vers la caméra perspective
+   */
+  public switchToPerspective(): void {
+    if (this.isOrthographic) {
+      // Préserver la position et l'orientation actuelles
+      const currentPosition = this.activeCamera.position.clone();
+      const currentTarget = this.controls ? this.controls.target.clone() : new THREE.Vector3(0, 0, 0);
+      
+      // Transférer position et orientation
+      this.perspectiveCamera.position.copy(currentPosition);
+      this.perspectiveCamera.lookAt(currentTarget);
+      
+      // Changer la caméra active
+      this.activeCamera = this.perspectiveCamera;
+      this.isOrthographic = false;
+      
+      // Mettre à jour les contrôles
+      if (this.controls) {
+        this.controls.object = this.activeCamera;
+        this.controls.target.copy(currentTarget);
+        this.controls.update();
+      }
+      
+      this.eventBus.emit('camera:projectionChanged', { 
+        type: 'perspective',
+        camera: this.activeCamera 
+      });
+    }
   }
   
   /**

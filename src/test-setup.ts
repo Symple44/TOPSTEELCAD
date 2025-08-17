@@ -1,61 +1,30 @@
-// Test setup for Vitest
 import { vi } from 'vitest';
 
-// Mock Three.js WebGL context
-Object.defineProperty(window, 'WebGLRenderingContext', {
-  value: vi.fn(),
-});
-
-// Mock canvas getContext
-HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
-  fillRect: vi.fn(),
-  clearRect: vi.fn(),
-  getImageData: vi.fn(() => ({
-    data: new Array(4),
-  })),
-  putImageData: vi.fn(),
-  createImageData: vi.fn(() => []),
-  setTransform: vi.fn(),
-  drawImage: vi.fn(),
-  save: vi.fn(),
-  fillText: vi.fn(),
-  restore: vi.fn(),
-  beginPath: vi.fn(),
-  moveTo: vi.fn(),
-  lineTo: vi.fn(),
-  closePath: vi.fn(),
-  stroke: vi.fn(),
-  translate: vi.fn(),
-  scale: vi.fn(),
-  rotate: vi.fn(),
-  arc: vi.fn(),
-  fill: vi.fn(),
-  measureText: vi.fn(() => ({ width: 0 })),
-  transform: vi.fn(),
-  rect: vi.fn(),
-  clip: vi.fn(),
+// Mock Three.js modules if needed
+vi.mock('three', () => ({
+  Vector3: vi.fn().mockImplementation((x = 0, y = 0, z = 0) => ({ x, y, z })),
+  Quaternion: vi.fn().mockImplementation((x = 0, y = 0, z = 0, w = 1) => ({ x, y, z, w })),
+  Color: vi.fn().mockImplementation((r = 1, g = 1, b = 1) => ({ r, g, b })),
+  Material: vi.fn(),
+  MeshStandardMaterial: vi.fn(),
+  WebGLRenderer: vi.fn(),
+  Scene: vi.fn(),
+  PerspectiveCamera: vi.fn(),
+  BoxGeometry: vi.fn(),
+  BufferGeometry: vi.fn(),
+  Mesh: vi.fn(),
+  Group: vi.fn(),
+  Object3D: vi.fn(),
+  Raycaster: vi.fn(),
+  ArrowHelper: vi.fn(),
+  LineBasicMaterial: vi.fn(),
+  LineSegments: vi.fn(),
+  BufferAttribute: vi.fn(),
+  Float32BufferAttribute: vi.fn(),
+  DoubleSide: 2,
+  FrontSide: 0,
+  BackSide: 1,
 }));
 
-// Mock requestAnimationFrame
-global.requestAnimationFrame = vi.fn((cb) => setTimeout(cb, 16));
-global.cancelAnimationFrame = vi.fn();
-
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
-
-// Mock window dimensions
-Object.defineProperty(window, 'innerWidth', {
-  writable: true,
-  configurable: true,
-  value: 1024,
-});
-
-Object.defineProperty(window, 'innerHeight', {
-  writable: true,
-  configurable: true,
-  value: 768,
-});
+// Global test timeout
+vi.setConfig({ testTimeout: 10000 });

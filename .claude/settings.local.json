@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint)",
+      "Bash(npm test)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm audit fix:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx vite build:*)",
+      "Bash(rm:*)",
+      "WebFetch(domain:www.bauforumstahl.de)",
+      "WebSearch",
+      "Bash(npx vitest run:*)",
+      "Bash(node:*)",
+      "Bash(touch:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm test:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -253,6 +253,20 @@ export class ViewerEngine {
   }
   
   /**
+   * Méthode publique pour démarrer le rendu
+   */
+  public start(): void {
+    this.startRendering();
+  }
+  
+  /**
+   * Méthode publique pour arrêter le rendu
+   */
+  public stop(): void {
+    this.stopRendering();
+  }
+  
+  /**
    * Boucle d'animation
    */
   private animate = (): void => {
@@ -554,8 +568,16 @@ export class ViewerEngine {
     return this.cameraController?.camera || null;
   }
   
+  getRenderer(): THREE.WebGLRenderer | null {
+    return this.renderer || null;
+  }
+  
   getControlsManager(): ControlsManager | null {
     return this.controlsManager || null;
+  }
+  
+  getCameraController(): CameraController | null {
+    return this.cameraController || null;
   }
   
   get elements(): Map<string, PivotElement> {

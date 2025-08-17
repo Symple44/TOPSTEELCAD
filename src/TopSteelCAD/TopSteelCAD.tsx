@@ -2,17 +2,18 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-import { PivotElement } from '../types/viewer';
+import { PivotElement, MaterialType } from '../types/viewer';
 import { Loader2 } from 'lucide-react';
 import { ViewerEngine } from './core/ViewerEngine';
 import { EventBus } from './core/EventBus';
-import { SnapMeasurementTool } from './tools/SnapMeasurementTool';
+import { SimpleMeasurementTool } from './tools/SimpleMeasurementTool';
 
 /**
  * Props du composant TopSteelCAD
  */
 interface TopSteelCADProps {
   elements?: PivotElement[];
+  selectedElementIds?: string[];  // Add prop for controlled selection
   onElementSelect?: (ids: string[]) => void;
   onElementChange?: (element: PivotElement) => void;
   onThemeChange?: (theme: 'light' | 'dark') => void;
@@ -28,6 +29,7 @@ interface TopSteelCADProps {
  */
 export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
   elements: initialElements = [],
+  selectedElementIds,
   onElementSelect,
   onElementChange,
   onThemeChange,
@@ -38,10 +40,10 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>(selectedElementIds || []);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [measurementMode, setMeasurementMode] = useState(false);
-  const measurementToolRef = useRef<SnapMeasurementTool | null>(null);
+  const measurementToolRef = useRef<SimpleMeasurementTool | null>(null);
   const [snapInfo, setSnapInfo] = useState<{ type: string; hasSnap: boolean } | null>(null);
   const [measurementProgress, setMeasurementProgress] = useState<{ pointsCount: number; total: number }>({ pointsCount: 0, total: 2 });
 
@@ -50,6 +52,17 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
   const eventBusRef = useRef<EventBus | null>(null);
   const [isEngineReady, setIsEngineReady] = useState(false);
   const elementsAddedRef = useRef(false);
+
+  // Sync selectedElementIds prop with internal state
+  useEffect(() => {
+    if (selectedElementIds !== undefined && JSON.stringify(selectedElementIds) !== JSON.stringify(selectedIds)) {
+      setSelectedIds(selectedElementIds);
+      // Update visual selection
+      if (engineRef.current) {
+        updateSelectionVisuals(selectedElementIds);
+      }
+    }
+  }, [selectedElementIds]);
 
   /**
    * Calcule la bounding box de tous les éléments
@@ -139,7 +152,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
     if (!scene) return;
     
     // Supprimer TOUTES les grilles existantes pour éviter les doublons
-    const gridsToRemove = [];
+    const gridsToRemove: THREE.Object3D[] = [];
     scene.traverse((child) => {
       if (child instanceof THREE.GridHelper) {
         gridsToRemove.push(child);
@@ -180,6 +193,13 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
             precision: 'highp', // Haute précision
             powerPreference: 'high-performance'
           });
+          
+          // Expose references for tools (ProfessionalViewer)
+          if (canvasRef.current) {
+            (canvasRef.current as any).__renderer = engineRef.current.getRenderer();
+            (canvasRef.current as any).__scene = engineRef.current.getScene();
+            (canvasRef.current as any).__camera = engineRef.current.getCamera();
+          }
         
         
         // Forcer un resize immédiat après l'initialisation
@@ -236,7 +256,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
           
           // Axes plus visibles mais discrets
           const axesHelper = new THREE.AxesHelper(1500);
-          const axesMaterials = axesHelper.material as THREE.LineBasicMaterial[];
+          const axesMaterials = (axesHelper as any).material as THREE.LineBasicMaterial[];
           if (axesMaterials && axesMaterials.length >= 3) {
             axesMaterials[0].color = new THREE.Color('#dc2626'); // X - Rouge CAD
             axesMaterials[1].color = new THREE.Color('#16a34a'); // Y - Vert CAD  
@@ -278,30 +298,27 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
         }
         
         // Initialiser l'outil de mesure
-        if (scene && camera && canvasRef.current && eventBusRef.current) {
-          measurementToolRef.current = new SnapMeasurementTool(
-            scene,
-            camera,
-            canvasRef.current,
-            eventBusRef.current
-          );
+        if (scene && camera && canvasRef.current) {
+          measurementToolRef.current = new SimpleMeasurementTool(scene, camera, canvasRef.current);
           
           // Configuration des événements de l'outil de mesure
-          eventBusRef.current.on('snap-measurement:snapDetected', (data: any) => {
-            setSnapInfo({ type: data.type, hasSnap: true });
-          });
-          
-          eventBusRef.current.on('snap-measurement:snapCleared', () => {
-            setSnapInfo(null);
-          });
-          
-          eventBusRef.current.on('snap-measurement:pointAdded', (data: any) => {
-            setMeasurementProgress({ pointsCount: data.index, total: data.total });
-          });
-          
-          eventBusRef.current.on('snap-measurement:created', (data: any) => {
-            setMeasurementProgress({ pointsCount: 0, total: 2 });
-          });
+          if (eventBusRef.current) {
+            eventBusRef.current.on('snap-measurement:snapDetected', (data: any) => {
+              setSnapInfo({ type: data.type, hasSnap: true });
+            });
+            
+            eventBusRef.current.on('snap-measurement:snapCleared', () => {
+              setSnapInfo(null);
+            });
+            
+            eventBusRef.current.on('snap-measurement:pointAdded', (data: any) => {
+              setMeasurementProgress({ pointsCount: data.index, total: data.total });
+            });
+            
+            eventBusRef.current.on('snap-measurement:created', (data: any) => {
+              setMeasurementProgress({ pointsCount: 0, total: 2 });
+            });
+          }
         }
         
         // Ne PAS ajouter les éléments ici - attendre que le moteur soit complètement prêt
@@ -316,6 +333,10 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
     
     return () => {
       // Nettoyage
+      if (measurementToolRef.current) {
+        measurementToolRef.current.dispose();
+        measurementToolRef.current = null;
+      }
       if (engineRef.current) {
         engineRef.current.dispose();
         engineRef.current = null;
@@ -362,6 +383,16 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
       hasMoved = false;
     };
     
+    // Gestion du mousemove pour le snap de mesure
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!engineRef.current) return;
+      
+      // Si en mode mesure, utiliser l'outil de mesure pour le snap
+      if (measurementMode && measurementToolRef.current) {
+        measurementToolRef.current.handleMouseMove(event);
+      }
+    };
+    
     // Gestion du mousemove combiné (drag + survol)
     const handleMouseMoveCombi = (event: MouseEvent) => {
       // Détecter le drag si souris enfoncée
@@ -371,12 +402,6 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
         if (deltaX > 3 || deltaY > 3) { // Seuil de 3px pour éviter les micro-mouvements
           hasMoved = true;
         }
-      }
-      
-      // Utiliser l'outil de mesure si en mode mesure et pas de drag
-      if (!isMouseDown && measurementMode && measurementToolRef.current) {
-        measurementToolRef.current.handleMouseMove(event);
-        return;
       }
       
       // Survol normal (hors mode mesure)
@@ -564,6 +589,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
             event.preventDefault();
             if (measurementToolRef.current) {
               measurementToolRef.current.clearAllMeasurements();
+              console.log('🗑️ Mesures effacées');
             }
           }
           break;
@@ -601,6 +627,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
     // Ajouter les écouteurs - Nouvelle approche pour éviter conflit avec rotation
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mousemove', handleMouseMoveCombi);
+    canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     
     // Focus sur canvas pour capturer les événements clavier
@@ -612,6 +639,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
     return () => {
       canvas.removeEventListener('mousedown', handleMouseDown);
       canvas.removeEventListener('mousemove', handleMouseMoveCombi);
+      canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('keydown', handleKeyDown);
     };
@@ -855,9 +883,15 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
           alignItems: 'center',
           gap: '1rem'
         }}>
-          <Loader2 className="animate-spin" size={48} />
+          <Loader2 
+            size={48} 
+            style={{
+              animation: 'spin 1s linear infinite',
+              color: theme === 'dark' ? '#0ea5e9' : '#3b82f6'
+            }}
+          />
           <span style={{ color: theme === 'dark' ? '#fff' : '#000' }}>
-            Chargement...
+            Initialisation de la scène 3D...
           </span>
         </div>
       )}
@@ -1089,10 +1123,10 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
                 if (!element) return `1 élément sélectionné`;
                 
                 // Déterminer le type d'élément
-                const isPlate = element.materialType === 'PLATE' || 
+                const isPlate = element.materialType === MaterialType.PLATE || 
                                element.name?.toLowerCase().includes('plaque') ||
                                element.name?.toLowerCase().includes('plate');
-                const isBeam = element.materialType === 'BEAM' || 
+                const isBeam = element.materialType === MaterialType.BEAM || 
                               element.metadata?.profile;
                 
                 return (

@@ -82,6 +82,14 @@ export interface FeatureParameters {
   // Pour trous standards
   diameter?: number;
   depth?: number;
+  holeType?: 'round' | 'slotted' | 'square' | 'rectangular';
+  
+  // Pour trous oblongs (slotted holes)
+  slottedLength?: number;  // Longueur d'élongation
+  slottedAngle?: number;   // Angle d'orientation en degrés
+  
+  // Pour trous rectangulaires/carrés
+  height?: number;
   
   // Pour trous taraudés
   threadPitch?: number;
@@ -111,7 +119,7 @@ export interface FeatureParameters {
   width?: number;
   
   // Pour contours
-  points?: THREE.Vector2[];
+  points?: Array<[number, number]>;
   closed?: boolean;
   bulge?: number[];  // Pour les arcs dans les contours
   
@@ -146,6 +154,9 @@ export interface FeatureParameters {
   copingType?: string;
   targetProfile?: string;
   clearance?: number;
+  
+  // Pour les découpes
+  isTransverse?: boolean;
 }
 
 /**

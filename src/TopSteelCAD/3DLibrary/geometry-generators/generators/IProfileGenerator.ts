@@ -68,7 +68,7 @@ export class IProfileGenerator extends BaseProfileGenerator {
   }
 
   /**
-   * Crée le profil 2D d'une poutre en I
+   * Crée le profil 2D d'une poutre en I (tracé direct du contour)
    */
   private createIProfile(params: {
     height: number;
@@ -78,115 +78,42 @@ export class IProfileGenerator extends BaseProfileGenerator {
     rootRadius: number;
     toeRadius: number;
   }): Shape {
-    const { height, width, webThickness, flangeThickness, rootRadius, toeRadius } = params;
+    const { height, width, webThickness, flangeThickness } = params;
     
     const shape = new Shape();
     
-    // Dimensions calculées
-    const h = height;
-    const w = width;
-    const tw = webThickness;
+    // Demi-dimensions
+    const hw = width / 2;
+    const htw = webThickness / 2;
+    const hh = height / 2;
     const tf = flangeThickness;
-    const r1 = rootRadius;
-    const r2 = toeRadius;
     
-    // Demi-largeur de semelle et d'âme
-    const hw = w / 2;
-    const htw = tw / 2;
+    // Profil I - tracé du contour réel (sens anti-horaire)
+    // Commencer par le coin inférieur gauche de la semelle inférieure
+    shape.moveTo(-hw, -hh);
     
-    // Hauteur entre les semelles
-    const webHeight = h - 2 * tf;
+    // Semelle inférieure
+    shape.lineTo(hw, -hh);                    // Base droite
+    shape.lineTo(hw, -hh + tf);               // Montée droite
+    shape.lineTo(htw, -hh + tf);              // Vers âme
     
-    // Commencer en bas à gauche de la semelle inférieure
-    shape.moveTo(-hw, -h / 2);
+    // Âme droite
+    shape.lineTo(htw, hh - tf);               // Âme montée
     
-    // Semelle inférieure (de gauche à droite)
-    if (r2 > 0) {
-      shape.lineTo(hw - r2, -h / 2);
-      shape.quadraticCurveTo(hw, -h / 2, hw, -h / 2 + r2);
-    } else {
-      shape.lineTo(hw, -h / 2);
-    }
+    // Semelle supérieure
+    shape.lineTo(hw, hh - tf);                // Vers semelle sup
+    shape.lineTo(hw, hh);                     // Montée finale
+    shape.lineTo(-hw, hh);                    // Sommet
+    shape.lineTo(-hw, hh - tf);               // Descente gauche
     
-    // Montée côté droit semelle inférieure
-    shape.lineTo(hw, -h / 2 + tf - r1);
+    // Âme gauche  
+    shape.lineTo(-htw, hh - tf);              // Vers âme gauche
+    shape.lineTo(-htw, -hh + tf);             // Âme descente
     
-    // Raccordement âme-semelle inférieure droite
-    if (r1 > 0) {
-      shape.quadraticCurveTo(hw, -h / 2 + tf, htw + r1, -h / 2 + tf);
-      shape.lineTo(htw, -h / 2 + tf + r1);
-    } else {
-      shape.lineTo(htw, -h / 2 + tf);
-    }
+    // Retour semelle inférieure
+    shape.lineTo(-hw, -hh + tf);              // Vers semelle inf
     
-    // Âme côté droit
-    shape.lineTo(htw, h / 2 - tf - r1);
-    
-    // Raccordement âme-semelle supérieure droite  
-    if (r1 > 0) {
-      shape.quadraticCurveTo(htw, h / 2 - tf, htw + r1, h / 2 - tf);
-      shape.lineTo(hw, h / 2 - tf);
-    } else {
-      shape.lineTo(hw, h / 2 - tf);
-    }
-    
-    // Montée côté droit semelle supérieure
-    if (r1 > 0) {
-      shape.lineTo(hw, h / 2 - r2);
-    } else {
-      shape.lineTo(hw, h / 2 - r2);
-    }
-    
-    // Semelle supérieure côté droit
-    if (r2 > 0) {
-      shape.quadraticCurveTo(hw, h / 2, hw - r2, h / 2);
-    } else {
-      shape.lineTo(hw, h / 2);
-    }
-    
-    // Semelle supérieure (de droite à gauche)
-    shape.lineTo(-hw + r2, h / 2);
-    
-    // Coin supérieur gauche
-    if (r2 > 0) {
-      shape.quadraticCurveTo(-hw, h / 2, -hw, h / 2 - r2);
-    } else {
-      shape.lineTo(-hw, h / 2);
-    }
-    
-    // Descente côté gauche semelle supérieure
-    shape.lineTo(-hw, h / 2 - tf + r1);
-    
-    // Raccordement âme-semelle supérieure gauche
-    if (r1 > 0) {
-      shape.quadraticCurveTo(-hw, h / 2 - tf, -htw - r1, h / 2 - tf);
-      shape.lineTo(-htw, h / 2 - tf - r1);
-    } else {
-      shape.lineTo(-htw, h / 2 - tf);
-    }
-    
-    // Âme côté gauche
-    shape.lineTo(-htw, -h / 2 + tf + r1);
-    
-    // Raccordement âme-semelle inférieure gauche
-    if (r1 > 0) {
-      shape.quadraticCurveTo(-htw, -h / 2 + tf, -htw - r1, -h / 2 + tf);
-      shape.lineTo(-hw, -h / 2 + tf);
-    } else {
-      shape.lineTo(-hw, -h / 2 + tf);
-    }
-    
-    // Descente côté gauche semelle inférieure
-    shape.lineTo(-hw, -h / 2 + r2);
-    
-    // Coin inférieur gauche
-    if (r2 > 0) {
-      shape.quadraticCurveTo(-hw, -h / 2, -hw + r2, -h / 2);
-    } else {
-      shape.lineTo(-hw, -h / 2);
-    }
-    
-    // Fermer le profil
+    // Fermer le profil (retour au point de départ)
     shape.closePath();
     
     return shape;

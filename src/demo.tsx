@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { SimplifiedViewer, initialize3DLibrary, createFromDatabase } from './TopSteelCAD';
+import { MinimalViewer } from './TopSteelCAD/MinimalViewer';
+import { StandardViewer } from './TopSteelCAD/StandardViewer';
+import { ProfessionalViewer } from './TopSteelCAD/ProfessionalViewer';
 import { PivotElement, MaterialType } from './types/viewer';
 
 // Données de test simples
@@ -26,11 +28,11 @@ const createTestElements = (): PivotElement[] => {
       material: {
         grade: 'S235',
         density: 7850,
-        color: '#6b7280', // Gray 500 - Acier CAD mat
+        color: '#3b82f6',
         opacity: 1.0,
-        metallic: 0.2, // Très faible métallicité pour CAD
-        roughness: 0.8, // Surface mate industrielle
-        reflectivity: 0.1 // Minimal pour éviter reflets
+        metallic: 0.2,
+        roughness: 0.8,
+        reflectivity: 0.1
       },
       metadata: {
         profile: 'IPE 300',
@@ -59,15 +61,48 @@ const createTestElements = (): PivotElement[] => {
       material: {
         grade: 'S355',
         density: 7850,
-        color: '#4b5563', // Gray 600 - Nuance S355 mate
+        color: '#10b981',
         opacity: 1.0,
-        metallic: 0.25, // Légèrement plus métallique que S235
-        roughness: 0.75, // Surface mate technique
-        reflectivity: 0.15 // Minimal pour éviter reflets
+        metallic: 0.25,
+        roughness: 0.75,
+        reflectivity: 0.15
       },
       metadata: {
         profile: 'HEA 200',
         weight: 42.3
+      },
+      visible: true,
+      createdAt: new Date()
+    },
+    {
+      id: 'test-column-1',
+      name: 'HEB 300 - Colonne',
+      materialType: MaterialType.COLUMN,
+      dimensions: {
+        length: 3500,
+        width: 300,
+        height: 300,
+        thickness: 11,
+        flangeWidth: 300,
+        flangeThickness: 19,
+        webThickness: 11,
+        webHeight: 262
+      },
+      position: [-2000, 0, 0],
+      rotation: [Math.PI / 2, 0, 0],
+      scale: [1, 1, 1],
+      material: {
+        grade: 'S355',
+        density: 7850,
+        color: '#f59e0b',
+        opacity: 1.0,
+        metallic: 0.3,
+        roughness: 0.7,
+        reflectivity: 0.2
+      },
+      metadata: {
+        profile: 'HEB 300',
+        weight: 117
       },
       visible: true,
       createdAt: new Date()
@@ -88,11 +123,11 @@ const createTestElements = (): PivotElement[] => {
       material: {
         grade: 'S235',
         density: 7850,
-        color: '#9ca3af', // Gray 400 - Plaque technique mate
+        color: '#6b7280',
         opacity: 1.0,
-        metallic: 0.15, // Très faible pour plaque CAD
-        roughness: 0.85, // Surface mate usinée
-        reflectivity: 0.05 // Quasi-nul pour éviter reflets
+        metallic: 0.15,
+        roughness: 0.85,
+        reflectivity: 0.05
       },
       metadata: {
         thickness: 15,
@@ -106,82 +141,282 @@ const createTestElements = (): PivotElement[] => {
   return elements;
 };
 
+// Types de modes disponibles
+type ViewerMode = 'minimal' | 'standard' | 'professional';
+
 // Composant de démonstration
 const DemoApp: React.FC = () => {
-  const [elements, setElements] = React.useState<PivotElement[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [mode, setMode] = useState<ViewerMode>('standard');
+  const [elements, setElements] = useState<PivotElement[]>([]);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [viewerKey, setViewerKey] = useState(0); // Clé pour forcer le re-render
+  const [isLoadingElements, setIsLoadingElements] = useState(false); // État de chargement du bouton
 
-  // Gestionnaire de changement de thème
-  const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
-  };
-
-  React.useEffect(() => {
-    const initDemo = async () => {
-      try {
-        // Initialiser la 3DLibrary
-        await initialize3DLibrary();
-        
-        // Créer les éléments de test
-        const testElements = createTestElements();
-        setElements(testElements);
-        
-        // Simuler un temps de chargement pour l'UX
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
-        
-      } catch (error) {
-        console.error('❌ Erreur lors de l\'initialisation:', error);
-        setIsLoading(false);
-      }
-    };
-
-    initDemo();
+  // Simplifier complètement - pas de chargement asynchrone pour l'instant
+  useEffect(() => {
+    console.log('Demo montée, pas de chargement asynchrone');
   }, []);
 
+
   const handleElementSelect = (ids: string[]) => {
-    setSelectedIds(ids);
+    console.log('Elements sélectionnés:', ids);
   };
 
   const handleElementChange = (element: PivotElement) => {
     setElements(prev => prev.map(el => el.id === element.id ? element : el));
   };
 
-  if (isLoading) {
-    return (
-      <div style={{
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '1rem',
-        color: '#fff'
-      }}>
-        <div style={{ fontSize: '2rem' }}>🔄</div>
-        <div>Chargement de TopSteelCAD...</div>
-      </div>
-    );
-  }
+  const handleThemeChange = (newTheme: 'light' | 'dark') => {
+    setTheme(newTheme);
+  };
+
+  const handleLoadTestElements = async () => {
+    setIsLoadingElements(true);
+    
+    // Simuler un délai pour l'animation
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    if (elements.length > 0) {
+      // Animation de suppression
+      setElements([]);
+    } else {
+      // Animation de chargement
+      const testElements = createTestElements();
+      setElements(testElements);
+    }
+    
+    // Forcer le re-render du viewer en incrémentant la clé
+    setViewerKey(prev => prev + 1);
+    
+    setTimeout(() => {
+      setIsLoadingElements(false);
+    }, 500);
+  };
 
   return (
     <div style={{ 
-      height: '100%', 
-      position: 'relative',
-      backgroundColor: theme === 'dark' ? '#0a0a0a' : '#e6f2ff',
-      transition: 'background-color 0.3s ease'
+      height: '100vh',
+      backgroundColor: '#0f172a',
+      display: 'flex',
+      flexDirection: 'column'
     }}>
-      <SimplifiedViewer
-        elements={elements}
-        onElementSelect={handleElementSelect}
-        onElementChange={handleElementChange}
-        onThemeChange={handleThemeChange}
-        theme={theme}
-        className="demo-viewer"
-      />
+      {/* Header avec sélecteur de mode */}
+      <div style={{
+        padding: '1.5rem',
+        backgroundColor: '#1e293b',
+        borderBottom: '1px solid #334155',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '1.5rem' }}>🏗️</span>
+            <h1 style={{ 
+              margin: 0, 
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: '#f1f5f9'
+            }}>
+              TopSteelCAD Viewer Demo
+            </h1>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <label style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Mode:</label>
+              <select 
+                value={mode} 
+                onChange={(e) => setMode(e.target.value as ViewerMode)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#334155',
+                  color: '#f1f5f9',
+                  border: '1px solid #475569',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                <option value="minimal">🔹 Mode Minimal</option>
+                <option value="standard">🔷 Mode Standard</option>
+                <option value="professional">🔶 Mode Professionnel</option>
+              </select>
+            </div>
+            
+            <button
+              onClick={handleLoadTestElements}
+              disabled={isLoadingElements}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: isLoadingElements 
+                  ? '#6b7280' 
+                  : elements.length > 0 ? '#dc2626' : '#0ea5e9',
+                color: '#f1f5f9',
+                border: '1px solid ' + (isLoadingElements 
+                  ? '#9ca3af' 
+                  : elements.length > 0 ? '#ef4444' : '#38bdf8'),
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                cursor: isLoadingElements ? 'wait' : 'pointer',
+                outline: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.3s ease',
+                transform: isLoadingElements ? 'scale(0.95)' : 'scale(1)',
+                opacity: isLoadingElements ? 0.8 : 1,
+                position: 'relative',
+                overflow: 'hidden',
+                minWidth: '180px',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoadingElements) {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.backgroundColor = elements.length > 0 ? '#b91c1c' : '#0284c7';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoadingElements) {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.backgroundColor = elements.length > 0 ? '#dc2626' : '#0ea5e9';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
+            >
+              {/* Effet de loading avec animation */}
+              {isLoadingElements && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                  animation: 'shimmer 1s infinite'
+                }} />
+              )}
+              
+              {/* Icône animée */}
+              <span style={{
+                display: 'inline-block',
+                animation: isLoadingElements ? 'spin 1s linear infinite' : 'none',
+                transition: 'transform 0.3s ease'
+              }}>
+                {isLoadingElements 
+                  ? '⏳' 
+                  : elements.length > 0 ? '🗑️' : '⚡'}
+              </span>
+              
+              {/* Texte */}
+              <span style={{
+                transition: 'opacity 0.3s ease',
+                opacity: isLoadingElements ? 0.7 : 1
+              }}>
+                {isLoadingElements 
+                  ? 'Traitement...' 
+                  : elements.length > 0 ? 'Vider la scène' : 'Charger pièces de test'}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          {mode === 'standard' && (
+            <button
+              onClick={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#475569',
+                color: '#f1f5f9',
+                border: '1px solid #64748b',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                cursor: 'pointer'
+              }}
+            >
+              {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+            </button>
+          )}
+          <span style={{ 
+            padding: '0.25rem 0.75rem',
+            backgroundColor: '#0ea5e9',
+            color: '#fff',
+            borderRadius: '9999px',
+            fontSize: '0.75rem',
+            fontWeight: '500'
+          }}>
+            v2.0.0
+          </span>
+        </div>
+      </div>
+
+      {/* Zone du viewer */}
+      <div style={{ 
+        flex: 1,
+        position: 'relative',
+        overflow: 'hidden',
+        backgroundColor: theme === 'dark' ? '#0a0a0a' : '#f8fafc'
+      }}>
+        {mode === 'minimal' && (
+          <MinimalViewer
+            key={`minimal-${viewerKey}`}
+            elements={elements}
+            theme={theme}
+          />
+        )}
+        
+        {mode === 'standard' && (
+          <StandardViewer
+            key={`standard-${viewerKey}`}
+            elements={elements}
+            onElementSelect={handleElementSelect}
+            onElementChange={handleElementChange}
+            onThemeChange={handleThemeChange}
+            theme={theme}
+            className="demo-viewer"
+          />
+        )}
+        
+        {mode === 'professional' && (
+          <ProfessionalViewer
+            key={`professional-${viewerKey}`}
+            elements={elements}
+            onElementSelect={handleElementSelect}
+            onElementChange={handleElementChange}
+            theme={theme}
+          />
+        )}
+      </div>
+
+      {/* Info bar */}
+      <div style={{
+        padding: '0.75rem 1.5rem',
+        backgroundColor: '#1e293b',
+        borderTop: '1px solid #334155',
+        color: '#64748b',
+        fontSize: '0.75rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div>
+          Mode actuel: <strong style={{ color: '#94a3b8' }}>{mode}</strong>
+        </div>
+        <div>
+          {mode === 'minimal' && '🔹 Interface épurée avec seulement les outils essentiels'}
+          {mode === 'standard' && '🔷 Interface équilibrée avec navigation et outils de base'}
+          {mode === 'professional' && '🔶 Interface complète avec tous les outils CAO avancés'}
+        </div>
+      </div>
     </div>
   );
 };

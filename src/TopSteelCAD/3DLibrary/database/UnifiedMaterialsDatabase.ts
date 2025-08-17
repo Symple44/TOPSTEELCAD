@@ -123,9 +123,9 @@ export class UnifiedMaterialsDatabase {
         'profilé',
         profile.type,
         profile.designation.replace(/\s+/g, ''),
-        profile.source
+        ...(profile.source ? [profile.source] : [])
       ],
-      source: profile.source
+      source: profile.source || 'unknown'
     };
   }
 

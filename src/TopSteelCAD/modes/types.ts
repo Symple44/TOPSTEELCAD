@@ -197,6 +197,9 @@ export interface FeatureExtension {
   config?: any;
 }
 
+// Type alias pour compatibilité
+export type ModeConfig = ViewerModeConfig;
+
 // Configuration complète du viewer
 export interface ViewerConfig {
   mode?: ViewerModeConfig;

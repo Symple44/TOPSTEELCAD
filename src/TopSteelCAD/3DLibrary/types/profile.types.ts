@@ -48,11 +48,19 @@ export enum ProfileType {
   // Profilés américains AISC
   W_SHAPE = 'W_SHAPE',
   S_SHAPE = 'S_SHAPE', 
-  HP_SHAPE = 'HP_SHAPE'
+  HP_SHAPE = 'HP_SHAPE',
+  
+  // Types additionnels pour TopSteelCAD
+  PLATE = 'PLATE',        // Plaques et tôles
+  FASTENER = 'FASTENER',  // Éléments de fixation (boulons, écrous, etc.)
+  WELD = 'WELD'           // Soudures
 }
 
 // Dimensions des profilés
 export interface ProfileDimensions {
+  // Identification (optionnel)
+  designation?: string;  // Désignation du profil
+  
   // Dimensions générales
   height?: number;       // Hauteur (h) en mm
   width?: number;        // Largeur (b) en mm
@@ -202,7 +210,8 @@ export interface SteelProfile {
   properties?: ProfileProperties;
   
   // Références
-  source: string;                // Source/Norme (ex: 'EN 10365')
+  source?: string;               // Source/Norme (ex: 'EN 10365')
+  origin?: string;               // Origine (database, generated, imported, etc.)
   category?: string;             // Catégorie (laminé à chaud, formé à froid, etc.)
   
   // Métadonnées

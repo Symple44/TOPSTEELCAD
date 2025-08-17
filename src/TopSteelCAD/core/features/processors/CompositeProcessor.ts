@@ -462,7 +462,7 @@ export class CompositeProcessor implements IFeatureProcessor {
     
     // Modifier les points pour ajouter des bulges aux coins
     if (contourFeature.parameters.points && Array.isArray(contourFeature.parameters.points)) {
-      const points = contourFeature.parameters.points as THREE.Vector2[];
+      const points = contourFeature.parameters.points as Array<[number, number]>;
       const bulges = new Array(points.length).fill(0);
       
       // Détecter les coins (changement d'angle > 45°)
@@ -471,8 +471,8 @@ export class CompositeProcessor implements IFeatureProcessor {
         const curr = points[i];
         const next = points[(i + 1) % points.length];
         
-        const angle1 = Math.atan2(curr.y - prev.y, curr.x - prev.x);
-        const angle2 = Math.atan2(next.y - curr.y, next.x - curr.x);
+        const angle1 = Math.atan2(curr[1] - prev[1], curr[0] - prev[0]);
+        const angle2 = Math.atan2(next[1] - curr[1], next[0] - curr[0]);
         const angleDiff = Math.abs(angle2 - angle1);
         
         if (angleDiff > Math.PI / 4) {

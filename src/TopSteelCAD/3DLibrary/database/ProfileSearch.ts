@@ -308,7 +308,7 @@ export class ProfileSearch {
 
     // Filtre par source/norme
     if (filter.sources && filter.sources.length > 0) {
-      if (!filter.sources.includes(profile.source)) return false;
+      if (!profile.source || !filter.sources.includes(profile.source)) return false;
     }
 
     // Filtre par catégorie

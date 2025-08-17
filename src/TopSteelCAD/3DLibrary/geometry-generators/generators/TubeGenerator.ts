@@ -64,7 +64,7 @@ export class TubeGenerator extends BaseProfileGenerator {
   }
 
   /**
-   * Génère un tube circulaire (CHS)
+   * Génère un tube circulaire (CHS) avec profile Shape et ExtrudeGeometry
    */
   private generateCircularTube(dimensions: ProfileDimensions, length: number): BufferGeometry {
     const outerDiameter = dimensions.outerDiameter || dimensions.diameter;
@@ -81,19 +81,18 @@ export class TubeGenerator extends BaseProfileGenerator {
       throw new Error(`Épaisseur invalide (${thickness}) pour diamètre ${outerDiameter}`);
     }
 
-    // Créer le cylindre externe
-    const outerCylinder = new CylinderGeometry(
-      outerRadius, outerRadius, length, 32, 1, false
-    );
+    // Créer le profil 2D circulaire avec trou
+    const profile = this.createCircularTubeProfile(outerRadius, innerRadius);
 
-    // Créer le cylindre interne (à soustraire)
-    const innerCylinder = new CylinderGeometry(
-      innerRadius, innerRadius, length + 0.1, 32, 1, false
-    );
+    // Extruder
+    const extrudeSettings = {
+      depth: length,
+      bevelEnabled: false,
+      steps: 1,
+      curveSegments: 32
+    };
 
-    // Pour l'instant, on retourne juste le cylindre externe
-    // TODO: Implémenter la soustraction CSG
-    const geometry = outerCylinder;
+    const geometry = new ExtrudeGeometry(profile, extrudeSettings);
 
     // Rotation pour avoir la longueur selon Z
     geometry.rotateX(Math.PI / 2);
@@ -101,6 +100,26 @@ export class TubeGenerator extends BaseProfileGenerator {
     this.centerGeometry(geometry, length);
 
     return geometry;
+  }
+
+  /**
+   * Crée le profil 2D d'un tube circulaire
+   */
+  private createCircularTubeProfile(outerRadius: number, innerRadius: number): Shape {
+    // Cercle extérieur
+    const outerShape = new Shape();
+    outerShape.moveTo(outerRadius, 0);
+    outerShape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
+    
+    // Cercle intérieur (trou)
+    const innerShape = new Shape();
+    innerShape.moveTo(innerRadius, 0);
+    innerShape.absarc(0, 0, innerRadius, 0, Math.PI * 2, false);
+    
+    // Ajouter le trou
+    outerShape.holes.push(innerShape);
+    
+    return outerShape;
   }
 
   /**

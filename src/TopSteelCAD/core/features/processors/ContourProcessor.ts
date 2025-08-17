@@ -100,7 +100,7 @@ export class ContourProcessor implements IFeatureProcessor {
     if (params.points) {
       for (let i = 0; i < params.points.length; i++) {
         const point = params.points[i];
-        if (typeof point.x !== 'number' || typeof point.y !== 'number') {
+        if (typeof point[0] !== 'number' || typeof point[1] !== 'number') {
           errors.push(`Invalid point at index ${i}`);
         }
       }
@@ -120,7 +120,7 @@ export class ContourProcessor implements IFeatureProcessor {
    * Crée une géométrie à partir d'un contour avec support des arcs
    */
   private createContourGeometry(
-    points: THREE.Vector2[],
+    points: Array<[number, number]>,
     closed: boolean,
     bulges?: number[],
     depth: number = 10
@@ -131,7 +131,7 @@ export class ContourProcessor implements IFeatureProcessor {
       if (points.length === 0) return null;
       
       // Déplacer au premier point
-      shape.moveTo(points[0].x, points[0].y);
+      shape.moveTo(points[0][0], points[0][1]);
       
       // Parcourir les points
       for (let i = 1; i < points.length; i++) {
@@ -152,16 +152,16 @@ export class ContourProcessor implements IFeatureProcessor {
             shape.quadraticCurveTo(
               arc.control.x,
               arc.control.y,
-              currentPoint.x,
-              currentPoint.y
+              currentPoint[0],
+              currentPoint[1]
             );
           } else {
             // Ligne droite si l'arc ne peut pas être calculé
-            shape.lineTo(currentPoint.x, currentPoint.y);
+            shape.lineTo(currentPoint[0], currentPoint[1]);
           }
         } else {
           // Ligne droite
-          shape.lineTo(currentPoint.x, currentPoint.y);
+          shape.lineTo(currentPoint[0], currentPoint[1]);
         }
       }
       
@@ -179,8 +179,8 @@ export class ContourProcessor implements IFeatureProcessor {
             shape.quadraticCurveTo(
               arc.control.x,
               arc.control.y,
-              points[0].x,
-              points[0].y
+              points[0][0],
+              points[0][1]
             );
           }
         }
@@ -216,13 +216,13 @@ export class ContourProcessor implements IFeatureProcessor {
    * Le bulge est la tangente de 1/4 de l'angle de l'arc
    */
   private calculateArcFromBulge(
-    start: THREE.Vector2,
-    end: THREE.Vector2,
+    start: [number, number],
+    end: [number, number],
     bulge: number
   ): { control: THREE.Vector2, radius: number, angle: number } | null {
     try {
       // Calculer la corde (distance entre les points)
-      const chord = start.distanceTo(end);
+      const chord = Math.sqrt(Math.pow(end[0] - start[0], 2) + Math.pow(end[1] - start[1], 2));
       if (chord === 0) return null;
       
       // Calculer la flèche (sagitta) à partir du bulge
@@ -233,14 +233,14 @@ export class ContourProcessor implements IFeatureProcessor {
       
       // Point milieu de la corde
       const midPoint = new THREE.Vector2(
-        (start.x + end.x) / 2,
-        (start.y + end.y) / 2
+        (start[0] + end[0]) / 2,
+        (start[1] + end[1]) / 2
       );
       
       // Direction perpendiculaire à la corde
       const chordDir = new THREE.Vector2(
-        end.x - start.x,
-        end.y - start.y
+        end[0] - start[0],
+        end[1] - start[1]
       ).normalize();
       
       const perpDir = new THREE.Vector2(

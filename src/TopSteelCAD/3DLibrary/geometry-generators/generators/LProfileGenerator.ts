@@ -24,12 +24,21 @@ export class LProfileGenerator extends BaseProfileGenerator {
       height,
       width,
       thickness,
+      webThickness,
+      flangeThickness,
+      leg1Length,
+      leg2Length,
       rootRadius = 0,
       toeRadius = 0
     } = dimensions;
 
-    // Validation
-    if (!height || !thickness) {
+    // Validation - support des deux formats
+    // Pour les cornières, webThickness = flangeThickness = thickness
+    const actualHeight = height || leg1Length || 0;
+    const actualWidth = width || leg2Length || actualHeight; // Cornière égale si pas de leg2Length
+    const actualThickness = thickness || webThickness || flangeThickness || 0;
+    
+    if (!actualHeight || !actualThickness) {
       throw new Error(`Dimensions manquantes pour cornière: ${JSON.stringify(dimensions)}`);
     }
 
@@ -37,14 +46,11 @@ export class LProfileGenerator extends BaseProfileGenerator {
       throw new Error(`Longueur invalide: ${length}`);
     }
 
-    // Pour cornières inégales, width est différent de height
-    const actualWidth = width || height; // Si pas de width, c'est une cornière égale
-
     // Créer le profil 2D
     const profile = this.createLProfile({
-      height,
+      height: actualHeight,
       width: actualWidth,
-      thickness,
+      thickness: actualThickness,
       rootRadius,
       toeRadius
     });

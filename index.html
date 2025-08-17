@@ -4,112 +4,67 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TopSteelCAD - Demo</title>
+    <title>TopSteelCAD - Viewer Demo</title>
     <style>
-      body {
+      * {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        background: #0f172a;
         color: #e2e8f0;
         overflow: hidden;
-      }
-      
-      .container {
         height: 100vh;
-        display: flex;
-        flex-direction: column;
       }
       
-      .header {
-        padding: 1.5rem 2rem;
-        background: rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(16px);
-        border-bottom: 1px solid rgba(51, 65, 85, 0.3);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      #root {
+        height: 100vh;
+        width: 100%;
       }
       
-      .viewer-container {
-        flex: 1;
-        position: relative;
-        overflow: hidden;
+      /* Animations pour le bouton dynamique */
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
       
-      .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+      @keyframes shimmer {
+        0% {
+          left: -100%;
+        }
+        100% {
+          left: 200%;
+        }
       }
       
-      .header-left {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
       }
       
-      .header-icon {
-        width: 3rem;
-        height: 3rem;
-        background: linear-gradient(135deg, #06b6d4, #0891b2);
-        border-radius: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(6, 182, 212, 0.3);
-      }
-      
-      h1 {
-        margin: 0;
-        font-size: 1.875rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #06b6d4, #0891b2);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        color: #06b6d4; /* Fallback */
-      }
-      
-      .subtitle {
-        margin: 0.25rem 0 0 0;
-        color: #94a3b8;
-        font-size: 1rem;
-        font-weight: 400;
-      }
-      
-      .version-badge {
-        padding: 0.25rem 0.75rem;
-        background: rgba(6, 182, 212, 0.1);
-        color: #06b6d4;
-        border: 1px solid rgba(6, 182, 212, 0.3);
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
+      @keyframes bounce {
+        0%, 100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-3px);
+        }
       }
     </style>
   </head>
   <body>
-    <div id="root">
-      <div class="container">
-        <div class="header">
-          <div class="header-content">
-            <div class="header-left">
-              <div class="header-icon">🏗️</div>
-              <div>
-                <h1>TopSteelCAD Demo</h1>
-                <p class="subtitle">Professional 3D Viewer for Steel Structures</p>
-              </div>
-            </div>
-            <div class="version-badge">
-              v2.0.0
-            </div>
-          </div>
-        </div>
-        <div class="viewer-container" id="viewer-container">
-          <!-- Le viewer sera injecté ici -->
-        </div>
-      </div>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/demo.tsx"></script>
   </body>
 </html>

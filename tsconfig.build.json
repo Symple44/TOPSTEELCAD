@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "allowJs": false
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/test-setup.ts",
+    "src/TopSteelCAD/__tests__/**",
+    "src/TopSteelCAD/components/TopSteelViewer/**",
+    "src/TopSteelCAD/tools/SnapMeasurementTool.ts",
+    "src/TopSteelCAD/tools/SnapMeasurementTool.tsx"
+  ]
+}
