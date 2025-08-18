@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { PivotElement } from '@/types/viewer';
-import { Feature } from '../../types';
+import { Feature, Point2D } from '../../types';
 import { BaseCutStrategy } from './CutStrategy';
 
 /**
@@ -29,7 +29,7 @@ export class TransverseCutStrategy extends BaseCutStrategy {
     
     // Pour une découpe transversale, vérifier qu'elle traverse bien
     if (contourPoints.length > 0) {
-      const xValues = contourPoints.map(p => p[0]);
+      const xValues = (contourPoints as Point2D[]).map(p => p.x);
       const minX = Math.min(...xValues);
       const maxX = Math.max(...xValues);
       
@@ -55,7 +55,7 @@ export class TransverseCutStrategy extends BaseCutStrategy {
     let cutEnd = length;
     
     if (contourPoints.length >= 2) {
-      const xValues = contourPoints.map(p => p[0]);
+      const xValues = (contourPoints as Point2D[]).map(p => p.x);
       cutStart = Math.min(...xValues);
       cutEnd = Math.max(...xValues);
     }
@@ -85,7 +85,8 @@ export class TransverseCutStrategy extends BaseCutStrategy {
     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     
     // Centrer sur Z
-    geometry.translate(0, 0, -extrudeSettings.depth / 2);
+    const extrudeDepth = extrudeSettings.depth || (width * 1.5);
+    geometry.translate(0, 0, -extrudeDepth / 2);
     
     return geometry;
   }

@@ -12,6 +12,17 @@ export enum MaterialCategory {
   ACCESSORIES = 'ACCESSORIES'  // Accessoires divers
 }
 
+// Types de matériaux (pour compatibilité avec parsers)
+export enum MaterialType {
+  STEEL = 'STEEL',
+  ALUMINUM = 'ALUMINUM',
+  STAINLESS_STEEL = 'STAINLESS_STEEL',
+  CAST_IRON = 'CAST_IRON',
+  BRASS = 'BRASS',
+  COPPER = 'COPPER',
+  OTHER = 'OTHER'
+}
+
 // Types de profilés métalliques (existant, mais centralisé)
 export enum ProfileType {
   // Profilés en I

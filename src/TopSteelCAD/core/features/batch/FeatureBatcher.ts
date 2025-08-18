@@ -8,7 +8,7 @@ import { Feature, FeatureType, IFeatureProcessor, ProcessorResult } from '../typ
 import { PivotElement } from '@/types/viewer';
 import { FeatureProcessorFactory } from '../processors/FeatureProcessorFactory';
 import { GeometryCache } from '../cache/GeometryCache';
-import { logger, createModuleLogger } from '../../utils/Logger';
+import { Logger } from '../../../utils/Logger';
 
 /**
  * Options de batching
@@ -53,7 +53,7 @@ interface FeatureBatch {
 export class FeatureBatcher {
   private factory: FeatureProcessorFactory;
   private cache: GeometryCache;
-  private log = createModuleLogger('FeatureBatcher');
+  private logger = Logger;
   private options: BatchOptions;
   
   constructor(options?: Partial<BatchOptions>) {
@@ -79,7 +79,7 @@ export class FeatureBatcher {
   ): Promise<BatchResult> {
     const startTime = performance.now();
     
-    this.log.info(`Starting batch processing of ${features.length} features`);
+    this.logger.info(`Starting batch processing of ${features.length} features`);
     
     // Optimiser l'ordre si demandé
     const orderedFeatures = this.options.optimizeOrder 
@@ -100,7 +100,7 @@ export class FeatureBatcher {
       batchedGroups: batches.length
     };
     
-    this.log.info('Batch processing completed', {
+    this.logger.info('Batch processing completed', {
       totalFeatures: result.totalFeatures,
       processedFeatures: result.processedFeatures,
       failedFeatures: result.failedFeatures,
@@ -186,7 +186,7 @@ export class FeatureBatcher {
           });
         }
       } else {
-        this.log.warn(`No processor found for type: ${type}`);
+        this.logger.warn(`No processor found for type: ${type}`);
       }
     }
     
@@ -208,7 +208,7 @@ export class FeatureBatcher {
     const totalFeatures = batches.reduce((sum, b) => sum + b.features.length, 0);
     
     for (const batch of batches) {
-      this.log.debug(`Processing batch of ${batch.features.length} ${batch.type} features`);
+      this.logger.debug(`Processing batch of ${batch.features.length} ${batch.type} features`);
       
       if (this.options.parallelProcessing && this.canParallelProcess(batch)) {
         // Traitement parallèle pour certains types
@@ -301,7 +301,7 @@ export class FeatureBatcher {
         const cachedGeometry = this.cache.get(cacheKey);
         
         if (cachedGeometry) {
-          this.log.debug(`Cache hit for feature ${feature.id}`);
+          this.logger.debug(`Cache hit for feature ${feature.id}`);
           return {
             success: true,
             geometry: cachedGeometry
@@ -321,7 +321,7 @@ export class FeatureBatcher {
       return result;
       
     } catch (error) {
-      this.log.error(`Failed to process feature ${feature.id}`, error as Error);
+      this.logger.error(`Failed to process feature ${feature.id}`, error as Error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -403,7 +403,7 @@ export class FeatureBatcher {
    */
   clearCache(): void {
     this.cache.clear();
-    this.log.info('Cache cleared');
+    this.logger.info('Cache cleared');
   }
   
   /**
@@ -411,6 +411,6 @@ export class FeatureBatcher {
    */
   dispose(): void {
     this.cache.dispose();
-    this.log.debug('FeatureBatcher disposed');
+    this.logger.debug('FeatureBatcher disposed');
   }
 }

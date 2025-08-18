@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
 import { PivotElement } from '@/types/viewer';
-import { Feature } from '../../types';
+import { Feature, ProfileFace, Point2D, pointsToArray, mapDSTVFaceToProfileFace } from '../../types';
 import { BaseCutStrategy } from './CutStrategy';
 
 /**
@@ -18,7 +18,7 @@ export class CompoundCutStrategy extends BaseCutStrategy {
   canHandle(feature: Feature): boolean {
     const params = feature.parameters || {};
     return params.isCompound === true || 
-           (params.subContours && params.subContours.length > 0);
+           (params.subContours !== undefined && params.subContours.length > 0);
   }
   
   protected validateSpecific(
@@ -54,8 +54,9 @@ export class CompoundCutStrategy extends BaseCutStrategy {
     const operation = params.operation || 'subtract';
     const depth = params.depth || 10;
     
-    // Créer la géométrie principale
-    const mainGeometry = this.createContourGeometry(mainContour, depth, element);
+    // Convertir et créer la géométrie principale
+    const mainArrayPoints = pointsToArray(mainContour as Point2D[]);
+    const mainGeometry = this.createContourGeometry(mainArrayPoints, depth, element);
     
     if (subContours.length === 0) {
       return mainGeometry;
@@ -65,7 +66,8 @@ export class CompoundCutStrategy extends BaseCutStrategy {
     let resultCSG = CSG.fromGeometry(mainGeometry);
     
     for (const subContour of subContours) {
-      const subGeometry = this.createContourGeometry(subContour, depth, element);
+      const subArrayPoints = pointsToArray(subContour as Point2D[]);
+      const subGeometry = this.createContourGeometry(subArrayPoints, depth, element);
       const subCSG = CSG.fromGeometry(subGeometry);
       
       // Appliquer l'opération
@@ -106,10 +108,10 @@ export class CompoundCutStrategy extends BaseCutStrategy {
     const position = new THREE.Vector3();
     
     // Position basée sur le centre de masse des contours
-    const allPoints: Array<[number, number]> = [
-      ...(params.contourPoints || []),
-      ...(params.subContours || []).flat()
-    ];
+    const mainPoints = params.contourPoints || [];
+    const subPoints = (params.subContours || []).flat();
+    const allPointObjects = [...mainPoints, ...subPoints] as Point2D[];
+    const allPoints = pointsToArray(allPointObjects);
     
     if (allPoints.length > 0) {
       const centerX = allPoints.reduce((sum, p) => sum + p[0], 0) / allPoints.length;
@@ -117,17 +119,27 @@ export class CompoundCutStrategy extends BaseCutStrategy {
       
       position.x = centerX - dims.length / 2;
       
-      switch (face) {
+      // Mapper les codes DSTV vers ProfileFace si nécessaire
+      const mappedFace = typeof face === 'string' && face.length === 1 
+        ? mapDSTVFaceToProfileFace(face) 
+        : face;
+      
+      switch (mappedFace) {
+        case ProfileFace.WEB:
         case 'v': // Face supérieure
           position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
           break;
           
-        case 'u': // Face inférieure
+        case ProfileFace.TOP_FLANGE:
+          position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
+          break;
+          
+        case ProfileFace.BOTTOM_FLANGE:
           position.y = -(dims.height || 0) / 2 + (dims.flangeThickness || 10) / 2;
           break;
           
-        case 'o': // Âme
-          position.y = centerY - dims.height / 2;
+        case ProfileFace.WEB:
+          position.y = centerY - (dims.height || dims.width || 100) / 2;
           break;
       }
     }

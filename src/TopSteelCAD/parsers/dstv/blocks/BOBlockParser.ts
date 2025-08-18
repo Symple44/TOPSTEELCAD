@@ -1,13 +1,13 @@
 /**
  * BOBlockParser - Parser pour les blocs BO (trous/perçages)
- * Gère l'extraction des informations de perçage
+ * Gère tous les types de trous DSTV : round, slotted, square, rectangular
  */
 
-import { DSTVToken, DSTVHole, ProfileFace } from '../types';
+import { DSTVToken, DSTVHole, ProfileFace, TokenType, HoleType } from '../types';
 
 /**
  * Parser pour les blocs BO (Bohren - Drilling)
- * Extrait les informations de perçage
+ * Supporte tous les types de trous de la spécification DSTV
  */
 export class BOBlockParser {
   
@@ -16,17 +16,23 @@ export class BOBlockParser {
    */
   parse(tokens: DSTVToken[]): DSTVHole[] {
     const holes: DSTVHole[] = [];
-    let i = 0;
-
-    while (i < tokens.length) {
-      // Try to parse a hole (x, y, diameter, face, [holeType])
-      const hole = this.parseHole(tokens, i);
+    
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
       
-      if (hole) {
-        holes.push(hole.hole);
-        i = hole.nextIndex;
-      } else {
-        i++;
+      // Ignorer les tokens non-données
+      if (token.type === TokenType.COMMENT || 
+          token.type === TokenType.BLOCK_START || 
+          token.type === TokenType.BLOCK_END) {
+        continue;
+      }
+      
+      // Traiter les lignes de données avec face (depuis le lexer amélioré)
+      if (token.type === TokenType.FACE_INDICATOR || this.hasHoleData(token)) {
+        const hole = this.parseHoleFromToken(token);
+        if (hole) {
+          holes.push(hole);
+        }
       }
     }
 
@@ -34,61 +40,54 @@ export class BOBlockParser {
   }
 
   /**
-   * Parse un trou à partir de la position actuelle
+   * Vérifie si un token contient des données de trou
    */
-  private parseHole(tokens: DSTVToken[], startIndex: number): { hole: DSTVHole; nextIndex: number } | null {
-    let i = startIndex;
-    let x: number | null = null;
-    let y: number | null = null;
-    let diameter: number | null = null;
-    let face: ProfileFace = ProfileFace.FRONT; // Default face
-    let holeType: string | undefined;
-
-    // Parse x coordinate
-    if (i < tokens.length && tokens[i].type === 'NUMBER') {
-      x = parseFloat(tokens[i].value);
-      i++;
-    } else {
+  private hasHoleData(token: DSTVToken): boolean {
+    // Vérifier si le token a des valeurs numériques (provenant du lexer amélioré)
+    return !!(token as any).values && Array.isArray((token as any).values);
+  }
+  
+  /**
+   * Parse un trou depuis un token enrichi par le lexer
+   */
+  private parseHoleFromToken(token: DSTVToken): DSTVHole | null {
+    const values = (token as any).values;
+    const face = token.face || ProfileFace.FRONT;
+    
+    // Besoin d'au moins x, y, diameter
+    if (!values || values.length < 3) {
       return null;
     }
-
-    // Parse y coordinate
-    if (i < tokens.length && tokens[i].type === 'NUMBER') {
-      y = parseFloat(tokens[i].value);
-      i++;
-    } else {
-      return null;
-    }
-
-    // Parse diameter
-    if (i < tokens.length && tokens[i].type === 'NUMBER') {
-      diameter = parseFloat(tokens[i].value);
-      i++;
-    } else {
-      return null;
-    }
-
-    // Parse optional face indicator
-    if (i < tokens.length && tokens[i].type === 'FACE_INDICATOR') {
-      face = tokens[i].face || ProfileFace.FRONT;
-      i++;
-    }
-
-    // Parse optional hole type
-    if (i < tokens.length && tokens[i].type === 'HOLE_TYPE') {
-      holeType = tokens[i].holeType;
-      i++;
-    }
-
-    return {
-      hole: {
-        x,
-        y,
-        diameter,
-        face,
-        holeType
-      },
-      nextIndex: i
+    
+    const hole: DSTVHole = {
+      x: values[0],
+      y: values[1],
+      diameter: values[2],
+      face,
+      depth: values[3] || 0 // Profondeur optionnelle
     };
+    
+    // Vérifier le type de trou (depuis le lexer amélioré)
+    const holeType = (token as any).holeType;
+    if (holeType) {
+      hole.holeType = holeType;
+      
+      // Pour les trous oblongs (slotted)
+      if (holeType === 'slotted') {
+        (hole as any).slottedLength = (token as any).slottedLength || 0;
+        (hole as any).slottedAngle = (token as any).slottedAngle || 0;
+      }
+      
+      // Pour les trous rectangulaires
+      if (holeType === 'rectangular' || holeType === 'square') {
+        // Dans DSTV, les dimensions supplémentaires peuvent être dans values[4] et values[5]
+        if (values.length > 4) {
+          (hole as any).width = values[4];
+          (hole as any).height = values[5] || values[4]; // Square si height non spécifiée
+        }
+      }
+    }
+    
+    return hole;
   }
 }

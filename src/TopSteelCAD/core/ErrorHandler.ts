@@ -3,7 +3,7 @@
  * Capture, log et traite les erreurs de manière cohérente
  */
 
-import { logger, createModuleLogger } from '../utils/Logger';
+import { Logger } from '../utils/Logger';
 
 /**
  * Types d'erreurs personnalisées
@@ -17,7 +17,41 @@ export enum ErrorType {
   NETWORK_ERROR = 'NETWORK_ERROR',
   PERMISSION_ERROR = 'PERMISSION_ERROR',
   CONFIGURATION_ERROR = 'CONFIGURATION_ERROR',
+  DSTV_ERROR = 'DSTV_ERROR',
+  GEOMETRY_ERROR = 'GEOMETRY_ERROR',
+  FEATURE_ERROR = 'FEATURE_ERROR',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+}
+
+/**
+ * Codes d'erreur spécifiques DSTV
+ */
+export enum DSTVErrorCode {
+  // Structure errors
+  MISSING_ST_BLOCK = 'DSTV_001',
+  MISSING_EN_BLOCK = 'DSTV_002',
+  INVALID_BLOCK_SEQUENCE = 'DSTV_003',
+  UNMATCHED_BLOCKS = 'DSTV_004',
+  
+  // Data errors
+  INVALID_PROFILE_TYPE = 'DSTV_010',
+  INVALID_DIMENSIONS = 'DSTV_011',
+  INVALID_STEEL_GRADE = 'DSTV_012',
+  INVALID_HOLE_DATA = 'DSTV_013',
+  INVALID_CUT_CONTOUR = 'DSTV_014',
+  INVALID_MARKING_TEXT = 'DSTV_015',
+  
+  // Geometry errors
+  OVERLAPPING_HOLES = 'DSTV_020',
+  SELF_INTERSECTING_CONTOUR = 'DSTV_021',
+  OUT_OF_BOUNDS_FEATURE = 'DSTV_022',
+  INVALID_FACE_INDICATOR = 'DSTV_023',
+  
+  // Processing errors
+  LEXER_ERROR = 'DSTV_030',
+  PARSER_ERROR = 'DSTV_031',
+  VALIDATOR_ERROR = 'DSTV_032',
+  CONVERTER_ERROR = 'DSTV_033'
 }
 
 /**
@@ -123,7 +157,7 @@ export interface ErrorHandlerConfig {
  */
 export class ErrorHandler {
   private static instance: ErrorHandler;
-  private log = createModuleLogger('ErrorHandler');
+  private log = Logger;
   private config: ErrorHandlerConfig;
   private callbacks: Set<ErrorCallback> = new Set();
   private recoveryStrategies: Map<ErrorType, ErrorRecoveryStrategy[]> = new Map();

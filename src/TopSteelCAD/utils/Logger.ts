@@ -163,6 +163,29 @@ export class Logger {
     }
     return Logger.instance;
   }
+
+  /**
+   * Méthodes statiques pour utilisation directe
+   */
+  static error(message: string, error?: Error, data?: any, context?: LogContext): void {
+    Logger.getInstance().error(message, error, data, context);
+  }
+  
+  static warn(message: string, data?: any, context?: LogContext): void {
+    Logger.getInstance().warn(message, data, context);
+  }
+  
+  static info(message: string, data?: any, context?: LogContext): void {
+    Logger.getInstance().info(message, data, context);
+  }
+  
+  static debug(message: string, data?: any, context?: LogContext): void {
+    Logger.getInstance().debug(message, data, context);
+  }
+  
+  static trace(message: string, data?: any, context?: LogContext): void {
+    Logger.getInstance().trace(message, data, context);
+  }
   
   /**
    * Configure le logger

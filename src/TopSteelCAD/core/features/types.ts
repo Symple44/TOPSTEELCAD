@@ -157,6 +157,16 @@ export interface FeatureParameters {
   
   // Pour les découpes
   isTransverse?: boolean;
+  
+  // Propriétés manquantes identifiées dans les erreurs de compilation
+  contourPoints?: Array<{x: number, y: number}>;
+  bevelAngle?: number;
+  bevelSize?: number;
+  face?: ProfileFace;
+  subContours?: Array<Array<{x: number, y: number}>>;
+  operation?: 'union' | 'subtract' | 'intersect';
+  isBeveled?: boolean;
+  isCompound?: boolean;
 }
 
 /**
@@ -233,4 +243,39 @@ export interface Position3D {
   face: ProfileFace;
   depth: number;
   normal: THREE.Vector3;
+}
+
+/**
+ * Types unifiés pour les points 2D
+ */
+export type Point2D = { x: number; y: number };
+export type ContourPoints = Point2D[];
+
+/**
+ * Fonctions de conversion pour les points
+ */
+export function pointsToArray(points: Point2D[]): [number, number][] {
+  return points.map(p => [p.x, p.y]);
+}
+
+export function arrayToPoints(array: [number, number][]): Point2D[] {
+  return array.map(([x, y]) => ({ x, y }));
+}
+
+/**
+ * Mapping DSTV vers ProfileFace
+ */
+export const DSTV_FACE_MAPPING: Record<string, ProfileFace> = {
+  'u': ProfileFace.TOP_FLANGE,    // Upper flange
+  'o': ProfileFace.BOTTOM_FLANGE, // Lower flange (o = under)
+  'v': ProfileFace.WEB,           // Vertical web
+  'l': ProfileFace.LEFT_LEG,
+  'r': ProfileFace.RIGHT_LEG,
+};
+
+/**
+ * Helper pour mapper les faces DSTV
+ */
+export function mapDSTVFaceToProfileFace(dstvFace: string): ProfileFace {
+  return DSTV_FACE_MAPPING[dstvFace.toLowerCase()] || ProfileFace.WEB;
 }

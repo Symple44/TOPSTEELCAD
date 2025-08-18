@@ -157,6 +157,10 @@ export interface DSTVCut {
   contour: Array<[number, number]>;
   depth?: number;
   isTransverse?: boolean;
+  isInternal?: boolean; // Pour les contours internes (IK)
+  angle?: number; // Pour les coupes obliques (SC)
+  cutType?: 'straight' | 'oblique' | 'curved' | 'chamfer'; // Type de coupe
+  chamferData?: any; // Données spécifiques aux chanfreins (BR)
 }
 
 /**
@@ -226,6 +230,13 @@ export interface DSTVProfile {
   length: number;
   profileType: string;
   
+  // Dimensions
+  width?: number;
+  height?: number;
+  thickness?: number;
+  webThickness?: number;
+  flangeThickness?: number;
+  
   // Features d'usinage
   holes?: DSTVHole[];
   markings?: DSTVMarking[];
@@ -236,6 +247,7 @@ export interface DSTVProfile {
   orderNumber?: string;
   steelGrade?: string;
   weight?: number;
+  paintingSurface?: number;
   metadata?: Record<string, any>;
 }
 

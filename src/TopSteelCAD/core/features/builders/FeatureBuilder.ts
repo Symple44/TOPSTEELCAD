@@ -3,6 +3,7 @@
  * Facilite la création de features complexes avec une API fluide
  */
 
+import * as THREE from 'three';
 import {
   Feature,
   FeatureType,
@@ -33,9 +34,9 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
   constructor() {
     this.feature = {
       id: this.generateId(),
-      coordinateSystem: 'local',
-      position: [0, 0, 0],
-      rotation: [0, 0, 0],
+      coordinateSystem: CoordinateSystem.LOCAL,
+      position: new THREE.Vector3(0, 0, 0),
+      rotation: new THREE.Euler(0, 0, 0),
       parameters: {},
       version: '1.0',
       validated: false,
@@ -57,7 +58,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
    * Définit la position
    */
   withPosition(x: number, y: number, z: number = 0): T {
-    this.feature.position = [x, y, z];
+    this.feature.position = new THREE.Vector3(x, y, z);
     return this as unknown as T;
   }
   
@@ -65,7 +66,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
    * Définit la rotation
    */
   withRotation(x: number, y: number, z: number): T {
-    this.feature.rotation = [x, y, z];
+    this.feature.rotation = new THREE.Euler(x, y, z);
     return this as unknown as T;
   }
   
@@ -324,7 +325,7 @@ export class CutFeatureBuilder extends BaseFeatureBuilder<CutFeatureBuilder> {
     if (!this.feature.parameters) {
       this.feature.parameters = {};
     }
-    this.feature.parameters.contourPoints = this.contourPoints;
+    this.feature.parameters.contourPoints = this.contourPoints.map(([x, y]) => ({ x, y }));
     
     return super.build();
   }

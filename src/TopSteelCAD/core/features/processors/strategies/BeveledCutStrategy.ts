@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { PivotElement } from '@/types/viewer';
-import { Feature } from '../../types';
+import { Feature, ProfileFace, Point2D, pointsToArray, mapDSTVFaceToProfileFace } from '../../types';
 import { BaseCutStrategy } from './CutStrategy';
 
 /**
@@ -51,8 +51,9 @@ export class BeveledCutStrategy extends BaseCutStrategy {
     const bevelAngle = params.bevelAngle || 45;
     const bevelSize = params.bevelSize || 5;
     
-    // Centrer les points
-    const centeredPoints = this.centerContourPoints(contourPoints, element);
+    // Convertir et centrer les points
+    const arrayPoints = pointsToArray(contourPoints as Point2D[]);
+    const centeredPoints = this.centerContourPoints(arrayPoints, element);
     
     // Créer la forme
     const shape = this.createShape(centeredPoints);
@@ -90,17 +91,22 @@ export class BeveledCutStrategy extends BaseCutStrategy {
     // Ajuster la position en fonction du biseau
     const bevelOffset = (params.bevelSize || 0) / 2;
     
-    switch (face) {
-      case 'v': // Face supérieure
+    // Mapper les codes DSTV vers ProfileFace si nécessaire
+    const mappedFace = typeof face === 'string' && face.length === 1 
+      ? mapDSTVFaceToProfileFace(face) 
+      : face;
+    
+    switch (mappedFace) {
+      case ProfileFace.WEB:
+        position.z = 0;
+        break;
+        
+      case ProfileFace.TOP_FLANGE:
         position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2 - bevelOffset;
         break;
         
-      case 'u': // Face inférieure
+      case ProfileFace.BOTTOM_FLANGE:
         position.y = -(dims.height || 0) / 2 + (dims.flangeThickness || 10) / 2 + bevelOffset;
-        break;
-        
-      case 'o': // Âme
-        position.z = 0;
         break;
     }
     

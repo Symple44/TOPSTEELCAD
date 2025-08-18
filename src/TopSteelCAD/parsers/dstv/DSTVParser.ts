@@ -4,7 +4,7 @@
  */
 
 import { FileParser, PivotScene } from '@/types/viewer';
-import { DSTVParserConfig, DSTVParseResult, ValidationResult } from './types';
+import { DSTVParserConfig, DSTVParseResult, ValidationResult, ValidationLevel } from './types';
 import { DSTVLexer } from './lexer/DSTVLexer';
 import { DSTVSyntaxParser } from './parser/DSTVSyntaxParser';
 import { DSTVValidator } from './validators/DSTVValidator';
@@ -64,7 +64,11 @@ export class DSTVParser implements FileParser {
     // Initialiser les modules
     this.lexer = new DSTVLexer();
     this.syntaxParser = new DSTVSyntaxParser();
-    this.validator = new DSTVValidator(this.config.validation);
+    // Déterminer le niveau de validation basé sur la config
+    const validationLevel = this.config.validation?.strictMode 
+      ? ValidationLevel.STRICT 
+      : ValidationLevel.STANDARD;
+    this.validator = new DSTVValidator(validationLevel);
     this.converter = new DSTVToPivotConverter();
   }
   
@@ -75,27 +79,21 @@ export class DSTVParser implements FileParser {
     const startTime = performance.now();
     
     try {
-      // 1. Validation préliminaire
-      const validationResult = this.validator.validate(data);
-      if (!validationResult.isValid) {
-        throw new Error(`DSTV validation failed: ${validationResult.errors.join('; ')}`);
-      }
-      
-      // Afficher les avertissements s'il y en a
-      if (validationResult.warnings.length > 0) {
-        this.logWarnings(validationResult.warnings);
-      }
-      
-      // 2. Conversion en string si nécessaire
+      // 1. Conversion en string si nécessaire
       const content = typeof data === 'string' 
         ? data 
         : new TextDecoder('utf-8').decode(data);
+      
+      // 2. Validation préliminaire du contenu brut
+      if (!this.validateRawContent(content)) {
+        throw new Error('Invalid DSTV file structure');
+      }
       
       // 3. Analyse lexicale
       const tokens = this.lexer.tokenize(content);
       this.lastTokenCount = tokens.length;
       
-      // 4. Analyse syntaxique
+      // 4. Analyse syntaxique - Passer les tokens, pas le contenu!
       const profiles = this.syntaxParser.parse(tokens);
       this.lastProfileCount = profiles.length;
       
@@ -108,7 +106,7 @@ export class DSTVParser implements FileParser {
       }
       
       // 6. Conversion vers PivotScene
-      const scene = this.converter.convert(profiles);
+      const scene = this.converter.convertProfiles(profiles);
       
       // 7. Enrichir avec métadonnées
       this.enrichSceneMetadata(scene);
@@ -128,11 +126,37 @@ export class DSTVParser implements FileParser {
    */
   validate(data: ArrayBuffer | string): boolean {
     try {
-      const result = this.validator.validate(data);
-      return result.isValid;
+      const content = typeof data === 'string' 
+        ? data 
+        : new TextDecoder('utf-8').decode(data);
+      return this.validateRawContent(content);
     } catch {
       return false;
     }
+  }
+  
+  /**
+   * Valide le contenu brut d'un fichier DSTV
+   */
+  private validateRawContent(content: string): boolean {
+    // Vérifications basiques de structure
+    if (!content || content.trim().length === 0) {
+      return false;
+    }
+    
+    // Doit contenir au moins ST et EN
+    if (!content.includes('ST') || !content.includes('EN')) {
+      return false;
+    }
+    
+    // Vérifier que ST vient avant EN
+    const stIndex = content.indexOf('ST');
+    const enIndex = content.indexOf('EN');
+    if (stIndex === -1 || enIndex === -1 || stIndex >= enIndex) {
+      return false;
+    }
+    
+    return true;
   }
   
   /**

@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { PivotElement } from '@/types/viewer';
-import { Feature } from '../../types';
+import { Feature, ProfileFace, Point2D, pointsToArray, mapDSTVFaceToProfileFace } from '../../types';
 import { BaseCutStrategy } from './CutStrategy';
 
 /**
@@ -37,13 +37,14 @@ export class SimpleCutStrategy extends BaseCutStrategy {
     // Vérifier que les points sont dans les limites
     const dims = element.dimensions;
     const contourPoints = params.contourPoints || [];
+    const height = dims.height || dims.width || 100;
     
     for (let i = 0; i < contourPoints.length; i++) {
       const point = contourPoints[i];
-      if (point[0] < 0 || point[0] > dims.length) {
+      if (point.x < 0 || point.x > dims.length) {
         errors.push(`Point ${i} X coordinate out of bounds`);
       }
-      if (point[1] < 0 || point[1] > dims.height) {
+      if (point.y < 0 || point.y > height) {
         errors.push(`Point ${i} Y coordinate out of bounds`);
       }
     }
@@ -55,8 +56,9 @@ export class SimpleCutStrategy extends BaseCutStrategy {
     const depth = params.depth || 10;
     const face = params.face || feature.face || 'v';
     
-    // Centrer les points
-    const centeredPoints = this.centerContourPoints(contourPoints, element);
+    // Convertir et centrer les points
+    const arrayPoints = pointsToArray(contourPoints as Point2D[]);
+    const centeredPoints = this.centerContourPoints(arrayPoints, element);
     
     // Créer la forme
     const shape = this.createShape(centeredPoints);
@@ -86,16 +88,26 @@ export class SimpleCutStrategy extends BaseCutStrategy {
     
     const position = new THREE.Vector3();
     
-    switch (face) {
+    // Mapper les codes DSTV vers ProfileFace si nécessaire
+    const mappedFace = typeof face === 'string' && face.length === 1 
+      ? mapDSTVFaceToProfileFace(face) 
+      : face;
+    
+    switch (mappedFace) {
+      case ProfileFace.WEB:
       case 'v': // Face supérieure
         position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
         break;
         
-      case 'u': // Face inférieure
+      case ProfileFace.TOP_FLANGE:
+        position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
+        break;
+        
+      case ProfileFace.BOTTOM_FLANGE:
         position.y = -(dims.height || 0) / 2 + (dims.flangeThickness || 10) / 2;
         break;
         
-      case 'o': // Âme
+      case ProfileFace.WEB:
         position.z = 0;
         break;
     }

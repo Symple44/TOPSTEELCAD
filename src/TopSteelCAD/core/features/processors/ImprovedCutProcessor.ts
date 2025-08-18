@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
 import { Feature, IFeatureProcessor, ProcessorResult } from '../types';
 import { PivotElement } from '@/types/viewer';
-import { logger, createComponentLogger } from '../../utils/Logger';
+import { Logger } from '../../../utils/Logger';
 import { 
   ICutStrategy,
   SimpleCutStrategy,
@@ -22,7 +22,7 @@ import {
 export class ImprovedCutProcessor implements IFeatureProcessor {
   private strategies: Map<string, ICutStrategy>;
   private defaultStrategy: ICutStrategy;
-  private log = createComponentLogger('ImprovedCutProcessor');
+  private logger = Logger;
   
   constructor() {
     this.strategies = new Map();
@@ -47,9 +47,8 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
       this.strategies.set(strategy.name, strategy);
     });
     
-    this.log.debug('Registered cut strategies', { 
-      strategies: Array.from(this.strategies.keys()) 
-    });
+    this.logger.debug('Registered cut strategies', 
+      Array.from(this.strategies.keys()));
   }
   
   /**
@@ -57,7 +56,7 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
    */
   registerStrategy(strategy: ICutStrategy): void {
     this.strategies.set(strategy.name, strategy);
-    this.log.info(`Registered custom strategy: ${strategy.name}`);
+    this.logger.info(`Registered custom strategy: ${strategy.name}`);
   }
   
   /**
@@ -67,13 +66,13 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
     // Parcourir les stratégies pour trouver celle qui peut gérer la feature
     for (const strategy of this.strategies.values()) {
       if (strategy.canHandle(feature)) {
-        this.log.debug(`Selected strategy: ${strategy.name}`, { feature });
+        this.logger.debug(`Selected strategy: ${strategy.name}`, { feature });
         return strategy;
       }
     }
     
     // Utiliser la stratégie par défaut
-    this.log.debug('Using default strategy', { feature });
+    this.logger.debug('Using default strategy', { feature });
     return this.defaultStrategy;
   }
   
@@ -94,7 +93,7 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
       // Valider
       const errors = strategy.validate(feature, element);
       if (errors.length > 0) {
-        this.log.warn('Cut validation failed', { errors, feature });
+        this.logger.warn('Cut validation failed', { errors, feature });
         return {
           success: false,
           error: errors.join('; ')
@@ -125,7 +124,7 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
       this.recordMetadata(resultGeometry, feature, strategy.name);
       
       const duration = performance.now() - startTime;
-      this.log.info(`Cut processed successfully in ${duration.toFixed(2)}ms`, {
+      this.logger.info(`Cut processed successfully in ${duration.toFixed(2)}ms`, {
         strategy: strategy.name,
         featureId: feature.id
       });
@@ -136,7 +135,7 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
       };
       
     } catch (error) {
-      this.log.error('Cut processing failed', error as Error, { feature });
+      this.logger.error('Cut processing failed', error as Error, { feature });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -169,7 +168,7 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
     // Convertir en géométrie
     const resultGeometry = CSG.toGeometry(
       resultCSG, 
-      baseGeometry.matrixWorld || new THREE.Matrix4()
+      new THREE.Matrix4()
     );
     
     // Optimiser
@@ -187,14 +186,15 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
     baseGeometry: THREE.BufferGeometry,
     cutGeometry: THREE.BufferGeometry
   ): void {
-    if (this.log.getLevel() >= 3) { // DEBUG level
+    // Log uniquement en mode debug
+    {
       baseGeometry.computeBoundingBox();
       cutGeometry.computeBoundingBox();
       
       const baseBbox = baseGeometry.boundingBox!;
       const cutBbox = cutGeometry.boundingBox!;
       
-      this.log.debug('Geometry bounds', {
+      this.logger.debug('Geometry bounds', {
         base: {
           min: [baseBbox.min.x, baseBbox.min.y, baseBbox.min.z],
           max: [baseBbox.max.x, baseBbox.max.y, baseBbox.max.z]
@@ -254,6 +254,6 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
     });
     
     this.strategies.clear();
-    this.log.debug('ImprovedCutProcessor disposed');
+    this.logger.debug('ImprovedCutProcessor disposed');
   }
 }

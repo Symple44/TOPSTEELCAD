@@ -3,6 +3,9 @@
  * Conforme aux normes EN 10025 et Eurocodes
  */
 
+// Export MaterialType depuis material-types pour compatibilité
+export { MaterialType } from './material-types';
+
 // Énumérations pour les types de profilés
 export enum ProfileType {
   // Profilés en I

@@ -878,15 +878,15 @@ export class DSTVParser implements FileParser {
       console.log(`    Cut ${idx + 1}: face=${cut.face}, points=${cut.contourPoints.length}, transverse=${cut.isTransverse || false}`);
     });
     
-    const element = {
+    const element: PivotElement = {
       id: `profile-${index}-${Date.now()}`,
       name: profile.designation || `Profile ${profile.id}`,
       description: `${profile.designation} - Order ${profile.orderNumber}`,
       materialType,
       dimensions,
-      position: [0, 0, 0],
-      rotation: [0, 0, 0],
-      scale: [1, 1, 1],
+      position: [0, 0, 0] as [number, number, number],
+      rotation: [0, 0, 0] as [number, number, number],
+      scale: [1, 1, 1] as [number, number, number],
       material: {
         grade: profile.steelGrade || 'S235JR',
         density: 7850,

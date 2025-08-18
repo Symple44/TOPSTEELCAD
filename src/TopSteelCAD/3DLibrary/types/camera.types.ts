@@ -15,6 +15,8 @@ export interface CameraConfig {
   defaultPosition: THREE.Vector3;
   animationDuration: number;
   zoomMargin: number;
+  minZoom?: number;
+  maxZoom?: number;
 }
 
 /**

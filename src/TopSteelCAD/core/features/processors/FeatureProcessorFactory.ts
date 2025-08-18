@@ -190,7 +190,7 @@ export class FeatureProcessorFactory {
     
     // Processors spécialisés
     this.register(FeatureType.DRILL_PATTERN, new DrillPatternProcessor());
-    this.register(FeatureType.COUNTER_SINK, new CounterSinkProcessor());
+    this.register(FeatureType.COUNTERSINK, new CounterSinkProcessor());
     this.register(FeatureType.TAPPED_HOLE, new TappedHoleProcessor());
     this.register(FeatureType.TEXT, new TextProcessor());
     
@@ -218,7 +218,7 @@ export class FeatureProcessorFactory {
     return {
       registeredCount: this.processors.size,
       cachedCount: this.processorCache.size,
-      supportedTypes: this.getSupportedTypes().map(t => FeatureType[t])
+      supportedTypes: this.getSupportedTypes()
     };
   }
   

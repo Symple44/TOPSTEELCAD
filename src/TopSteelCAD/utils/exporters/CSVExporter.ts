@@ -105,10 +105,10 @@ export class CSVExporter {
       element.id,
       `"${element.name}"`,
       element.materialType,
-      element.material?.name || 'S355',
+      element.material?.grade || 'S355',
       Math.round(length),
       Math.round(width),
-      Math.round(height),
+      Math.round(height || 0),
       Math.round(thickness),
       element.position[0].toFixed(2),
       element.position[1].toFixed(2),
@@ -123,11 +123,11 @@ export class CSVExporter {
 
     // Ajouter les features si demandé
     if (options.includeFeatures) {
-      const features = element.features || [];
-      const holes = features.filter(f => f.type === 'hole').length;
-      const cuts = features.filter(f => f.type === 'cut').length;
-      const notches = features.filter(f => f.type === 'notch').length;
-      const copes = features.filter(f => f.type === 'cope').length;
+      const features = element.metadata?.features || [];
+      const holes = features.filter((f: any) => f.type === 'hole').length;
+      const cuts = features.filter((f: any) => f.type === 'cut').length;
+      const notches = features.filter((f: any) => f.type === 'notch').length;
+      const copes = features.filter((f: any) => f.type === 'cope').length;
       
       row.push(holes, cuts, notches, copes);
     }
@@ -155,7 +155,7 @@ export class CSVExporter {
     // Conversion mm -> m
     const l = length / 1000;
     const w = width / 1000;
-    const h = height / 1000;
+    const h = (height || 0) / 1000;
     const t = thickness / 1000;
     
     // Calcul selon le type de profil
@@ -214,7 +214,7 @@ export class CSVExporter {
     // Conversion mm -> m
     const l = length / 1000;
     const w = width / 1000;
-    const h = height / 1000;
+    const h = (height || 0) / 1000;
     
     // Calcul du périmètre selon le type
     let perimeter = 0;
