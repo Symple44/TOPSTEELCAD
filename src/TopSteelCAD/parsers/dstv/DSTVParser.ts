@@ -3,8 +3,9 @@
  * Architecture propre avec séparation des responsabilités
  */
 
-import { FileParser, PivotScene } from '@/types/viewer';
-import { DSTVParserConfig, DSTVParseResult, ValidationResult, ValidationLevel } from './types';
+import { FileParser, PivotScene } from '../../../types/viewer';
+import { DSTVParserConfig, DSTVParseResult } from './types';
+import { ValidationLevel } from './types/ValidationLevel';
 import { DSTVLexer } from './lexer/DSTVLexer';
 import { DSTVSyntaxParser } from './parser/DSTVSyntaxParser';
 import { DSTVValidator } from './validators/DSTVValidator';
@@ -218,7 +219,7 @@ export class DSTVParser implements FileParser {
     let totalCuts = 0;
     let totalMarkings = 0;
     
-    scene.elements.forEach(element => {
+    scene.elements.forEach((element: any) => {
       if (element.metadata?.features) {
         const features = element.metadata.features;
         totalFeatures += features.length;
@@ -238,6 +239,11 @@ export class DSTVParser implements FileParser {
       cutCount: totalCuts,
       markingCount: totalMarkings
     };
+    
+    console.log('📊 Scene statistics:', scene.metadata.statistics);
+    if (totalCuts > 0) {
+      console.log(`✂️ ${totalCuts} découpes trouvées dans la scène!`);
+    }
   }
   
   /**

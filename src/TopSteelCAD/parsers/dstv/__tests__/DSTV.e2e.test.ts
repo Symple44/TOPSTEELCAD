@@ -7,7 +7,6 @@ import { DSTVParser } from '../DSTVParser';
 import { DSTVLexer } from '../lexer/DSTVLexer';
 import { DSTVSyntaxParser } from '../parser/DSTVSyntaxParser';
 import { DSTVValidator } from '../validators/DSTVValidator';
-import { DSTVToPivotConverter } from '../converters/DSTVToPivotConverter';
 import { ValidationLevel } from '../types';
 import { MaterialType } from '@/types/materials';
 

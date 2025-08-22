@@ -8,7 +8,7 @@ import { Feature, FeatureType, IFeatureProcessor, ProcessorResult } from '../typ
 import { PivotElement } from '@/types/viewer';
 import { FeatureProcessorFactory } from '../processors/FeatureProcessorFactory';
 import { GeometryCache } from '../cache/GeometryCache';
-import { Logger } from '../../../utils/Logger';
+import { Logger } from '../../../utils/logger';
 
 /**
  * Options de batching

@@ -82,7 +82,7 @@ export class WeldGenerator implements ProfileGeometryGenerator {
   /**
    * Génère la géométrie d'une soudure (méthode interne)
    */
-  private generateWeld(profile: SteelProfile, length: number = 100): THREE.BufferGeometry {
+  private generateWeld(profile: SteelProfile, _length: number = 100): THREE.BufferGeometry {
     const config = this.extractWeldConfig(profile);
     
     switch (config.type) {
@@ -392,10 +392,11 @@ export class WeldGenerator implements ProfileGeometryGenerator {
         // Volume approximatif selon la préparation
         return config.size * config.size * config.length * 0.8;
         
-      case WeldType.SPOT:
+      case WeldType.SPOT: {
         // Volume d'une demi-sphère × nombre de points
         const spotCount = Math.floor(config.length / (config.spacing || config.size * 3));
         return (2/3) * Math.PI * Math.pow(config.size / 2, 3) * spotCount;
+      }
         
       default:
         return config.size * config.size * config.length * 0.5;

@@ -18,9 +18,9 @@ export class SCBlockParser {
   parse(tokens: DSTVToken[]): DSTVCut[] {
     const cuts: DSTVCut[] = [];
     
-    let currentCut: Partial<DSTVCut> | null = null;
-    let cutType: 'straight' | 'oblique' | 'curved' = 'straight';
-    let cutAngle: number = 90; // Angle de coupe par défaut (perpendiculaire)
+    // const currentCut: Partial<DSTVCut> | null = null; // TODO: Use for building cuts
+    // const cutType: 'straight' | 'oblique' | 'curved' = 'straight'; // TODO: Use for cut type detection
+    // const cutAngle: number = 90; // TODO: Use for oblique cuts (angle par défaut perpendiculaire)
     let cutFace: ProfileFace = ProfileFace.FRONT;
     
     for (let i = 0; i < tokens.length; i++) {
@@ -69,7 +69,7 @@ export class SCBlockParser {
    * Vérifie si un token contient des données de coupe
    */
   private hasCutData(token: DSTVToken): boolean {
-    return !!(token as any).values && Array.isArray((token as any).values);
+    return !!(token as unknown).values && Array.isArray((token as unknown).values);
   }
   
   /**
@@ -82,7 +82,7 @@ export class SCBlockParser {
     width?: number;
     face?: ProfileFace;
   } | null {
-    const values = (token as any).values;
+    const values = (token as unknown).values;
     
     if (!values || values.length < 2) {
       return null;
@@ -282,3 +282,5 @@ export class SCBlockParser {
     return 'oblique';
   }
 }
+// Export par défaut pour compatibilité ES modules
+export default SCBlockParser;

@@ -45,7 +45,7 @@ export class TappedHoleProcessor implements IFeatureProcessor {
       const threadPitch = params.threadPitch || this.getStandardPitch(nominalDiameter);
       const depth = params.depth || element.dimensions.thickness || 10;
       const threadType = params.threadType || 'metric'; // metric, unc, unf
-      const threadClass = params.threadClass || '6H'; // Classe de tolérance
+      // const threadClass = params.threadClass || '6H'; // Classe de tolérance
       
       // Calculer les diamètres réels
       const coreDiameter = this.calculateCoreDiameter(nominalDiameter, threadPitch, threadType);
@@ -112,7 +112,7 @@ export class TappedHoleProcessor implements IFeatureProcessor {
     }
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     const params = feature.parameters;
     

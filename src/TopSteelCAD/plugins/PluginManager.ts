@@ -7,7 +7,6 @@ import { ViewerAPI } from '../modes/types';
 import {
   EnhancedViewerPlugin,
   PluginStatus,
-  PluginState,
   PluginConfig,
   PluginLoadResult,
   PluginManagerOptions,
@@ -66,7 +65,7 @@ class PluginStorageImpl implements PluginStorage {
 class PluginLoggerImpl implements PluginLogger {
   constructor(private pluginId: string) {}
   
-  private log(level: string, message: string, ...args: any[]) {
+  private log(level: string, message: string, ...args: unknown[]) {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [Plugin:${this.pluginId}] ${message}`;
     
@@ -88,19 +87,19 @@ class PluginLoggerImpl implements PluginLogger {
     }
   }
   
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     this.log('debug', message, ...args);
   }
   
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     this.log('info', message, ...args);
   }
   
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     this.log('warn', message, ...args);
   }
   
-  error(message: string, ...args: any[]): void {
+  error(message: string, ...args: unknown[]): void {
     this.log('error', message, ...args);
   }
 }
@@ -109,16 +108,16 @@ class PluginLoggerImpl implements PluginLogger {
  * Implémentation du gestionnaire d'événements pour les plugins
  */
 class PluginEventEmitterImpl implements PluginEventEmitter {
-  private handlers = new Map<string, Function[]>();
+  private handlers = new Map<string, ((...args: unknown[]) => void)[]>();
   
-  on(event: string, handler: Function): void {
+  on(event: string, handler: (...args: unknown[]) => void): void {
     if (!this.handlers.has(event)) {
       this.handlers.set(event, []);
     }
     this.handlers.get(event)!.push(handler);
   }
   
-  off(event: string, handler: Function): void {
+  off(event: string, handler: (...args: unknown[]) => void): void {
     const handlers = this.handlers.get(event);
     if (handlers) {
       const index = handlers.indexOf(handler);
@@ -141,7 +140,7 @@ class PluginEventEmitterImpl implements PluginEventEmitter {
     }
   }
   
-  once(event: string, handler: Function): void {
+  once(event: string, handler: (...args: unknown[]) => void): void {
     const onceHandler = (data: any) => {
       handler(data);
       this.off(event, onceHandler);
@@ -603,9 +602,9 @@ export class PluginManager implements IPluginManager {
   private async executePluginHook(
     plugin: EnhancedViewerPlugin,
     hookName: string,
-    ...args: any[]
+    ...args: unknown[]
   ): Promise<void> {
-    const hook = (plugin as any)[hookName];
+    const hook = (plugin as unknown)[hookName];
     if (typeof hook === 'function') {
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error(`Plugin hook '${hookName}' timed out`)), this.options.maxLoadTime);
@@ -632,34 +631,34 @@ export class PluginManager implements IPluginManager {
   private registerPluginExtensions(plugin: EnhancedViewerPlugin): void {
     // Enregistrer les outils
     if (plugin.tools) {
-      plugin.tools.forEach(tool => {
+      plugin.tools.forEach(_tool => {
         // TODO: Enregistrer l'outil auprès de l'API
       });
     }
     
     // Enregistrer les panneaux
     if (plugin.panels) {
-      plugin.panels.forEach(panel => {
+      plugin.panels.forEach(_panel => {
         // TODO: Enregistrer le panneau auprès de l'API
       });
     }
     
     // Enregistrer les commandes
     if (plugin.commands) {
-      plugin.commands.forEach(command => {
+      plugin.commands.forEach(_command => {
         // TODO: Enregistrer la commande auprès de l'API
       });
     }
     
     // Enregistrer les raccourcis
     if (plugin.shortcuts) {
-      plugin.shortcuts.forEach(shortcut => {
+      plugin.shortcuts.forEach(_shortcut => {
         // TODO: Enregistrer le raccourci auprès de l'API
       });
     }
   }
   
-  private unregisterPluginExtensions(plugin: EnhancedViewerPlugin): void {
+  private unregisterPluginExtensions(_plugin: EnhancedViewerPlugin): void {
     // TODO: Implémenter le désenregistrement des extensions
   }
   
@@ -708,8 +707,8 @@ export class PluginManager implements IPluginManager {
     });
   }
   
-  getTools(): any[] {
-    const tools: any[] = [];
+  getTools(): unknown[] {
+    const tools: unknown[] = [];
     
     this.getActivePlugins().forEach(plugin => {
       if (plugin.tools) {

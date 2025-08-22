@@ -3,9 +3,9 @@
  * Architecture Strategy/Factory Pattern avec cache et recherche optimis\u00e9e
  */
 
-import { ProfileType, SteelProfile, ProfileFilter } from '../types/profile.types';
+import { ProfileType, SteelProfile } from '../types/profile.types';
 import { ProfileDatabase } from '../database/ProfileDatabase';
-import { GeometryGeneratorFactory } from '../geometry-generators/GeometryGeneratorFactory';
+// GeometryGeneratorFactory is not used directly in this file
 import { DatabaseGeometryBridge } from '../integration/DatabaseGeometryBridge';
 
 // ========================================
@@ -165,8 +165,8 @@ const profileComparisonExample = {
           totalWeight: result.metadata?.weight || 0,
           momentInertiaY: profile.inertia?.Iyy || 0,
           momentInertiaZ: profile.inertia?.Izz || 0,
-          elasticModulusY: (profile as any).elasticity?.Wely || 0,
-          elasticModulusZ: (profile as any).elasticity?.Welz || 0
+          elasticModulusY: (profile as unknown).elasticity?.Wely || 0,
+          elasticModulusZ: (profile as unknown).elasticity?.Welz || 0
         });
       }
     }
@@ -225,8 +225,8 @@ const reactIntegrationExample = {
         mechanicalProperties: {
           momentInertiaY: result.profile.inertia?.Iyy,
           momentInertiaZ: result.profile.inertia?.Izz,
-          elasticModulusY: (result.profile as any).elasticity?.Wely,
-          elasticModulusZ: (result.profile as any).elasticity?.Welz
+          elasticModulusY: (result.profile as unknown).elasticity?.Wely,
+          elasticModulusZ: (result.profile as unknown).elasticity?.Welz
         }
       },
       metadata: result.metadata
@@ -243,9 +243,9 @@ const reactIntegrationExample = {
       loading: false,
       
       // Fonctions qui seraient impl\u00e9ment\u00e9es dans le hook
-      setSelectedType: (type: ProfileType) => { /* impl\u00e9mentation */ },
-      setSelectedProfile: (profile: SteelProfile) => { /* impl\u00e9mentation */ },
-      loadProfiles: async (type: ProfileType) => { /* impl\u00e9mentation */ },
+      setSelectedType: (_type: ProfileType) => { /* impl\u00e9mentation */ },
+      setSelectedProfile: (_profile: SteelProfile) => { /* impl\u00e9mentation */ },
+      loadProfiles: async (_type: ProfileType) => { /* impl\u00e9mentation */ },
       generateGeometry: async () => { /* impl\u00e9mentation */ }
     };
   }
@@ -263,12 +263,11 @@ const structuralCalculationsExample = {
     const db = ProfileDatabase.getInstance();
     const profile = await db.findByDesignation(designation);
     
-    if (!profile || !profile.inertia || !(profile as any).elasticity) {
+    if (!profile || !profile.inertia || !(profile as unknown).elasticity) {
       throw new Error(`Profil\u00e9 ${designation} introuvable ou propri\u00e9t\u00e9s manquantes`);
     }
     
     // Constantes mat\u00e9riaux (acier S355)
-    const E = 210000; // Module d'\u00e9lasticit\u00e9 en N/mm\u00b2
     const fy = 355;   // Limite d'\u00e9lasticit\u00e9 en N/mm\u00b2
     const gammaM0 = 1.0; // Coefficient de s\u00e9curit\u00e9
     
@@ -280,8 +279,8 @@ const structuralCalculationsExample = {
       // R\u00e9sistance de calcul
       designResistance: {
         compression: (profile.area! * fy) / (gammaM0 * 1000), // kN
-        bendingY: ((profile as any).elasticity.Wely! * fy) / (gammaM0 * 1000), // kNm
-        bendingZ: ((profile as any).elasticity.Welz! * fy) / (gammaM0 * 1000)  // kNm
+        bendingY: ((profile as unknown).elasticity.Wely! * fy) / (gammaM0 * 1000), // kNm
+        bendingZ: ((profile as unknown).elasticity.Welz! * fy) / (gammaM0 * 1000)  // kNm
       },
       
       // V\u00e9rifications

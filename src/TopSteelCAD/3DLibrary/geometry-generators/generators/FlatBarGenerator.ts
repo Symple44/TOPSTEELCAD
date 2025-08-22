@@ -2,6 +2,7 @@
  * Générateur de géométries pour les plats et barres plates
  */
 
+import * as THREE from 'three';
 import { BoxGeometry, BufferGeometry } from '../../../lib/three-exports';
 import { ProfileType, ProfileDimensions } from '../../types/profile.types';
 import { BaseProfileGenerator } from '../interfaces/ProfileGeometryGenerator';
@@ -78,13 +79,11 @@ export class FlatBarGenerator extends BaseProfileGenerator {
    * Génère une barre ronde
    */
   private generateRoundBar(dimensions: ProfileDimensions, length: number): BufferGeometry {
-    const { CylinderGeometry } = require('../../../lib/three-exports');
-    
     const diameter = dimensions.diameter || dimensions.width || 50;
     const radius = diameter / 2;
     
-    // Créer un cylindre
-    const geometry = new CylinderGeometry(radius, radius, length, 32);
+    // Use THREE.CylinderGeometry directly since THREE is already imported
+    const geometry = new THREE.CylinderGeometry(radius, radius, length, 32);
     
     // Rotation pour avoir la longueur selon Z
     geometry.rotateX(Math.PI / 2);

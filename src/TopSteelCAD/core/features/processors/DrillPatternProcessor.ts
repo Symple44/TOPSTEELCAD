@@ -143,7 +143,7 @@ export class DrillPatternProcessor implements IFeatureProcessor {
     }
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     const params = feature.parameters;
     

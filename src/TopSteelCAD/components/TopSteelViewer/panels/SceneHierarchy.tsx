@@ -41,7 +41,7 @@ interface AssemblyNode {
  */
 export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
   store,
-  theme = 'dark',
+  theme: _theme = 'dark',
   onElementSelect,
   onElementVisibilityToggle
 }) => {
@@ -49,7 +49,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<MaterialType | 'all'>('all');
   const [showHidden, setShowHidden] = useState(true);
-  const [groupBy, setGroupBy] = useState<'none' | 'type' | 'material'>('type');
+  // const [_groupBy, _setGroupBy] = useState<'none' | 'type' | 'material'>('type');
   
   // Thème moderne slate
   const themeClasses = {
@@ -105,7 +105,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
       
       // Ajouter les features (perçages, découpes, laser)
       if (element.metadata?.cuttingFeatures) {
-        const cuttingFeatures = element.metadata.cuttingFeatures as any[];
+        const cuttingFeatures = element.metadata.cuttingFeatures as unknown[];
         cuttingFeatures.forEach((feature, idx) => {
           features.push({
             id: `${element.id}-feature-${idx}`,
@@ -169,7 +169,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
   };
   
   // Icônes pour les types d'éléments
-  const getTypeIcon = (type: MaterialType): JSX.Element => {
+  const getTypeIcon = (type: MaterialType): React.JSX.Element => {
     const iconProps = { className: "w-4 h-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" };
     
     switch (type) {
@@ -213,7 +213,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
   };
   
   // Icônes pour les features
-  const getFeatureIcon = (type: string): JSX.Element => {
+  const getFeatureIcon = (type: string): React.JSX.Element => {
     const iconProps = { className: "w-3 h-3", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" };
     
     switch (type) {
@@ -247,7 +247,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
   };
   
   // Icônes pour les assemblages
-  const getAssemblyIcon = (type: string): JSX.Element => {
+  const getAssemblyIcon = (type: string): React.JSX.Element => {
     const iconProps = { className: "w-3 h-3", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" };
     
     switch (type) {
@@ -286,7 +286,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
   };
 
   // Rendre un élément de l'arbre avec features et assemblages
-  const renderTreeNode = (node: TreeNode): JSX.Element => {
+  const renderTreeNode = (node: TreeNode): React.JSX.Element => {
     const element = node.element;
     const isSelected = store.selectedElementId === element.id;
     const isHidden = store.hiddenElementIds.has(element.id);
@@ -579,7 +579,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
         <div className="flex items-center gap-2">
           <select
             value={filterType}
-            onChange={(e) => setFilterType(e.target.value as any)}
+            onChange={(e) => setFilterType(e.target.value as unknown)}
             className={`flex-1 px-2 py-1 text-xs rounded ${themeClasses.input} focus:outline-none`}
           >
             <option value="all">Tous les types</option>

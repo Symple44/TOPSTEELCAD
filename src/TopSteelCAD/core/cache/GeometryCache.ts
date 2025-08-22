@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Logger } from '../../utils/Logger';
+import { Logger } from '../../utils/logger';
 
 /**
  * Clé de cache pour identifier une géométrie unique
@@ -169,7 +169,7 @@ export class GeometryCache {
    * Vide complètement le cache
    */
   clear(): void {
-    for (const [key, entry] of this.cache) {
+    for (const [, entry] of this.cache) {
       entry.geometry.dispose();
     }
     
@@ -309,7 +309,7 @@ export class GeometryCache {
     const entries = Array.from(this.cache.entries());
     
     // Trier par score (hitCount / age)
-    entries.sort(([keyA, entryA], [keyB, entryB]) => {
+    entries.sort(([_keyA, entryA], [_keyB, entryB]) => {
       const now = Date.now();
       const scoreA = entryA.hitCount / (now - entryA.lastAccessed + 1);
       const scoreB = entryB.hitCount / (now - entryB.lastAccessed + 1);
@@ -351,11 +351,11 @@ export const geometryCache = GeometryCache.getInstance();
 /**
  * Décorateur pour cache automatique
  */
-export function CacheGeometry(keyGenerator: (args: any[]) => CacheKey) {
+export function CacheGeometry(keyGenerator: (args: unknown[]) => CacheKey) {
   return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       const cache = GeometryCache.getInstance();
       const key = keyGenerator(args);
       

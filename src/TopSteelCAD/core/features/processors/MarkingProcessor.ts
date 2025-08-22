@@ -27,6 +27,7 @@ export class MarkingProcessor implements IFeatureProcessor {
   private createDefaultFont() {
     // Créer une police basique pour le texte 3D
     // Dans une vraie implémentation, charger une police depuis un fichier JSON
+    /*
     const fontData = {
       glyphs: {},
       familyName: 'Arial',
@@ -46,6 +47,7 @@ export class MarkingProcessor implements IFeatureProcessor {
         fontFamily: 'Arial'
       }
     };
+    */
     
     // Note: TextGeometry nécessite une vraie police
     // Pour l'instant on stocke juste les infos du marking
@@ -58,11 +60,14 @@ export class MarkingProcessor implements IFeatureProcessor {
   ): ProcessorResult {
     try {
       const text = feature.parameters.text || 'X';
+      // La taille est déjà extraite dans le SIBlockParser, utiliser celle du feature
       const size = feature.parameters.size || 10;
       const position = Array.isArray(feature.position) 
         ? new THREE.Vector3(feature.position[0], feature.position[1], feature.position[2])
         : feature.position;
       
+      // Le texte est déjà parsé dans SIBlockParser (ex: "F1000" au lieu de "10rF1000")
+      // Mais on garde le parsing pour compatibilité avec d'autres sources
       const parsedText = this.parseMarkingText(text);
       console.log(`📝 Processing marking/scribbing: "${parsedText}" at position [${position.x}, ${position.y}, ${position.z}] with size ${size}mm`);
       
@@ -72,8 +77,8 @@ export class MarkingProcessor implements IFeatureProcessor {
         geometry.userData.markings = [];
       }
       
-      const length = element.dimensions.length || 220;
-      const width = element.dimensions.width || 120;
+      // const length = element.dimensions.length || 220;
+      // const width = element.dimensions.width || 120;
       
       // Préserver les userData importantes
       const existingCenterOffset = geometry.userData.centerOffset;
@@ -343,7 +348,7 @@ export class MarkingProcessor implements IFeatureProcessor {
           // Un trait vertical simple
           return new THREE.BoxGeometry(width * 0.3, depth, height * 0.9);
         
-        case '4':
+        case '4': {
           // Forme en L inversé
           const four = new THREE.BufferGeometry();
           const vertical = new THREE.BoxGeometry(width * 0.3, depth, height * 0.9);
@@ -359,6 +364,7 @@ export class MarkingProcessor implements IFeatureProcessor {
           vertical.dispose();
           horizontal.dispose();
           return four;
+        }
           
         default:
           // Pour les autres chiffres, une forme rectangulaire
@@ -369,7 +375,7 @@ export class MarkingProcessor implements IFeatureProcessor {
       switch(char.toUpperCase()) {
         case 'I':
           return new THREE.BoxGeometry(width * 0.3, depth, height * 0.9);
-        case 'L':
+        case 'L': {
           // Forme en L
           const lShape = new THREE.BufferGeometry();
           const vert = new THREE.BoxGeometry(width * 0.3, depth, height * 0.9);
@@ -385,6 +391,7 @@ export class MarkingProcessor implements IFeatureProcessor {
           vert.dispose();
           horiz.dispose();
           return lShape;
+        }
         default:
           // Pour les autres lettres
           return new THREE.BoxGeometry(width * 0.7, depth, height * 0.8);
@@ -399,11 +406,13 @@ export class MarkingProcessor implements IFeatureProcessor {
     // Extraire le texte réel du format DSTV
     // Format typique: "v    2.00u    2.00  0.00  10r14"
     // Le "10r14" signifie un repère "14" avec rayon de 10mm
+    // Mais aussi "10rF1000" signifie un repère "F1000" avec rayon de 10mm
     
-    // Chercher le pattern pour scribbing/marking
-    const match = text.match(/(\d+)r(\d+)/);
+    // Chercher le pattern pour scribbing/marking avec texte alphanumérique
+    // Pattern amélioré pour capturer des repères alphanumériques comme "F1000"
+    const match = text.match(/(\d+)r([A-Z0-9]+)/i);
     if (match) {
-      return match[2]; // Retourner le numéro du repère
+      return match[2]; // Retourner le repère (peut être "14" ou "F1000")
     }
     
     // Autre format possible : juste un numéro
@@ -413,10 +422,11 @@ export class MarkingProcessor implements IFeatureProcessor {
     }
     
     // Si ce n'est pas un format reconnu, retourner le texte brut nettoyé
-    return text.trim().substring(0, 10); // Limiter la longueur
+    // Augmenter la limite pour permettre des textes plus longs
+    return text.trim().substring(0, 20); // Limite augmentée à 20 caractères
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     
     // Les markings peuvent avoir un texte vide (juste une marque)

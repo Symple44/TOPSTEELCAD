@@ -46,7 +46,7 @@ export class SpecialProfileGenerator extends BaseProfileGenerator {
     }
   }
 
-  private determineProfileType(dimensions: ProfileDimensions): ProfileType {
+  private determineProfileType(_dimensions: ProfileDimensions): ProfileType {
     // Logique pour déterminer le type si nécessaire
     // Pour l'instant, on suppose que le type est déjà défini
     return ProfileType.W_SHAPE;

@@ -63,8 +63,8 @@ export const TopSteelViewer: React.FC<TopSteelViewerProps> = ({
   onElementsChange,
   config = {},
   className = '',
-  showElementList = true,
-  tools = [],
+  showElementList: _showElementList = true,
+  tools: _tools = [],
   theme = 'dark'
 }) => {
   const store = useViewerStore();

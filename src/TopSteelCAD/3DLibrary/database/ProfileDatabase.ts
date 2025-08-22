@@ -8,8 +8,8 @@ import {
   SteelProfile, 
   ProfileFilter,
   ProfileSearchResult,
-  ProfileMap,
-  ProfileIndex
+  ProfileMap
+  // ProfileIndex is not used
 } from '../types/profile.types';
 import { ProfileSearch } from './ProfileSearch';
 import { ProfileCache } from './ProfileCache';
@@ -322,7 +322,7 @@ export class ProfileDatabase {
     
     let removed = false;
     
-    for (const [type, profiles] of this.profiles) {
+    for (const [, profiles] of this.profiles) {
       const index = profiles.findIndex(p => p.id === id);
       if (index !== -1) {
         profiles.splice(index, 1);
@@ -347,7 +347,7 @@ export class ProfileDatabase {
     
     let updated = false;
     
-    for (const [type, profiles] of this.profiles) {
+    for (const [, profiles] of this.profiles) {
       const profile = profiles.find(p => p.id === id);
       if (profile) {
         Object.assign(profile, updates);
@@ -460,7 +460,7 @@ export class ProfileDatabase {
   /**
    * Obtient les statistiques de la base de données
    */
-  public getStatistics(): Record<string, any> {
+  public getStatistics(): Record<string, number | string | string[] | Record<string, number>> {
     return {
       totalProfiles: this.getTotalProfileCount(),
       profilesByType: Object.fromEntries(

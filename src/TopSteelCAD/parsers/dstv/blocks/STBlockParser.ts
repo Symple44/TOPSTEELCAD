@@ -63,79 +63,140 @@ export class STBlockParser {
       profileType: 'UNKNOWN'
     };
     
-    // Parser les tokens en ordre
-    let dataIndex = 0;
+    // Reconstruire les lignes complètes à partir des tokens
+    const lines: string[] = [];
+    let currentLine = '';
+    let lastLineNumber = -1;
     
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      
+    console.log('📋 Parsing ST block with', tokens.length, 'tokens');
+    
+    for (const token of tokens) {
       // Ignorer les tokens non-données
       if (token.type === TokenType.COMMENT || token.type === TokenType.BLOCK_START || token.type === TokenType.BLOCK_END) {
         continue;
       }
       
-      // Traiter les valeurs en fonction de leur position
-      const value = token.value.trim();
+      // Si on change de ligne, ajouter la ligne courante
+      if (token.line !== lastLineNumber && currentLine) {
+        lines.push(currentLine.trim());
+        currentLine = '';
+      }
+      
+      // Ajouter le token à la ligne courante
+      if (currentLine) currentLine += ' ';
+      currentLine += token.value;
+      lastLineNumber = token.line;
+    }
+    
+    // Ajouter la dernière ligne
+    if (currentLine) {
+      lines.push(currentLine.trim());
+    }
+    
+    console.log('📋 Reconstructed lines:', lines.length);
+    
+    // Parser les lignes reconstruites
+    for (let dataIndex = 0; dataIndex < lines.length; dataIndex++) {
+      const value = lines[dataIndex];
+      
+      // Log pour debug des tubes
+      if (dataIndex >= 6 && dataIndex <= 13) {
+        console.log(`  Line ${dataIndex}: "${value}"`);
+      }
       
       switch (dataIndex) {
-        case 0: // Order number
+        case 0: // Skip first field (often empty or '-')
+          break;
+        case 1: // Order number / ID commande
           data.orderNumber = value;
           break;
-        case 1: // Part ID
+        case 2: // Part ID / ID pièce
           data.id = value;
           break;
-        case 2: // Quantity
-          data.quantity = this.parseNumber(value, 1);
+        case 3: // Part ID repetition
+          if (value !== data.id && value !== '-') {
+            data.itemNumber = value;
+          }
           break;
-        case 3: // Steel grade
+        case 4: // Steel grade / Nuance acier
           data.steelGrade = value;
           break;
-        case 4: // Item number
-          data.itemNumber = value;
+        case 5: // Quantity (optional)
+          data.quantity = this.parseNumber(value, 1);
           break;
-        case 5: // Profile designation
+        case 6: // Profile designation / Désignation profil (peut contenir des espaces)
           data.designation = value;
           data.profileType = this.detectProfileType(value);
+          console.log(`  -> Profile designation: "${value}", type: ${data.profileType}`);
           break;
-        case 6: // Drawing number (optionnel)
-          if (value && value !== '0' && value !== '') {
+        case 7: // Profile type letter (I, U, L, M, etc.) or drawing number
+          // Handle profile type codes
+          if (value === 'M') {
+            // M = Tube rectangulaire (code spécifique DSTV)
+            data.profileType = 'TUBE_RECT';
+            console.log('🔍 Profile type code detected: M -> TUBE_RECT');
+          } else if (value === 'R') {
+            // R = Tube rond
+            data.profileType = 'TUBE_ROUND';
+          } else if (value === 'I') {
+            data.profileType = 'I_PROFILE';
+          } else if (value === 'U') {
+            data.profileType = 'U_PROFILE';
+          } else if (value === 'L') {
+            data.profileType = 'L_PROFILE';
+          } else if (value === 'T') {
+            data.profileType = 'T_PROFILE';
+          } else if (value && !value.match(/^[IULTMR]$/)) {
+            // Si ce n'est pas un code de profil connu, c'est un numéro de plan
             data.drawingNumber = value;
           }
           break;
-        case 7: // Length
+        case 8: // Longueur (359.37 dans F1000.nc)
           data.length = this.parseNumber(value, 0);
+          console.log(`  -> Length: ${data.length}`);
           break;
-        case 8: // Height
-          data.height = this.parseNumber(value, 0);
-          break;
-        case 9: // Width
+        case 9: // Largeur (100.00 dans F1000.nc)
           data.width = this.parseNumber(value, 0);
+          console.log(`  -> Width: ${data.width}`);
           break;
-        case 10: // Radius (optionnel)
-          if (value && value !== '0') {
-            data.radius = this.parseNumber(value, 0);
-          }
+        case 10: // Hauteur (50.00 dans F1000.nc)
+          data.height = this.parseNumber(value, 0);
+          console.log(`  -> Height: ${data.height}`);
           break;
-        case 11: // Web thickness
-          data.webThickness = this.parseNumber(value, 0);
+        case 11: // Épaisseur 1 (5.00 dans F1000.nc - épaisseur des parois)
+          const thickness1 = this.parseNumber(value, 0);
+          data.webThickness = thickness1;
+          console.log(`  -> Web/Wall thickness: ${thickness1}`);
           break;
-        case 12: // Flange thickness
+        case 12: // Épaisseur 2 (5.00 dans F1000.nc - peut être identique pour tubes)
+          const thickness2 = this.parseNumber(value, 0);
+          data.flangeThickness = thickness2;
+          console.log(`  -> Flange thickness: ${thickness2}`);
+          break;
+        case 13: // Flange thickness / Épaisseur de l'aile
           data.flangeThickness = this.parseNumber(value, 0);
           break;
-        case 13: // Weight
+        case 14: // Weight / Poids
           data.weight = this.parseNumber(value, 0);
           break;
-        case 14: // Painting surface
+        case 15: // Painting surface / Surface peinture
           data.paintingSurface = this.parseNumber(value, 0);
           break;
-        case 15: // Reserved (optionnel)
-          if (value && value !== '0' && value !== '') {
-            data.reserved = value;
+        case 16: // Reserved 1
+        case 17: // Reserved 2
+        case 18: // Reserved 3
+        case 19: // Reserved 4
+        case 20: // Reserved 5
+          // Skip reserved fields
+          break;
+        case 21: // Additional info
+        case 22: // Additional info
+          if (value && value !== '0' && value !== '-' && value !== '') {
+            if (!data.reserved) data.reserved = value;
+            else data.reserved += ' ' + value;
           }
           break;
       }
-      
-      dataIndex++;
     }
     
     // Valeurs par défaut pour les champs manquants
@@ -213,13 +274,27 @@ export class STBlockParser {
     }
 
     // Tubes rectangulaires
-    if (upper.startsWith('RHS') || upper.startsWith('SHS')) {
+    if (upper.startsWith('RHS') || upper.startsWith('SHS') || upper.startsWith('TUBE RECT')) {
       return 'TUBE_RECT';
     }
     
     // Tubes circulaires
-    if (upper.startsWith('CHS') || upper.startsWith('PIPE')) {
+    if (upper.startsWith('CHS') || upper.startsWith('PIPE') || upper.startsWith('TUBE CIRC')) {
       return 'TUBE_ROUND';
+    }
+    
+    // Tubes génériques (vérifier les dimensions pour déterminer le type)
+    if (upper.startsWith('TUBE') || upper.includes('TUBE')) {
+      // Si "rect" ou "rectangular" dans la désignation
+      if (upper.includes('RECT')) {
+        return 'TUBE_RECT';
+      }
+      // Si "circ" ou "round" dans la désignation
+      if (upper.includes('CIRC') || upper.includes('ROUND')) {
+        return 'TUBE_ROUND';
+      }
+      // Par défaut, considérer comme rectangulaire si non spécifié
+      return 'TUBE_RECT';
     }
 
     // Barres rondes
@@ -250,3 +325,6 @@ export class STBlockParser {
     return 'UNKNOWN';
   }
 }
+
+// Export par défaut pour compatibilité ES modules
+export default STBlockParser;

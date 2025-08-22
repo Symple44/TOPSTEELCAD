@@ -156,7 +156,7 @@ export class CompositeProcessor implements IFeatureProcessor {
     feature: CompositeFeature,
     element: PivotElement
   ): ProcessorResult {
-    let currentGeometry = geometry;
+    const currentGeometry = geometry;
     
     // Créer le contour principal avec arrondis
     const contourFeature = feature.subFeatures.find(f => f.type === FeatureType.CONTOUR);
@@ -329,7 +329,7 @@ export class CompositeProcessor implements IFeatureProcessor {
     feature: CompositeFeature,
     element: PivotElement
   ): ProcessorResult {
-    let currentGeometry = geometry;
+    const currentGeometry = geometry;
     
     // Traiter selon la séquence définie
     const sequence = feature.sequence || 'sequential';
@@ -368,8 +368,8 @@ export class CompositeProcessor implements IFeatureProcessor {
       if (!processor) continue;
       
       // Si le processeur supporte le batch
-      if ((processor as any).processBatch) {
-        const result = (processor as any).processBatch(currentGeometry, groupFeatures, element);
+      if ((processor as unknown).processBatch) {
+        const result = (processor as unknown).processBatch(currentGeometry, groupFeatures, element);
         if (result.success && result.geometry) {
           if (currentGeometry !== geometry) {
             currentGeometry.dispose();
@@ -458,7 +458,7 @@ export class CompositeProcessor implements IFeatureProcessor {
    * Ajoute des arrondis aux coins d'un contour
    */
   private addRoundedCorners(contourFeature: Feature): void {
-    const radius = (contourFeature.parameters as any).cornerRadius || 10;
+    // const radius = (contourFeature.parameters as unknown).cornerRadius || 10;
     
     // Modifier les points pour ajouter des bulges aux coins
     if (contourFeature.parameters.points && Array.isArray(contourFeature.parameters.points)) {
@@ -597,7 +597,7 @@ export class CompositeFeatureFactory {
       id: `composite-${Date.now()}`,
       type: FeatureType.COUNTERSINK, // Type principal
       compositeType: CompositeFeatureType.COUNTERSUNK_TAPPED_HOLE,
-      coordinateSystem: 'local' as any,
+      coordinateSystem: 'local' as unknown,
       position,
       rotation: new THREE.Euler(0, 0, 0),
       parameters: {},
@@ -605,7 +605,7 @@ export class CompositeFeatureFactory {
         {
           id: 'sink',
           type: FeatureType.COUNTERSINK,
-          coordinateSystem: 'local' as any,
+          coordinateSystem: 'local' as unknown,
           position: position.clone(),
           rotation: new THREE.Euler(0, 0, 0),
           parameters: {
@@ -618,7 +618,7 @@ export class CompositeFeatureFactory {
         {
           id: 'thread',
           type: FeatureType.TAPPED_HOLE,
-          coordinateSystem: 'local' as any,
+          coordinateSystem: 'local' as unknown,
           position: position.clone(),
           rotation: new THREE.Euler(0, 0, 0),
           parameters: {

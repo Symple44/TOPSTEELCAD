@@ -19,7 +19,11 @@
       "Bash(mkdir:*)",
       "Bash(npm audit:*)",
       "Bash(npm test:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(dir dist)",
+      "Bash(npx ts-node:*)",
+      "Bash(npx eslint:*)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []

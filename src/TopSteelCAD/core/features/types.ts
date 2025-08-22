@@ -17,6 +17,7 @@ export enum FeatureType {
   DRILL_PATTERN = 'drill_pattern',
   
   // Découpes et contours
+  CUT = 'cut',
   SLOT = 'slot',
   CUTOUT = 'cutout',
   CONTOUR = 'contour',
@@ -72,7 +73,7 @@ export interface Feature {
   rotation: THREE.Euler;
   face?: ProfileFace;
   parameters: FeatureParameters;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
 import { Feature, IFeatureProcessor, ProcessorResult } from '../types';
 import { PivotElement } from '@/types/viewer';
-import { Logger } from '../../../utils/Logger';
+import { Logger } from '../../../utils/logger';
 import { 
   ICutStrategy,
   SimpleCutStrategy,
@@ -157,7 +157,7 @@ export class ImprovedCutProcessor implements IFeatureProcessor {
   private performCSGOperation(
     baseGeometry: THREE.BufferGeometry,
     cutGeometry: THREE.BufferGeometry,
-    feature: Feature
+    _feature: Feature
   ): THREE.BufferGeometry {
     const baseCSG = CSG.fromGeometry(baseGeometry);
     const cutCSG = CSG.fromGeometry(cutGeometry);

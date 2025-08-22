@@ -3,7 +3,7 @@
  * Capture, log et traite les erreurs de manière cohérente
  */
 
-import { Logger } from '../utils/Logger';
+import { Logger } from '../utils/logger';
 
 /**
  * Types d'erreurs personnalisées
@@ -612,7 +612,7 @@ export function HandleError(type?: ErrorType, severity?: ErrorSeverity) {
   return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
     
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const context = {
         component: target.constructor.name,
         method: propertyName

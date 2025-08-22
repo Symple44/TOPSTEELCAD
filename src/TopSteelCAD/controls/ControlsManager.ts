@@ -180,21 +180,21 @@ export class ControlsManager {
     this.transformControls = new TransformControls(this.camera, this.domElement);
     
     // Configuration
-    (this.transformControls as any).size = 1;
-    (this.transformControls as any).space = 'local';
+    (this.transformControls as unknown).size = 1;
+    (this.transformControls as unknown).space = 'local';
     
     // Écouteurs - TransformControls utilise des événements non typés
-    (this.transformControls as any).addEventListener('change', () => {
+    (this.transformControls as unknown).addEventListener('change', () => {
       this.onTransformChange();
     });
     
-    (this.transformControls as any).addEventListener('dragging-changed', (event: any) => {
+    (this.transformControls as unknown).addEventListener('dragging-changed', (event: any) => {
       // Désactiver OrbitControls pendant la transformation
       this.orbitControls.enabled = !event.value;
       this.isTransforming = event.value;
     });
     
-    (this.transformControls as any).addEventListener('objectChange', () => {
+    (this.transformControls as unknown).addEventListener('objectChange', () => {
       if (this.transformTarget) {
         this.eventBus.emit('transform:objectChanged', {
           object: this.transformTarget,
@@ -411,7 +411,7 @@ export class ControlsManager {
   /**
    * Met à jour les contrôles
    */
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     if (this.orbitControls.enabled) {
       this.orbitControls.update();
     }
@@ -482,7 +482,7 @@ export class ControlsManager {
    */
   setTransformMode(mode: TransformMode): void {
     if (this.transformControls) {
-      (this.transformControls as any).mode = mode;
+      (this.transformControls as unknown).mode = mode;
       this.eventBus.emit('transform:modeChanged', mode);
     }
   }
@@ -517,27 +517,81 @@ export class ControlsManager {
   }
   
   /**
-   * Rotation
+   * Rotation programmatique
    */
   rotate(deltaX: number, deltaY: number): void {
-    // Utiliser les méthodes internes d'OrbitControls
-    const element = this.domElement;
-    const rect = element.getBoundingClientRect();
+    // Rotation sphérique autour de la cible
+    const spherical = new THREE.Spherical();
+    const offset = new THREE.Vector3();
     
-    // Simuler un mouvement de souris pour la rotation
-    const event = {
-      clientX: rect.left + rect.width / 2 + deltaX,
-      clientY: rect.top + rect.height / 2 + deltaY
-    };
+    // Calculer l'offset de la caméra par rapport à la cible
+    offset.copy(this.camera.position).sub(this.orbitControls.target);
     
-    // TODO: Implémenter une rotation programmatique propre
+    // Convertir en coordonnées sphériques
+    spherical.setFromVector3(offset);
+    
+    // Appliquer la rotation
+    spherical.theta -= deltaX * this.config.rotateSpeed * 0.01;
+    spherical.phi += deltaY * this.config.rotateSpeed * 0.01;
+    
+    // Limiter l'angle polaire
+    spherical.phi = Math.max(this.config.minPolarAngle, Math.min(this.config.maxPolarAngle, spherical.phi));
+    
+    // Reconvertir en coordonnées cartésiennes
+    offset.setFromSpherical(spherical);
+    
+    // Appliquer la nouvelle position
+    this.camera.position.copy(this.orbitControls.target).add(offset);
+    this.camera.lookAt(this.orbitControls.target);
+    
+    // Mettre à jour les contrôles
+    this.orbitControls.update();
+    
+    // Émettre l'événement
+    this.onControlsChange();
   }
   
   /**
-   * Pan
+   * Pan programmatique
    */
   pan(deltaX: number, deltaY: number): void {
-    // TODO: Implémenter le pan programmatique
+    // Calculer les vecteurs de déplacement dans l'espace de la caméra
+    const offset = new THREE.Vector3();
+    const distance = this.camera.position.distanceTo(this.orbitControls.target);
+    
+    // Calculer la taille du viewport en unités monde
+    let targetDistance = distance;
+    if (this.camera instanceof THREE.PerspectiveCamera) {
+      targetDistance = distance * Math.tan((this.camera.fov / 2) * Math.PI / 180.0);
+    } else if (this.camera instanceof THREE.OrthographicCamera) {
+      targetDistance = (this.camera.top - this.camera.bottom) / 2 / this.camera.zoom;
+    }
+    
+    // Calculer les vecteurs de déplacement
+    const panLeft = new THREE.Vector3();
+    const panUp = new THREE.Vector3();
+    
+    // Vecteur gauche (perpendiculaire à la direction de vue)
+    panLeft.setFromMatrixColumn(this.camera.matrix, 0);
+    panLeft.multiplyScalar(-deltaX * targetDistance * this.config.panSpeed * 0.001);
+    
+    // Vecteur haut
+    panUp.setFromMatrixColumn(this.camera.matrix, 1);
+    panUp.multiplyScalar(deltaY * targetDistance * this.config.panSpeed * 0.001);
+    
+    // Appliquer le déplacement
+    offset.add(panLeft);
+    offset.add(panUp);
+    
+    // Déplacer la caméra et la cible
+    this.camera.position.add(offset);
+    this.orbitControls.target.add(offset);
+    
+    // Mettre à jour les contrôles
+    this.orbitControls.update();
+    
+    // Émettre l'événement
+    this.onControlsChange();
   }
   
   /**
@@ -547,7 +601,7 @@ export class ControlsManager {
     this.orbitControls.enabled = enabled;
     
     if (this.transformControls) {
-      (this.transformControls as any).enabled = enabled;
+      (this.transformControls as unknown).enabled = enabled;
     }
   }
   

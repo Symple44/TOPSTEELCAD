@@ -5,7 +5,7 @@
  */
 
 import { PivotElement, PivotScene, FileParser } from '@/types/viewer';
-import { DSTVParser } from '../parsers/DSTVParser';
+import { DSTVParser } from '../parsers/dstv/DSTVParser';
 import { EventBus } from '../core/EventBus';
 
 /**
@@ -455,8 +455,80 @@ export class FileManager {
    * Fusionne les éléments identiques
    */
   private mergeIdenticalElements(scene: PivotScene): void {
-    // TODO: Implémenter la fusion des éléments identiques
-    // Comparer les dimensions, matériaux, etc.
+    const elementGroups = new Map<string, PivotElement[]>();
+    const mergedElements = new Map<string, PivotElement>();
+    
+    // Grouper les éléments par signature unique
+    scene.elements.forEach(element => {
+      const signature = this.getElementSignature(element);
+      
+      if (!elementGroups.has(signature)) {
+        elementGroups.set(signature, []);
+      }
+      elementGroups.get(signature)!.push(element);
+    });
+    
+    // Fusionner les groupes d'éléments identiques
+    elementGroups.forEach((elements, signature) => {
+      if (elements.length > 1) {
+        // Garder le premier élément comme référence
+        const mergedElement = { ...elements[0] };
+        
+        // Ajouter les informations de fusion
+        mergedElement.metadata = {
+          ...mergedElement.metadata,
+          mergedCount: elements.length,
+          originalIds: elements.map(el => el.id),
+          mergeDate: new Date().toISOString()
+        };
+        
+        // Mettre à jour le nom pour indiquer la fusion
+        mergedElement.name = `${mergedElement.name} (x${elements.length})`;
+        
+        mergedElements.set(mergedElement.id, mergedElement);
+        
+        // Émettre un événement de fusion
+        this.eventBus.emit('filemanager:elements-merged', {
+          originalCount: elements.length,
+          mergedElement,
+          signature
+        });
+      } else {
+        // Garder l'élément unique tel quel
+        mergedElements.set(elements[0].id, elements[0]);
+      }
+    });
+    
+    // Remplacer les éléments dans la scène
+    scene.elements = mergedElements;
+    
+    console.log(`🔄 Fusion terminée: ${scene.elements.size} éléments (depuis ${elementGroups.size} groupes)`);
+  }
+  
+  /**
+   * Génère une signature unique pour un élément
+   */
+  private getElementSignature(element: PivotElement): string {
+    const parts = [
+      element.materialType,
+      (element.material as unknown)?.designation || 'unknown',
+      Math.round(element.dimensions.length),
+      Math.round(element.dimensions.width || 0),
+      Math.round(element.dimensions.height || 0),
+      (element as unknown).profile || 'none'
+    ];
+    
+    // Ajouter les features si présentes
+    if ((element as unknown).features && Array.isArray((element as unknown).features)) {
+      const features = (element as unknown).features;
+      const featureSignature = features
+        .map((f: any) => `${f.type}-${Math.round(f.position?.x || 0)}-${Math.round(f.position?.y || 0)}`)
+        .sort()
+        .join('|');
+      parts.push(featureSignature);
+    }
+    
+    return parts.join('-');
   }
   
   /**
@@ -558,7 +630,7 @@ export class FileManager {
   /**
    * Exporte vers DXF
    */
-  private exportToDXF(elements: PivotElement[], options: ExportOptions): string {
+  private exportToDXF(elements: PivotElement[], _options: ExportOptions): string {
     // Format DXF simplifié
     let dxf = '0\nSECTION\n2\nHEADER\n';
     dxf += '9\n$ACADVER\n1\nAC1015\n'; // AutoCAD 2000

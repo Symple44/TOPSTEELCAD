@@ -2,7 +2,7 @@
  * Tests de conformité avec la documentation DSTV officielle
  * Validation minutieuse contre tous les fichiers d'exemple
  */
-import { DSTVParser } from '../../../parsers/DSTVParser';
+import { DSTVParser } from '../../../parsers/dstv/DSTVParser';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -49,27 +49,27 @@ describe('DSTV Documentation Compliance', () => {
           
           // Structure flexible pour gérer les variations (572Z.NC1 et T1.NC1 ont des formats différents)
           expect(lines[1]).toMatch(/^(\s*-\s*|\*\*.*)$/); // Ligne 2: Commentaire ou tiret
-          expect(lines[2]).toMatch(/^\s+[\w\-]+/); // Ligne 3: ID commande
-          expect(lines[3]).toMatch(/^\s+[\w\-]+/); // Ligne 4: ID dessin
-          expect(lines[4]).toMatch(/^\s+[\w\-]+/); // Ligne 5: ID pièce
+          expect(lines[2]).toMatch(/^\s+[\w-]+/); // Ligne 3: ID commande
+          expect(lines[3]).toMatch(/^\s+[\w-]+/); // Ligne 4: ID dessin
+          expect(lines[4]).toMatch(/^\s+[\w-]+/); // Ligne 5: ID pièce
           
           // Les lignes suivantes peuvent varier selon le générateur
           if (fileName.includes('572Z.NC1') || fileName.includes('T1.NC1')) {
             // Format alternatif pour ces fichiers spéciaux
-            expect(lines[5]).toMatch(/^\s+[\w\-]+/); // Peut être un autre ID
+            expect(lines[5]).toMatch(/^\s+[\w-]+/); // Peut être un autre ID
             expect(lines[6]).toMatch(/^\s+\w+/); // Nuance acier
             expect(lines[7]).toMatch(/^\s+\d+/); // Code catégorie
           } else {
             // Format standard
             expect(lines[5]).toMatch(/^\s+\w+/); // Ligne 6: Nuance acier
             expect(lines[6]).toMatch(/^\s+\d+/); // Ligne 7: Code catégorie
-            expect(lines[7]).toMatch(/^\s+[\w\-\*\s]+/); // Ligne 8: Désignation profil
+            expect(lines[7]).toMatch(/^\s+[\w-*\s]+/); // Ligne 8: Désignation profil
             expect(lines[8]).toMatch(/^\s+[A-Z]+/); // Ligne 9: Code profil
           }
         });
 
         test('Dimensions formatées correctement', () => {
-          const stIndex = lines.findIndex(line => line === 'ST');
+          // const stIndex = lines.findIndex(line => line === 'ST'); // Not used in test
           
           // Chercher les lignes de dimensions (format numérique)
           let dimensionStart = 9; // Par défaut
@@ -261,7 +261,7 @@ describe('DSTV Documentation Compliance', () => {
       });
 
       // Vérifier que les lignes ne sont pas excessivement longues
-      Object.entries(lineLengths).forEach(([fileName, lengths]) => {
+      Object.entries(lineLengths).forEach(([_fileName, lengths]) => {
         const maxLength = Math.max(...lengths);
         expect(maxLength).toBeLessThan(200); // Limite raisonnable
       });
@@ -270,7 +270,7 @@ describe('DSTV Documentation Compliance', () => {
     test('Caractères utilisés conformes', () => {
       const exampleFiles = getExampleFiles();
       // Pattern étendu pour inclure tous les caractères observés dans les fichiers réels
-      const allowedChars = /^[A-Za-z0-9\s\-\.\*\(\)\[\]_\/\\:,\r\n]+$/;
+      const allowedChars = /^[A-Za-z0-9\s.-*()[\]_/\\:,\r\n]+$/;
 
       exampleFiles.forEach(fileName => {
         const filePath = path.join(docPath, fileName);

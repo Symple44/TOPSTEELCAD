@@ -336,7 +336,7 @@ describe('DSTVValidator', () => {
 
   describe('edge cases', () => {
     it('should handle null profile', () => {
-      const result = validator.validateProfile(null as any);
+      const result = validator.validateProfile(null as unknown);
 
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);

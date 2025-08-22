@@ -81,6 +81,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   React.useEffect(() => {
     if (isOpen) {
       setIsAnimating(true);
+      // Animation terminée après 300ms
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -97,10 +102,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: isAnimating ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 0, 0.5)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    transition: 'background-color 0.3s ease',
     zIndex: 10000, // Augmenté pour être au-dessus de tout
     padding: '2rem'
   };
@@ -114,6 +120,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     maxHeight: '85vh',
     overflowY: 'auto' as const,
     overflowX: 'hidden' as const,
+    transform: isAnimating ? 'scale(0.95)' : 'scale(1)',
+    opacity: isAnimating ? 0 : 1,
+    transition: 'transform 0.3s ease, opacity 0.3s ease',
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
     position: 'relative' as const,
@@ -177,7 +186,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             {Object.entries(formatConfigs).map(([format, config]) => {
               const Icon = config.icon;
               const isSelected = selectedFormat === format;
-              const isDisabled = config.disabled;
+              const isDisabled = (config as unknown).disabled;
               
               return (
                 <button

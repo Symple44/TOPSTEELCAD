@@ -44,7 +44,24 @@ export class FeatureApplicator {
       console.log(`🔧 Applying ${element.metadata.features.length} features to element ${element.id}`);
       console.log('Features:', element.metadata.features);
       
-      for (const featureData of element.metadata.features) {
+      // Trier les features pour appliquer les découpes dans le bon ordre
+      // 1. Trous (holes) en premier
+      // 2. Découpes des ailes (cuts sur face v/u) 
+      // 3. Découpes de l'âme (cuts sur face o/web) en dernier car elles peuvent enlever toute l'extrémité
+      const sortedFeatures = [...element.metadata.features].sort((a, b) => {
+        const getPriority = (f: any) => {
+          if (f.type === 'hole') return 0;
+          if (f.type === 'marking') return 3;
+          if ((f.type === 'cut' || f.type === 'notch') && (f.face === 'v' || f.face === 'u')) return 1;
+          if ((f.type === 'cut' || f.type === 'notch') && (f.face === 'o' || f.face === 'web')) return 2;
+          return 4;
+        };
+        return getPriority(a) - getPriority(b);
+      });
+      
+      console.log('🔄 Sorted features for optimal application order');
+      
+      for (const featureData of sortedFeatures) {
         // Convertir les données de feature depuis metadata vers le format Feature
         const feature = this.convertMetadataToFeature(featureData);
         
@@ -91,22 +108,29 @@ export class FeatureApplicator {
       parameters: {}
     };
     
-    // Convertir la face DSTV vers ProfileFace
+    // Convertir la face DSTV vers ProfileFace ou conserver le code DSTV
     if (featureData.face) {
-      // DSTV utilise 'v' pour visible (top), 'u' pour bottom, 'o' pour side
-      // Pour les poutres IPE, 'u' signifie l'aile inférieure
-      switch(featureData.face) {
-        case 'v':
-          feature.face = ProfileFace.TOP;
-          break;
-        case 'u':
-          feature.face = ProfileFace.BOTTOM;
-          break;
-        case 'o':
-          feature.face = ProfileFace.WEB;
-          break;
-        default:
-          feature.face = featureData.face;
+      // Pour les découpes ET les trous, conserver les codes DSTV originaux ('v', 'u', 'o')
+      // car les processors les gèrent directement
+      if (featureData.type === 'cut' || featureData.type === 'notch' || featureData.type === 'cutout' || 
+          featureData.type === 'hole') {
+        feature.face = featureData.face; // Garder 'v', 'u', 'o' tels quels
+      } else {
+        // Pour les autres features, convertir vers ProfileFace
+        switch(featureData.face) {
+          case 'v':
+            feature.face = ProfileFace.TOP;
+            break;
+          case 'u':
+            feature.face = ProfileFace.BOTTOM;
+            break;
+          case 'o':
+          case 'web':
+            feature.face = ProfileFace.WEB;
+            break;
+          default:
+            feature.face = featureData.face;
+        }
       }
     }
     
@@ -150,8 +174,12 @@ export class FeatureApplicator {
         // Paramètres pour les découpes
         feature.parameters.points = featureData.contourPoints || [];
         feature.parameters.depth = featureData.depth || 10;
-        feature.face = this.convertDSTVFace(featureData.face) || ProfileFace.TOP;
+        feature.parameters.isTransverse = featureData.isTransverse || false;
+        // La face a déjà été définie plus haut (gardée telle quelle pour les cuts)
         console.log(`✂️ Converting cut feature: ${feature.parameters.points?.length || 0} points on face ${feature.face}`);
+        if ((feature.face as string) === 'v' || (feature.face as string) === 'u') {
+          console.log(`    Contour points for ${feature.face}:`, feature.parameters.points);
+        }
         break;
         
       default:
@@ -184,6 +212,8 @@ export class FeatureApplicator {
         case 'marking':
           return this.markingProcessor.process(geometry, feature, element);
           
+        case FeatureType.CUT:
+        case 'cut':
         case FeatureType.CUTOUT:
         case FeatureType.NOTCH:
           return this.cutProcessor.process(geometry, feature, element);

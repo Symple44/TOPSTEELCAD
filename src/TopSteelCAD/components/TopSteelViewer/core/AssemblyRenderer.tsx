@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { PivotElement, AssemblyInfo, AssemblyType } from '@/types/viewer';
+import { PivotElement, AssemblyType } from '@/types/viewer';
 
 /**
  * Composant de rendu des assemblages (boulons, écrous, soudures)
@@ -28,8 +28,6 @@ export const BoltAssembly: React.FC<BoltAssemblyProps> = ({
   includeNut = true 
 }) => {
   const group = useMemo(() => {
-    const boltGroup = new THREE.Group();
-    
     // Dimensions basées sur les normes ISO
     const headHeight = diameter * 0.7;
     const headRadius = diameter * 0.9;
@@ -229,11 +227,11 @@ interface AssemblyRendererProps {
 
 export const AssemblyRenderer: React.FC<AssemblyRendererProps> = ({ 
   element, 
-  isSelected 
+  isSelected: _isSelected 
 }) => {
   // Rendu des trous avec représentation de boulons
   const holes = useMemo(() => {
-    const features = element.metadata?.cuttingFeatures as any[] || [];
+    const features = element.metadata?.cuttingFeatures as unknown[] || [];
     return features.filter(f => f.type === 'hole').map((hole, idx) => {
       const position = hole.position as [number, number, number];
       
@@ -315,7 +313,7 @@ export const AssemblyRenderer: React.FC<AssemblyRendererProps> = ({
 
   // Rendu des découpes laser (slots)
   const laserCuts = useMemo(() => {
-    const features = element.metadata?.cuttingFeatures as any[] || [];
+    const features = element.metadata?.cuttingFeatures as unknown[] || [];
     return features.filter(f => f.type === 'slot').map((slot, idx) => {
       const position = slot.position as [number, number, number];
       

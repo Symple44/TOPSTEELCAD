@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useRef, useEffect, useMemo, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Grid, Box, Cylinder, Sphere } from '@react-three/drei';
+import React, { useRef, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { OrbitControls, Grid } from '@react-three/drei';
 import * as THREE from 'three';
 import { PivotElement, MaterialType, AssemblyType } from '@/types/viewer';
 
@@ -13,8 +13,8 @@ import { PivotElement, MaterialType, AssemblyType } from '@/types/viewer';
 const MachiningFeatures: React.FC<{
   element: PivotElement;
   isSelected: boolean;
-}> = ({ element, isSelected }) => {
-  const features = element.metadata?.cuttingFeatures as any[] || [];
+}> = ({ element, isSelected: _isSelected }) => {
+  const features = element.metadata?.cuttingFeatures as unknown[] || [];
   const assemblies = element.assemblies || [];
   
   return (
@@ -33,7 +33,7 @@ const MachiningFeatures: React.FC<{
         const relativeX = dstvX - (element.dimensions.length || 6000) / 2;
         
         switch (feature.type) {
-          case 'hole':
+          case 'hole': {
             // Déterminer sur quelle face se trouve le trou selon Z
             // Z = 0 : trou sur l'âme (web) au centre
             // Z > 0 : trou sur l'aile supérieure
@@ -41,6 +41,7 @@ const MachiningFeatures: React.FC<{
             const isOnWeb = Math.abs(dstvZ) < 1; // Tolérance pour Z=0
             const isOnTopFlange = dstvZ > ((element.dimensions.height || 300) / 2 - 20);
             const isOnBottomFlange = dstvZ < -((element.dimensions.height || 300) / 2 - 20);
+            
             
             // Position finale du trou
             let holePosition: [number, number, number];
@@ -103,8 +104,9 @@ const MachiningFeatures: React.FC<{
                 />
               </mesh>
             );
+          }
           
-          case 'slot':
+          case 'slot': {
             // Gravure laser - position selon les coordonnées DSTV
             // Z DSTV indique la hauteur, Y DSTV indique la position latérale
             const slotPosition: [number, number, number] = [
@@ -135,9 +137,10 @@ const MachiningFeatures: React.FC<{
                 />
               </mesh>
             );
+          }
           
           case 'cutout':
-          case 'cut':
+          case 'cut': {
             // Découpe - transformation correcte des coordonnées
             const cutPosition: [number, number, number] = [
               element.position[0] + relativeX,  // Le long de la poutre
@@ -166,6 +169,7 @@ const MachiningFeatures: React.FC<{
                 />
               </mesh>
             );
+          }
           
           default:
             return null;
@@ -457,8 +461,7 @@ const SelectionOutline: React.FC<{
   element: PivotElement;
   isSelected: boolean;
 }> = ({ element, isSelected }) => {
-  if (!isSelected) return null;
-
+  // Always call hooks at the top level, regardless of early return
   const geometry = useMemo(() => {
     const dims = element.dimensions;
     
@@ -533,6 +536,9 @@ const SelectionOutline: React.FC<{
   const edges = useMemo(() => {
     return new THREE.EdgesGeometry(geometry, 15); // Angle de 15 degrés pour les arêtes
   }, [geometry]);
+
+  // Conditional return after all hooks
+  if (!isSelected) return null;
 
   return (
     <group

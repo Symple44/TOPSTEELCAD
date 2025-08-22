@@ -90,7 +90,7 @@ export class UnifiedMaterialsDatabase {
       name: profile.designation,
       description: `Profilé ${profile.designation} selon ${profile.source}`,
       category: MaterialCategory.PROFILES,
-      type: profile.type as any,
+      type: profile.type as unknown,
       dimensions: {
         length: 6000, // Longueur standard
         width: profile.dimensions.width,
@@ -104,8 +104,8 @@ export class UnifiedMaterialsDatabase {
       },
       material: {
         designation: 'S355', // Grade par défaut
-        grade: 'S355' as any,
-        finish: 'RAW' as any,
+        grade: 'S355' as unknown,
+        finish: 'RAW' as unknown,
         yieldStrength: 355,
         tensileStrength: 510,
         standard: profile.source
@@ -288,7 +288,7 @@ export class UnifiedMaterialsDatabase {
     
     // Filtre par grades
     if (filter.grades && filter.grades.length > 0) {
-      results = results.filter(m => filter.grades!.includes(m.material.grade as any));
+      results = results.filter(m => filter.grades!.includes(m.material.grade as unknown));
     }
     
     // Filtres dimensionnels
@@ -422,10 +422,10 @@ export class UnifiedMaterialsDatabase {
   /**
    * Statistiques de la base de données
    */
-  public async getStatistics(): Promise<Record<string, any>> {
+  public async getStatistics(): Promise<Record<string, unknown>> {
     await this.initialize();
     
-    const stats: Record<string, any> = {
+    const stats: Record<string, unknown> = {
       totalElements: this.materials.size,
       byCategory: {}
     };

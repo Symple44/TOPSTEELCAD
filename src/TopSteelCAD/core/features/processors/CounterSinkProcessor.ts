@@ -145,7 +145,7 @@ export class CounterSinkProcessor implements IFeatureProcessor {
     }
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     const params = feature.parameters;
     
@@ -183,7 +183,7 @@ export class CounterSinkProcessor implements IFeatureProcessor {
     const segments = 32;
     
     // Calculer les dimensions du cône
-    const angleRad = (sinkAngle * Math.PI) / 180;
+    // const angleRad = (sinkAngle * Math.PI) / 180;
     const coneRadius = sinkDiameter / 2;
     const holeRadius = holeDiameter / 2;
     
@@ -219,7 +219,7 @@ export class CounterSinkProcessor implements IFeatureProcessor {
     totalDepth: number
   ): THREE.BufferGeometry {
     // Combiner deux cylindres: un large pour le lamage, un étroit pour le trou
-    const group = new THREE.Group();
+    // const group = new THREE.Group();
     
     // Cylindre du lamage
     const boreGeometry = new THREE.CylinderGeometry(

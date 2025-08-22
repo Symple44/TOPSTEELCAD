@@ -263,7 +263,7 @@ export class SimpleMeasurementTool {
    * Trouve le point de snap le plus proche
    */
   private findNearestSnapPoint(event: MouseEvent): THREE.Vector3 | null {
-    const rect = this.canvas.getBoundingClientRect();
+    // const rect = this.canvas.getBoundingClientRect(); // Not used in current implementation
     const mouseScreen = new THREE.Vector2(event.clientX, event.clientY);
     
     let nearestPoint: THREE.Vector3 | null = null;
@@ -365,7 +365,7 @@ export class SimpleMeasurementTool {
   /**
    * Gère le clic pour ajouter un point de mesure
    */
-  handleClick(event: MouseEvent): boolean {
+  handleClick(_event: MouseEvent): boolean {
     if (!this.isActive) return false;
     
     // Utiliser le point de snap actuel s'il existe

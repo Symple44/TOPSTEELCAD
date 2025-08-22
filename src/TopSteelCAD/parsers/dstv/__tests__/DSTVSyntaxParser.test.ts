@@ -2,9 +2,9 @@
  * Tests unitaires pour DSTVSyntaxParser
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { DSTVSyntaxParser } from '../parser/DSTVSyntaxParser';
-import { DSTVProfile, ProfileFace } from '../types';
+import { ProfileFace } from '../types';
 
 describe('DSTVSyntaxParser', () => {
   let parser: DSTVSyntaxParser;
@@ -345,7 +345,7 @@ EN`;
     });
 
     it('should handle null input', () => {
-      const profiles = parser.parse(null as any);
+      const profiles = parser.parse(null as unknown);
       expect(profiles).toEqual([]);
     });
 

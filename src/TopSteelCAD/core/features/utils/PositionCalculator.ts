@@ -48,15 +48,12 @@ export class PositionCalculator {
     
     // Obtenir les dimensions de l'élément
     const dims = element.dimensions;
-    const length = dims.length || 1000;
-    const height = dims.height || 100;
-    const width = dims.width || 100;
     const thickness = dims.thickness || 10;
     
     // Position de base (coordonnées locales)
-    let localX = featurePos.x;
-    let localY = featurePos.y;
-    let localZ = featurePos.z;
+    const localX = featurePos.x;
+    const localY = featurePos.y;
+    const localZ = featurePos.z;
     
     // Position 3D finale et rotation
     let position: [number, number, number] = [0, 0, 0];
@@ -66,7 +63,7 @@ export class PositionCalculator {
     
     switch (profileType) {
       case ProfileGeometryType.I_PROFILE:
-      case ProfileGeometryType.H_PROFILE:
+      case ProfileGeometryType.H_PROFILE: {
         const result = this.calculateIProfilePosition(
           element, localX, localY, localZ, actualFace
         );
@@ -75,8 +72,9 @@ export class PositionCalculator {
         depth = result.depth;
         normal = result.normal;
         break;
+      }
         
-      case ProfileGeometryType.PLATE:
+      case ProfileGeometryType.PLATE: {
         const plateResult = this.calculatePlatePosition(
           element, localX, localY, localZ, actualFace
         );
@@ -85,9 +83,10 @@ export class PositionCalculator {
         depth = plateResult.depth;
         normal = plateResult.normal;
         break;
+      }
         
       case ProfileGeometryType.TUBE_RECT:
-      case ProfileGeometryType.TUBE_SQUARE:
+      case ProfileGeometryType.TUBE_SQUARE: {
         const tubeResult = this.calculateTubePosition(
           element, localX, localY, localZ, actualFace
         );
@@ -96,8 +95,9 @@ export class PositionCalculator {
         depth = tubeResult.depth;
         normal = tubeResult.normal;
         break;
+      }
         
-      case ProfileGeometryType.L_PROFILE:
+      case ProfileGeometryType.L_PROFILE: {
         const lResult = this.calculateLProfilePosition(
           element, localX, localY, localZ, actualFace
         );
@@ -106,6 +106,7 @@ export class PositionCalculator {
         depth = lResult.depth;
         normal = lResult.normal;
         break;
+      }
         
       default:
         // Position par défaut
@@ -132,17 +133,23 @@ export class PositionCalculator {
     // Pour les profils en I (IPE, HEB, etc.)
     if (profileType === ProfileGeometryType.I_PROFILE || profileType === ProfileGeometryType.H_PROFILE) {
       switch(faceLower) {
-        case 'top':
-        case 'v':
-          return ProfileFace.TOP_FLANGE;
-        case 'bottom':
-        case 'u':
-          return ProfileFace.BOTTOM_FLANGE;
         case 'web':
         case 'o':
           return ProfileFace.WEB;
-        default:
+        case 'v':
+          // Dans DSTV pour profils I, 'v' = vue du dessus
+          // Les trous avec face 'v' sont généralement dans l'âme
+          return ProfileFace.WEB;
+        case 'top_flange':
           return ProfileFace.TOP_FLANGE;
+        case 'bottom_flange':
+        case 'u':
+          // 'u' = vue du dessous, peut être l'âme ou l'aile inférieure selon contexte
+          return ProfileFace.BOTTOM_FLANGE;
+        default:
+          // Si on reçoit 'top' ou 'bottom' sans '_flange', c'est probablement une erreur de mapping
+          // On devrait avoir reçu 'web' ou 'top_flange'/'bottom_flange'
+          return ProfileFace.WEB;
       }
     }
     
@@ -211,8 +218,10 @@ export class PositionCalculator {
       return ProfileGeometryType.U_PROFILE;
     }
     
-    // Cornières
-    if (/^L\d/i.test(profile)) {
+    // Cornières (L-profiles / angles)
+    // RSA = Rolled Steel Angle
+    if (/^(L\d|RSA)/i.test(profile) || materialType === MaterialType.ANGLE) {
+      console.log(`🔍 Detected L_PROFILE: profile="${profile}", materialType="${materialType}"`);
       return ProfileGeometryType.L_PROFILE;
     }
     
@@ -265,7 +274,7 @@ export class PositionCalculator {
         return z >= 0 ? ProfileFace.TOP : ProfileFace.BOTTOM;
         
       case ProfileGeometryType.TUBE_RECT:
-      case ProfileGeometryType.TUBE_SQUARE:
+      case ProfileGeometryType.TUBE_SQUARE: {
         // Déterminer la face selon la position relative
         const absY = Math.abs(y);
         const absZ = Math.abs(z);
@@ -275,6 +284,7 @@ export class PositionCalculator {
         } else {
           return z > 0 ? ProfileFace.RIGHT : ProfileFace.LEFT;
         }
+      }
         
       default:
         return ProfileFace.TOP;
@@ -298,7 +308,6 @@ export class PositionCalculator {
     const webThickness = element.metadata?.webThickness || dims.webThickness || 7;
     const flangeThickness = element.metadata?.flangeThickness || dims.flangeThickness || 11;
     
-    console.log(`📏 Profile dimensions: L=${length}, H=${height}, W=${width}, webT=${webThickness}, flangeT=${flangeThickness}`);
     
     let position: [number, number, number];
     let rotation: [number, number, number];
@@ -306,14 +315,21 @@ export class PositionCalculator {
     let normal: THREE.Vector3;
     
     switch (face) {
-      case ProfileFace.WEB:
+      case ProfileFace.WEB: {
         // Trou dans l'âme - perpendiculaire à l'âme (horizontal)
         // L'âme est verticale (dans le plan XY), les trous la traversent selon Z
         // DSTV : x = position le long de la poutre (0 à length)
-        // DSTV : y = hauteur sur l'âme (0 = bas, height = haut)
+        // DSTV : y = dépend de la face originale DSTV :
+        //   - face 'o' : y = hauteur sur l'âme (0 = bas, height = haut)
+        //   - face 'v' : y = position latérale (0 = gauche, width = droite)
         // Three.js : X=length, Y=height, Z=width
         const webX = x - length / 2;  // Position le long de la poutre (centrée)
-        const webY = y - height / 2;  // Hauteur sur l'âme (centrée)
+        
+        // Pour face 'v', Y dans DSTV représente la position latérale (width)
+        // Il faut la convertir en hauteur sur l'âme
+        // Les valeurs Y=88.20 et Y=163.20 sur une largeur de 251.40
+        // doivent être mappées sur la hauteur de l'âme 146.10
+        const webY = (y / width) * height - height / 2;  // Conversion proportionnelle
         const webZ = 0;               // Centré sur l'âme
         
         position = [webX, webY, webZ];
@@ -322,10 +338,8 @@ export class PositionCalculator {
         rotation = [Math.PI / 2, 0, 0]; // Rotation de 90° autour de X pour orienter selon Z
         depth = webThickness;
         normal = new THREE.Vector3(0, 0, 1);
-        console.log(`🔩 Web hole: DSTV(${x}, ${y}) -> Three.js(${webX}, ${webY}, ${webZ})`);
-        console.log(`   📐 Dimensions: L=${length}, H=${height}, webT=${webThickness}`);
-        console.log(`   🔄 Rotation: [${rotation[0]}, ${rotation[1]}, ${rotation[2]}] (90° around X)`);
         break;
+      }
         
       case ProfileFace.TOP_FLANGE:
         // Trou dans l'aile supérieure - vertical
@@ -339,7 +353,7 @@ export class PositionCalculator {
         normal = new THREE.Vector3(0, 1, 0);
         break;
         
-      case ProfileFace.BOTTOM_FLANGE:
+      case ProfileFace.BOTTOM_FLANGE: {
         // Trou dans l'aile inférieure - vertical
         // DSTV : x = position le long de la poutre (0 à length)
         // DSTV : y = position latérale sur l'aile (0 à width)
@@ -352,9 +366,8 @@ export class PositionCalculator {
         rotation = [0, 0, 0]; // Pas de rotation - cylindre déjà vertical (selon Y)
         depth = flangeThickness;
         normal = new THREE.Vector3(0, -1, 0);
-        console.log(`🔩 Bottom flange hole: DSTV(${x}, ${y}) -> Three.js(${xPos}, ${yPos}, ${zPos})`);
-        console.log(`   📐 Dimensions: L=${length}, H=${height}, W=${width}, flangeT=${flangeThickness}`);
         break;
+      }
         
       default:
         position = [x - length / 2, y, z];
@@ -489,25 +502,71 @@ export class PositionCalculator {
     let rotation: [number, number, number];
     let normal: THREE.Vector3;
     
+    // Pour les cornières, les coordonnées DSTV sont depuis le coin
+    // Il faut les transformer vers le système centré de Three.js
+    // La géométrie de la cornière est centrée : va de -width/2 à +width/2 et -height/2 à +height/2
+    
     switch (face) {
       case ProfileFace.LEFT_LEG:
         // Jambe verticale
-        position = [x - length / 2, y, -width / 2 + thickness / 2];
+        position = [x - length / 2, y - height / 2, -width / 2 + thickness / 2];
         rotation = [0, 0, Math.PI / 2];
         normal = new THREE.Vector3(-1, 0, 0);
         break;
         
       case ProfileFace.RIGHT_LEG:
-        // Jambe horizontale
-        position = [x - length / 2, -height / 2 + thickness / 2, y];
+        // Jambe horizontale  
+        position = [x - length / 2, -height / 2 + thickness / 2, y - width / 2];
         rotation = [Math.PI / 2, 0, 0];
         normal = new THREE.Vector3(0, -1, 0);
         break;
         
+      case ProfileFace.TOP:
+      case ProfileFace.WEB:
       default:
-        position = [x - length / 2, y, z];
-        rotation = [0, 0, 0];
-        normal = new THREE.Vector3(0, 1, 0);
+        // Pour les trous sur l'âme (web) de la cornière
+        // Une cornière en L a deux ailes : une verticale et une horizontale
+        // Les coordonnées DSTV sont depuis le coin extérieur de la cornière
+        // Dans DSTV: x = position le long de la pièce (longueur), y = position sur l'aile
+        
+        console.log(`🔍 L_PROFILE hole positioning: DSTV coords (${x}, ${y})`);
+        console.log(`   Piece dimensions: length=${length}, width=${width}, height=${height}, thickness=${thickness}`);
+        
+        // Pour une cornière, les trous sont généralement sur l'une des ailes
+        // La coordonnée Y dans DSTV indique la position sur l'aile depuis le coin
+        // Pour une cornière 100x100x8, si y=65, c'est à 65mm du coin sur l'aile
+        
+        // Déterminer sur quelle aile le trou est placé
+        // Si on assume que les trous sont sur l'aile verticale (la plus courante)
+        // L'aile verticale de la cornière va de z: -width/2 à -width/2+thickness dans Three.js
+        
+        // IMPORTANT: Dans Three.js après extrusion et centrage :
+        // - La cornière est extrudée le long de Z
+        // - X est la largeur (aile verticale à gauche)
+        // - Y est la hauteur (aile horizontale en bas)
+        // - Z est la longueur de la pièce
+        
+        // Position le long de la pièce (axe Z après extrusion)
+        // x dans DSTV = position le long de la longueur = Z dans Three.js
+        const alongLength = x - length / 2;
+        
+        // Pour l'aile verticale de la cornière (sur le côté gauche, X négatif)
+        console.log(`  -> Hole on VERTICAL leg of L-profile at ${y}mm from corner`);
+        
+        position = [
+          -width / 2 + thickness / 2,         // X: Centré dans l'épaisseur de l'aile verticale
+          y - height / 2,                     // Y: Position sur la hauteur de l'aile
+          alongLength                         // Z: Position le long de la longueur
+        ];
+        
+        // Rotation pour percer à travers l'épaisseur de l'aile (perpendiculaire à la surface)
+        // Le cylindre est créé selon Y par défaut
+        // Pour percer selon X (à travers l'aile verticale), on doit tourner de 90° autour de Z
+        rotation = [0, 0, -Math.PI / 2];      // Rotation de -90° autour de Z pour orienter selon X
+        normal = new THREE.Vector3(1, 0, 0);  // Normal pointant selon X (à travers l'aile)
+        
+        console.log(`  -> Final 3D position: [${position[0].toFixed(1)}, ${position[1].toFixed(1)}, ${position[2].toFixed(1)}]`);
+        console.log(`  -> Rotation: [${rotation[0].toFixed(2)}, ${rotation[1].toFixed(2)}, ${rotation[2].toFixed(2)}]`);
     }
     
     return {

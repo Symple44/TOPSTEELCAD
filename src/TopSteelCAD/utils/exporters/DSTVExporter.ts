@@ -136,8 +136,8 @@ export class DSTVExporter {
     lines.push(...this.generateSTBlock(element, pieceNumber, options));
     
     // 2. Bloc BO (Bohrung/Holes) - Trous
-    if (options.includeFeatures && (element as any).features) {
-      const holes = (element as any).features.filter((f: any) => f.type === 'hole');
+    if (options.includeFeatures && (element as unknown).features) {
+      const holes = (element as unknown).features.filter((f: any) => f.type === 'hole');
       if (holes.length > 0) {
         lines.push(...this.generateBOBlock(holes));
       }
@@ -149,8 +149,8 @@ export class DSTVExporter {
     }
     
     // 4. Bloc IK (Innenkontur) - Contours internes/découpes
-    if (options.includeFeatures && (element as any).features) {
-      const notches = (element as any).features.filter((f: any) => 
+    if (options.includeFeatures && (element as unknown).features) {
+      const notches = (element as unknown).features.filter((f: any) => 
         f.type === 'notch' || f.type === 'cutout' || f.type === 'cope'
       );
       notches.forEach((notch: any) => {
@@ -159,46 +159,46 @@ export class DSTVExporter {
     }
     
     // 5. Bloc PU (Powder) - Marquage poudre
-    if (options.includeFeatures && (element as any).features) {
-      const powderMarks = (element as any).features.filter((f: any) => f.type === 'powder');
+    if (options.includeFeatures && (element as unknown).features) {
+      const powderMarks = (element as unknown).features.filter((f: any) => f.type === 'powder');
       if (powderMarks.length > 0) {
         lines.push(...this.generatePUBlock(powderMarks));
       }
     }
     
     // 6. Bloc KO (Mark/Punch) - Marquage poinçon
-    if (options.includeFeatures && (element as any).features) {
-      const punchMarks = (element as any).features.filter((f: any) => f.type === 'punch');
+    if (options.includeFeatures && (element as unknown).features) {
+      const punchMarks = (element as unknown).features.filter((f: any) => f.type === 'punch');
       if (punchMarks.length > 0) {
         lines.push(...this.generateKOBlock(punchMarks));
       }
     }
     
     // 7. Bloc SC (Cut) - Coupes spéciales
-    if (options.includeFeatures && (element as any).features) {
-      const cuts = (element as any).features.filter((f: any) => f.type === 'specialCut');
+    if (options.includeFeatures && (element as unknown).features) {
+      const cuts = (element as unknown).features.filter((f: any) => f.type === 'specialCut');
       if (cuts.length > 0) {
         lines.push(...this.generateSCBlock(cuts));
       }
     }
     
     // 8. Bloc TO (Tolerance) - Tolérances
-    if (element.tolerances) {
+    if ((element as unknown).tolerances) {
       lines.push(...this.generateTOBlock(element));
     }
     
     // 9. Bloc UE (Camber) - Cambrure
-    if (element.camber) {
+    if ((element as unknown).camber) {
       lines.push(...this.generateUEBlock(element));
     }
     
     // 10. Bloc PR (Profile) - Profils spéciaux
-    if (element.specialProfile) {
+    if ((element as unknown).specialProfile) {
       lines.push(...this.generatePRBlock(element));
     }
     
     // 11. Bloc KA (Bending) - Pliage
-    if ((element as any).bendings && (element as any).bendings.length > 0) {
+    if ((element as unknown).bendings && (element as unknown).bendings.length > 0) {
       lines.push(...this.generateKABlock(element));
     }
     
@@ -226,7 +226,7 @@ export class DSTVExporter {
   private static generateSTBlock(
     element: PivotElement, 
     pieceNumber: number,
-    options: ExportOptions
+    _options: ExportOptions
   ): string[] {
     const lines: string[] = [];
     
@@ -295,7 +295,7 @@ export class DSTVExporter {
         const flangeThickness = element.dimensions.flangeThickness || thickness;
         const webThickness = element.dimensions.webThickness || (thickness * 0.6);
         
-        lines.push(this.formatDimension(height, 12));
+        lines.push(this.formatDimension(height || 0, 12));
         lines.push(this.formatDimension(width, 12));
         lines.push(this.formatDimension(flangeThickness, 12));
         lines.push(this.formatDimension(webThickness, 12));
@@ -390,7 +390,7 @@ export class DSTVExporter {
     const lines: string[] = [];
     
     const { width, height } = element.dimensions;
-    const profileCode = this.getProfileCode(element);
+    // const profileCode = this.getProfileCode(element); // For future implementation
     
     // Générer les contours pour chaque face nécessaire
     const faces = this.getRequiredFaces(element);
@@ -409,9 +409,9 @@ export class DSTVExporter {
         // Deuxième point
         lines.push(`${this.formatCoordinate(length)}${this.formatCoordinate(0)}${this.formatCoordinate(0)}`);
         // Troisième point
-        lines.push(`${this.formatCoordinate(length)}${this.formatCoordinate(height)}${this.formatCoordinate(0)}`);
+        lines.push(`${this.formatCoordinate(length)}${this.formatCoordinate(height || 0)}${this.formatCoordinate(0)}`);
         // Quatrième point
-        lines.push(`${this.formatCoordinate(0)}${this.formatCoordinate(height)}${this.formatCoordinate(0)}`);
+        lines.push(`${this.formatCoordinate(0)}${this.formatCoordinate(height || 0)}${this.formatCoordinate(0)}`);
         // Fermeture (retour au premier point)
         lines.push(`${this.formatCoordinate(0)}${this.formatCoordinate(0)}${this.formatCoordinate(0)}`);
       } else {
@@ -556,8 +556,8 @@ export class DSTVExporter {
     const lines: string[] = ['TO'];
     
     // Tolérances min et max (en mm)
-    const minTolerance = element.tolerances?.min || -1.0;
-    const maxTolerance = element.tolerances?.max || 1.0;
+    const minTolerance = (element as unknown).tolerances?.min || -1.0;
+    const maxTolerance = (element as unknown).tolerances?.max || 1.0;
     
     lines.push(`  ${this.formatCoordinate(minTolerance)}${this.formatCoordinate(maxTolerance)}`);
     
@@ -571,10 +571,10 @@ export class DSTVExporter {
   private static generateUEBlock(element: PivotElement): string[] {
     const lines: string[] = ['UE'];
     
-    if (element.camber) {
-      const face = FACE_CODES[element.camber.face as keyof typeof FACE_CODES] || 'v';
-      const camberX = element.camber.x || 0;
-      const camberY = element.camber.y || 0;
+    if ((element as unknown).camber) {
+      const face = FACE_CODES[(element as unknown).camber.face as keyof typeof FACE_CODES] || 'v';
+      const camberX = (element as unknown).camber.x || 0;
+      const camberY = (element as unknown).camber.y || 0;
       
       lines.push(`  ${face}${this.formatCoordinate(camberX)}${this.formatCoordinate(camberY)}`);
     }
@@ -589,16 +589,16 @@ export class DSTVExporter {
   private static generatePRBlock(element: PivotElement): string[] {
     const lines: string[] = ['PR'];
     
-    if (element.specialProfile) {
+    if ((element as unknown).specialProfile) {
       // Contours externes (+)
-      element.specialProfile.externalContours?.forEach((contour: any) => {
+      (element as unknown).specialProfile.externalContours?.forEach((contour: any) => {
         contour.points.forEach((point: any) => {
           lines.push(`  +${this.formatCoordinate(point.y || 0)}${this.formatCoordinate(point.z || 0)}${this.formatCoordinate(point.radius || 0)}`);
         });
       });
       
       // Contours internes (-)
-      element.specialProfile.internalContours?.forEach((contour: any) => {
+      (element as unknown).specialProfile.internalContours?.forEach((contour: any) => {
         contour.points.forEach((point: any) => {
           lines.push(`  -${this.formatCoordinate(point.y || 0)}${this.formatCoordinate(point.z || 0)}${this.formatCoordinate(point.radius || 0)}`);
         });
@@ -615,8 +615,8 @@ export class DSTVExporter {
   private static generateKABlock(element: PivotElement): string[] {
     const lines: string[] = ['KA'];
     
-    if (element.bendings) {
-      element.bendings.forEach((bend: any) => {
+    if ((element as unknown).bendings) {
+      (element as unknown).bendings.forEach((bend: any) => {
         const x1 = bend.axis?.start?.x || 0;
         const y1 = bend.axis?.start?.y || 0;
         const x2 = bend.axis?.end?.x || 0;
@@ -769,15 +769,15 @@ export class DSTVExporter {
         profile = db.findByDesignation(withSpace);
       }
       
-      if (profile && profile.dimensions) {
+      if (profile && (profile as unknown).dimensions) {
         return {
-          height: profile.dimensions.height,
-          width: profile.dimensions.width,
-          flangeThickness: profile.dimensions.flangeThickness,
-          webThickness: profile.dimensions.webThickness,
-          rootRadius: profile.dimensions.rootRadius,
-          weight: profile.weight,
-          perimeter: profile.perimeter
+          height: (profile as unknown).dimensions.height,
+          width: (profile as unknown).dimensions.width,
+          flangeThickness: (profile as unknown).dimensions.flangeThickness,
+          webThickness: (profile as unknown).dimensions.webThickness,
+          rootRadius: (profile as unknown).dimensions.rootRadius,
+          weight: (profile as unknown).weight,
+          perimeter: (profile as unknown).perimeter
         };
       }
     } catch (error) {
@@ -809,7 +809,7 @@ export class DSTVExporter {
         return true;
       }
       // Ou si des features spéciales
-      if (element.features?.some(f => 
+      if ((element as unknown).features?.some((f: any) => 
         f.type === 'cut' || f.type === 'miter' || f.type === 'cope'
       )) {
         return true;
@@ -844,7 +844,7 @@ export class DSTVExporter {
     
     // Autres profils I : peut nécessiter des faces selon les features
     if (profileCode === PROFILE_CODES.I) {
-      if (element.features?.some(f => f.type === 'cut' || f.type === 'cope')) {
+      if ((element as unknown).features?.some((f: any) => f.type === 'cut' || f.type === 'cope')) {
         return ['v', 'o', 'u'];
       }
     }
@@ -865,7 +865,7 @@ export class DSTVExporter {
     let area = 0;
     
     switch (profileCode) {
-      case PROFILE_CODES.I:
+      case PROFILE_CODES.I: {
         // Profils I/H : âme + 2 ailes
         // Utilise les dimensions spécifiques si disponibles
         const webThickness = dims.webThickness || (dims.thickness * 0.6);
@@ -877,24 +877,27 @@ export class DSTVExporter {
         const flangeArea = 2 * flangeWidth * flangeThickness;
         area = webArea + flangeArea;
         break;
+      }
         
-      case PROFILE_CODES.U:
+      case PROFILE_CODES.U: {
         // Profils U/C
         const uHeight = dims.height || 0;
         const uWidth = dims.width || 0;
         const uThickness = dims.thickness || 0;
         area = uHeight * uThickness * 0.7 + 2 * uWidth * uThickness * 0.8;
         break;
+      }
         
-      case PROFILE_CODES.L:
+      case PROFILE_CODES.L: {
         // Cornières
         const lWidth = dims.width || 0;
         const lHeight = dims.height || lWidth; // Cornières égales par défaut
         const lThickness = dims.thickness || 0;
         area = lThickness * (lWidth + lHeight - lThickness);
         break;
+      }
         
-      case PROFILE_CODES.M:
+      case PROFILE_CODES.M: {
         // Tubes rectangulaires/carrés
         const tubeWidth = dims.width || 0;
         const tubeHeight = dims.height || tubeWidth; // Carré par défaut
@@ -902,8 +905,9 @@ export class DSTVExporter {
         const perimetre = 2 * (tubeWidth + tubeHeight);
         area = perimetre * tubeThickness - 4 * tubeThickness * tubeThickness;
         break;
+      }
         
-      case PROFILE_CODES.RO:
+      case PROFILE_CODES.RO: {
         // Tubes ronds
         const diameter = dims.diameter || dims.width || 0;
         const roThickness = dims.thickness || 0;
@@ -911,6 +915,7 @@ export class DSTVExporter {
         const rInt = rExt - roThickness;
         area = Math.PI * (rExt * rExt - rInt * rInt);
         break;
+      }
         
       case PROFILE_CODES.B:
         // Plats/Tôles
@@ -941,22 +946,22 @@ export class DSTVExporter {
     switch (profileCode) {
       case PROFILE_CODES.I:
         // Profils I/H : contour complet
-        perimeter = 4 * width + 2 * height - 2 * thickness;
+        perimeter = 4 * width + 2 * (height || 0) - 2 * thickness;
         break;
         
       case PROFILE_CODES.U:
         // Profils U/C
-        perimeter = 2 * width + 2 * height;
+        perimeter = 2 * width + 2 * (height || 0);
         break;
         
       case PROFILE_CODES.L:
         // Cornières
-        perimeter = 2 * (width + height);
+        perimeter = 2 * (width + (height || 0));
         break;
         
       case PROFILE_CODES.M:
         // Tubes rectangulaires : périmètre externe uniquement
-        perimeter = 2 * (width + height);
+        perimeter = 2 * (width + (height || 0));
         break;
         
       case PROFILE_CODES.RO:
@@ -971,7 +976,7 @@ export class DSTVExporter {
         
       default:
         // Approximation par défaut
-        perimeter = 2 * (width + height);
+        perimeter = 2 * (width + (height || 0));
     }
     
     // Conversion en m²/m

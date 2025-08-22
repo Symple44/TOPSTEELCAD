@@ -15,7 +15,7 @@ import { Feature, FeatureType, ProfileFace } from '@/TopSteelCAD/core/features/t
  */
 function convertToFeatures(element: PivotElement): Feature[] {
   const features: Feature[] = [];
-  const cuttingFeatures = element.metadata?.cuttingFeatures as any[] || [];
+  const cuttingFeatures = element.metadata?.cuttingFeatures as unknown[] || [];
   
   cuttingFeatures.forEach((dstvFeature, index) => {
     let featureType = FeatureType.HOLE;
@@ -77,7 +77,7 @@ function convertToFeatures(element: PivotElement): Feature[] {
     features.push({
       id: `${dstvFeature.type}-${index}`,
       type: featureType,
-      coordinateSystem: 'local' as any,
+      coordinateSystem: 'local' as unknown,
       position: new THREE.Vector3(
         dstvFeature.position[0],
         dstvFeature.position[1],

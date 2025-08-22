@@ -6,7 +6,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import DSTVParserOld from '../../DSTVParser'; // Ancien parser monolithique
 import { DSTVParser as DSTVParserNew } from '../DSTVParser'; // Nouveau parser modulaire
-import { PivotScene } from '@/types/viewer';
 
 describe('DSTV Parser Regression Tests', () => {
   let oldParser: DSTVParserOld;
@@ -122,7 +121,7 @@ EN`;
         expect(newHoles.length).toBe(oldHoles.length);
         
         // Check slotted properties
-        newHoles.forEach((hole: any, index: number) => {
+        newHoles.forEach((hole: any, _index: number) => {
           if (hole.holeType === 'slotted') {
             expect(hole.slottedLength).toBeDefined();
             expect(hole.slottedAngle).toBeDefined();

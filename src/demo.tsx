@@ -5,6 +5,9 @@ import { StandardViewer } from './TopSteelCAD/StandardViewer';
 import { ProfessionalViewer } from './TopSteelCAD/ProfessionalViewer';
 import { PivotElement, MaterialType } from './types/viewer';
 
+// Initialiser le logger
+import './TopSteelCAD/utils/logger';
+
 // Données de test simples
 const createTestElements = (): PivotElement[] => {
   const elements: PivotElement[] = [

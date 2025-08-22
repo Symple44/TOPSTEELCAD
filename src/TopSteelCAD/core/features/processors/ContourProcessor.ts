@@ -3,7 +3,7 @@
  */
 
 import * as THREE from 'three';
-import { Evaluator, Brush, SUBTRACTION, ADDITION } from 'three-bvh-csg';
+import { Evaluator, Brush, SUBTRACTION } from 'three-bvh-csg';
 import { 
   Feature, 
   IFeatureProcessor, 
@@ -87,7 +87,7 @@ export class ContourProcessor implements IFeatureProcessor {
     }
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     const params = feature.parameters;
     

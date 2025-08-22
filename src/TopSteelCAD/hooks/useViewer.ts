@@ -11,9 +11,7 @@ import {
   ViewerConfig, 
   ViewerModeConfig, 
   ViewerAPI, 
-  ViewerPlugin,
-  ToolConfig,
-  PanelConfig
+  ViewerPlugin
 } from '../modes/types';
 import { ThemeConfig } from '../themes/types';
 import { PivotElement } from '@/types/viewer';
@@ -99,7 +97,7 @@ export function useViewer(config?: Partial<ViewerConfig>) {
   const [annotations, setAnnotations] = useState<any[]>([]);
   
   // Références
-  const eventHandlers = useRef<Map<string, Set<Function>>>(new Map());
+  const eventHandlers = useRef<Map<string, Set<(...args: unknown[]) => void>>>(new Map());
   const pluginCleanups = useRef<Map<string, (() => void)[]>>(new Map());
   
   // Gestion des événements
@@ -110,14 +108,14 @@ export function useViewer(config?: Partial<ViewerConfig>) {
     }
   }, []);
   
-  const on = useCallback((event: string, handler: Function) => {
+  const on = useCallback((event: string, handler: (...args: unknown[]) => void) => {
     if (!eventHandlers.current.has(event)) {
       eventHandlers.current.set(event, new Set());
     }
     eventHandlers.current.get(event)!.add(handler);
   }, []);
   
-  const off = useCallback((event: string, handler: Function) => {
+  const off = useCallback((event: string, handler: (...args: unknown[]) => void) => {
     const handlers = eventHandlers.current.get(event);
     if (handlers) {
       handlers.delete(handler);
@@ -233,13 +231,114 @@ export function useViewer(config?: Partial<ViewerConfig>) {
     // Export
     exportScene: async (format, options) => {
       emit('export:start', { format, options });
-      // TODO: Implémenter l'export réel
-      return new Blob();
+      
+      try {
+        // Récupérer les éléments à exporter
+        const elementsToExport = options?.selectedOnly 
+          ? store.elements.filter((el: PivotElement) => el.id === store.selectedElementId)
+          : store.elements;
+        
+        if (!elementsToExport || elementsToExport.length === 0) {
+          throw new Error('Aucun élément à exporter');
+        }
+        
+        let blob: Blob;
+        
+        switch (format) {
+          case 'json': {
+            const { JSONExporter } = await import('../utils/exporters/JSONExporter');
+            const result = await JSONExporter.export(
+              elementsToExport,
+              'export.json',
+              options || {}
+            );
+            blob = (result as unknown).blob || new Blob([result.data || ''], { type: 'application/json' });
+            break;
+          }
+          
+          case 'dstv': {
+            const { DSTVExporter } = await import('../utils/exporters/DSTVExporter');
+            const result = await DSTVExporter.export(
+              elementsToExport,
+              'export.zip',
+              options || {}
+            );
+            blob = (result as unknown).blob || new Blob([result.data || ''], { type: 'application/json' });
+            break;
+          }
+          
+          case 'csv': {
+            // Export CSV simple
+            const headers = ['ID', 'Name', 'Type', 'Material', 'Length', 'Width', 'Height', 'Weight'];
+            const rows = elementsToExport.map((el: PivotElement) => [
+              el.id,
+              el.name,
+              el.materialType,
+              (el.material as unknown)?.designation || '',
+              el.dimensions?.length || 0,
+              el.dimensions?.width || 0,
+              el.dimensions?.height || 0,
+              (el.material as unknown)?.weight || 0
+            ]);
+            
+            const csvContent = [
+              headers.join(','),
+              ...rows.map((row: (string | number)[]) => row.join(','))
+            ].join('\n');
+            
+            blob = new Blob([csvContent], { type: 'text/csv' });
+            break;
+          }
+          
+          default:
+            throw new Error(`Format d'export non supporté: ${format}`);
+        }
+        
+        emit('export:complete', { format, options, blob });
+        return blob;
+        
+      } catch (error) {
+        emit('export:error', { format, options, error });
+        throw error;
+      }
     },
     screenshot: async () => {
       emit('screenshot:start');
-      // TODO: Implémenter la capture d'écran
-      return new Blob();
+      
+      try {
+        // Récupérer le renderer depuis le ViewerEngine ou le document
+        const canvas = document.querySelector('canvas');
+        if (!canvas) {
+          throw new Error('Canvas non disponible');
+        }
+        
+        // Vérifier que le canvas est valide
+        if (!(canvas instanceof HTMLCanvasElement)) {
+          throw new Error('Canvas invalide');
+        }
+        
+        // Convertir le canvas en blob
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (blob: Blob | null) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Impossible de créer le blob'));
+              }
+            },
+            'image/png',
+            1.0
+          );
+        });
+        
+        emit('screenshot:complete', { blob });
+        return blob;
+        
+      } catch (error) {
+        emit('screenshot:error', { error });
+        throw error;
+      }
     },
     
     // Plugins
@@ -260,14 +359,14 @@ export function useViewer(config?: Partial<ViewerConfig>) {
       
       // Enregistrer les outils
       if (plugin.tools) {
-        plugin.tools.forEach(tool => {
+        plugin.tools.forEach(_tool => {
           // TODO: Ajouter l'outil à la toolbar
         });
       }
       
       // Enregistrer les raccourcis
       if (plugin.shortcuts) {
-        plugin.shortcuts.forEach(shortcut => {
+        plugin.shortcuts.forEach(_shortcut => {
           // TODO: Enregistrer le raccourci
         });
       }

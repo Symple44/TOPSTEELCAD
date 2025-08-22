@@ -8,7 +8,7 @@ import {
   Feature,
   FeatureType,
   ProfileFace,
-  FeatureParameters,
+  // FeatureParameters,
   CoordinateSystem
 } from '../types';
 

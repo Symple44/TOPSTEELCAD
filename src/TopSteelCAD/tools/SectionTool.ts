@@ -27,7 +27,7 @@ export class SectionTool extends BaseTool {
   
   protected onActivate(): void {
     // Active les plans de coupe sur le renderer
-    const renderer = (this.canvas as any).__renderer;
+    const renderer = (this.canvas as unknown).__renderer;
     if (renderer) {
       renderer.localClippingEnabled = true;
     }
@@ -128,10 +128,11 @@ export class SectionTool extends BaseTool {
         case 'Z':
           planeMesh.position.z = position;
           break;
-        case 'custom':
+        case 'custom': {
           const offset = this.planeNormal.clone().multiplyScalar(position);
           planeMesh.position.copy(offset);
           break;
+        }
       }
     }
     
@@ -231,12 +232,12 @@ export class SectionTool extends BaseTool {
         
         if (Array.isArray(material)) {
           material.forEach(m => {
-            (m as any).clippingPlanes = this.clippingPlanes;
-            (m as any).side = THREE.DoubleSide;
+            (m as unknown).clippingPlanes = this.clippingPlanes;
+            (m as unknown).side = THREE.DoubleSide;
           });
         } else {
-          (material as any).clippingPlanes = this.clippingPlanes;
-          (material as any).side = THREE.DoubleSide;
+          (material as unknown).clippingPlanes = this.clippingPlanes;
+          (material as unknown).side = THREE.DoubleSide;
         }
         
         object.material = material;

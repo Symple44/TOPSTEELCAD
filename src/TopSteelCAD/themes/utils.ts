@@ -2,7 +2,7 @@
  * Utilitaires pour le système de thèmes
  */
 
-import { ThemeConfig, ThemeColors } from './types';
+import { ThemeConfig } from './types';
 import { lightTheme, darkTheme } from './presets';
 
 /**

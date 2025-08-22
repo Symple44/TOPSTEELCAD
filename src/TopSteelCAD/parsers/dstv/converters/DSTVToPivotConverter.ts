@@ -4,8 +4,11 @@
  */
 
 import { DSTVProfile } from '../types';
-import { MaterialType } from '@/types/viewer';
-import { PivotScene, PivotElement, MetalDimensions, MaterialProperties } from '@/types/viewer';
+import { MaterialType } from '../../../../types/viewer';
+import { PivotScene, PivotElement, MetalDimensions, MaterialProperties } from '../../../../types/viewer';
+import { createModuleLogger } from '../../../utils/logger';
+
+const log = createModuleLogger('DSTVToPivotConverter');
 
 /**
  * Convertisseur DSTV vers format Pivot
@@ -64,16 +67,73 @@ export class DSTVToPivotConverter {
    */
   private convertProfile(profile: DSTVProfile, index: number): PivotElement | null {
     if (!profile) return null;
+    
+    console.log('🏭 Converting DSTV Profile:', {
+      profileType: profile.profileType,
+      designation: profile.designation,
+      width: profile.width,
+      height: profile.height,
+      thickness: profile.thickness,
+      webThickness: profile.webThickness,
+      flangeThickness: profile.flangeThickness
+    });
 
-    const dimensions: MetalDimensions = {
-      length: profile.length || 1000,
-      width: (profile as any).width || 100,
-      thickness: (profile as any).thickness || 10,
-      height: (profile as any).height
-    };
+    // Récupérer les dimensions directement depuis le profil
+    let dimensions: MetalDimensions;
+    
+    // Gestion spéciale pour les tubes rectangulaires
+    if (profile.profileType === 'TUBE_RECT') {
+      dimensions = {
+        length: profile.length || 1000,
+        width: profile.width || 100,  // Largeur du tube
+        height: profile.height || 50,  // Hauteur du tube
+        thickness: profile.webThickness || 5,  // Épaisseur des parois
+        webThickness: profile.webThickness || 5,
+        flangeThickness: profile.flangeThickness || profile.webThickness || 5
+      };
+      console.log('🔧 TUBE_RECT final dimensions:', {
+        length: dimensions.length,
+        width: dimensions.width,
+        height: dimensions.height,
+        wallThickness: dimensions.thickness
+      });
+    } else if (profile.profileType === 'TUBE_ROUND' || profile.profileType === 'CHS') {
+      dimensions = {
+        length: profile.length || 1000,
+        width: profile.width || 100,
+        height: profile.height || profile.width || 100,
+        thickness: profile.webThickness || profile.thickness || 5,
+        webThickness: profile.webThickness,
+        flangeThickness: profile.flangeThickness,
+        diameter: profile.width || profile.height
+      };
+    } else {
+      // Autres profils
+      dimensions = {
+        length: profile.length || 1000,
+        width: profile.width || 100,
+        thickness: profile.webThickness || profile.thickness || 10,
+        height: profile.height,
+        webThickness: profile.webThickness,
+        flangeThickness: profile.flangeThickness
+      };
+    }
+    
+    // Log spécifique pour les tubes pour debug
+    if (profile.profileType === 'TUBE_RECT' || profile.profileType === 'TUBE_ROUND') {
+      console.log('📦 TUBE dimensions après conversion:', {
+        type: profile.profileType,
+        width: dimensions.width,
+        height: dimensions.height,
+        thickness: dimensions.thickness,
+        webThickness: dimensions.webThickness,
+        diameter: dimensions.diameter || 'N/A',
+        length: dimensions.length
+      });
+    }
     
     const material: MaterialProperties = {
-      grade: (profile as any).steelGrade || 'S235',
+      grade: profile.steelGrade || (profile as unknown).steelGrade || 'S235',
       density: 7850,
       color: '#4b5563',
       opacity: 1,
@@ -82,11 +142,14 @@ export class DSTVToPivotConverter {
       reflectivity: 0.5
     };
 
+    const materialType = this.mapProfileType(profile.profileType, profile.designation);
+    console.log('🎯 Mapped profile type:', profile.profileType, '->', materialType);
+    
     const element: PivotElement = {
-      id: (profile as any).id || `profile-${index}-${Date.now()}`,
+      id: (profile as unknown).id || `profile-${index}-${Date.now()}`,
       name: profile.designation || 'Unknown',
       description: `${profile.designation} - ${profile.profileType}`,
-      materialType: this.mapProfileType(profile.profileType, profile.designation),
+      materialType,
       dimensions,
       position: [0, 0, 0] as [number, number, number],
       rotation: [0, 0, 0] as [number, number, number],
@@ -105,39 +168,71 @@ export class DSTVToPivotConverter {
     if (profile.holes && profile.holes.length > 0 && element.metadata) {
       profile.holes.forEach(hole => {
         if (this.isValidHole(hole)) {
+          // Pour les trous sur l'âme (face TOP), ajuster les coordonnées
+          // Dans DSTV, pour face 'o' (TOP/web), Y est la position verticale sur la hauteur
+          const position = [hole.x, hole.y, 0];
+          
+          // Si c'est un trou sur l'âme/web (face TOP), les coordonnées Y représentent
+          // la position verticale sur la hauteur du profilé, pas la largeur
+          // Pas besoin de transformation supplémentaire, le HoleProcessor gère cela
+          
+          // Debug: log face value
+          const mappedFace = this.mapFace(hole.face);
+          console.log('🔍 HOLE MAPPING:', {
+            originalFace: hole.face,
+            mappedFace: mappedFace,
+            position: [hole.x, hole.y],
+            diameter: hole.diameter
+          });
+          log.debug('Mapping hole face', {
+            originalFace: hole.face,
+            mappedFace: mappedFace,
+            holeData: hole
+          });
+          
           const feature: any = {
             type: 'hole',
-            position: [hole.x, hole.y, 0],
+            position: position,
             diameter: hole.diameter,
-            face: this.mapFace(hole.face),
+            face: hole.face, // Garder la face DSTV originale ('v', 'u', 'o')
             holeType: hole.holeType || 'round',
             depth: hole.depth || -1
           };
           
           // Paramètres spécifiques pour trous oblongs
-          if (hole.holeType === 'slotted' && (hole as any).slottedLength) {
-            feature.slottedLength = (hole as any).slottedLength;
-            feature.slottedAngle = (hole as any).slottedAngle || 0;
+          if (hole.holeType === 'slotted' && (hole as unknown).slottedLength) {
+            feature.slottedLength = (hole as unknown).slottedLength;
+            feature.slottedAngle = (hole as unknown).slottedAngle || 0;
           }
           
           // Paramètres pour trous rectangulaires
-          if ((hole.holeType === 'rectangular' || hole.holeType === 'square') && (hole as any).width) {
-            feature.width = (hole as any).width;
-            feature.height = (hole as any).height || (hole as any).width;
+          if ((hole.holeType === 'rectangular' || hole.holeType === 'square') && (hole as unknown).width) {
+            feature.width = (hole as unknown).width;
+            feature.height = (hole as unknown).height || (hole as unknown).width;
           }
           
-          (element.metadata as any).features.push(feature);
+          (element.metadata as unknown).features.push(feature);
         }
       });
     }
 
     // Convert cuts avec analyse de contour
     if (profile.cuts && profile.cuts.length > 0 && element.metadata) {
-      profile.cuts.forEach(cut => {
+      console.log(`🔧 Converting ${profile.cuts.length} cuts to features`);
+      profile.cuts.forEach((cut, idx) => {
         if (cut.contour && cut.contour.length >= 3) {
+          const mappedFace = this.mapFace(cut.face);
+          console.log(`  Cut ${idx + 1}: face ${cut.face} -> ${mappedFace}, ${cut.contour.length} points, transverse=${cut.isTransverse}`);
+          
+          // Debug les points du contour
+          if (cut.face === 'v' || cut.face === 'u') {
+            const bounds = this.getContourBounds(cut.contour);
+            console.log(`    ${cut.face === 'v' ? 'Top' : 'Bottom'} cut: X(${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}), Y(${bounds.minY.toFixed(1)}, ${bounds.maxY.toFixed(1)})`);
+          }
+          
           const feature: any = {
             type: this.determineCutType(cut),
-            face: this.mapFace(cut.face),
+            face: mappedFace,
             contourPoints: cut.contour,
             isTransverse: cut.isTransverse || false,
             depth: cut.depth || -1
@@ -154,7 +249,7 @@ export class DSTVToPivotConverter {
           feature.area = analysis.area;
           feature.perimeter = analysis.perimeter;
           
-          (element.metadata as any).features.push(feature);
+          (element.metadata as unknown).features.push(feature);
         }
       });
     }
@@ -172,12 +267,12 @@ export class DSTVToPivotConverter {
           };
           
           // Paramètres additionnels
-          if ((marking as any).depth) feature.depth = (marking as any).depth;
-          if ((marking as any).fontStyle) feature.fontStyle = (marking as any).fontStyle;
-          if ((marking as any).alignment) feature.alignment = (marking as any).alignment;
-          if ((marking as any).face) feature.face = this.mapFace((marking as any).face);
+          if ((marking as unknown).depth) feature.depth = (marking as unknown).depth;
+          if ((marking as unknown).fontStyle) feature.fontStyle = (marking as unknown).fontStyle;
+          if ((marking as unknown).alignment) feature.alignment = (marking as unknown).alignment;
+          if ((marking as unknown).face) feature.face = this.mapFace((marking as unknown).face);
           
-          (element.metadata as any).features.push(feature);
+          (element.metadata as unknown).features.push(feature);
         }
       });
     }
@@ -185,22 +280,22 @@ export class DSTVToPivotConverter {
     // Ajouter les métadonnées supplémentaires du profil
     if (element.metadata && profile) {
       // Données géométriques
-      if ((profile as any).webThickness) element.metadata.webThickness = (profile as any).webThickness;
-      if ((profile as any).flangeThickness) element.metadata.flangeThickness = (profile as any).flangeThickness;
-      if ((profile as any).radius) element.metadata.radius = (profile as any).radius;
+      if ((profile as unknown).webThickness) element.metadata.webThickness = (profile as unknown).webThickness;
+      if ((profile as unknown).flangeThickness) element.metadata.flangeThickness = (profile as unknown).flangeThickness;
+      if ((profile as unknown).radius) element.metadata.radius = (profile as unknown).radius;
       
       // Données de fabrication
-      if ((profile as any).orderNumber) element.metadata.orderNumber = (profile as any).orderNumber;
-      if ((profile as any).quantity) element.metadata.quantity = (profile as any).quantity;
-      if ((profile as any).phase) element.metadata.phase = (profile as any).phase;
+      if ((profile as unknown).orderNumber) element.metadata.orderNumber = (profile as unknown).orderNumber;
+      if ((profile as unknown).quantity) element.metadata.quantity = (profile as unknown).quantity;
+      if ((profile as unknown).phase) element.metadata.phase = (profile as unknown).phase;
       
       // Données physiques
-      if ((profile as any).weight) element.metadata.weight = (profile as any).weight;
-      if ((profile as any).paintingSurface) element.metadata.paintingSurface = (profile as any).paintingSurface;
-      if ((profile as any).volume) element.metadata.volume = (profile as any).volume;
+      if ((profile as unknown).weight) element.metadata.weight = (profile as unknown).weight;
+      if ((profile as unknown).paintingSurface) element.metadata.paintingSurface = (profile as unknown).paintingSurface;
+      if ((profile as unknown).volume) element.metadata.volume = (profile as unknown).volume;
       
       // Nuance d'acier
-      if ((profile as any).steelGrade) element.material.grade = (profile as any).steelGrade;
+      if ((profile as unknown).steelGrade) element.material.grade = (profile as unknown).steelGrade;
     }
 
     return element;
@@ -211,9 +306,13 @@ export class DSTVToPivotConverter {
    * Détection complète de 25+ types de profils
    */
   private mapProfileType(profileType?: string, designation?: string): MaterialType {
+    console.log('🔍 mapProfileType called with:', { profileType, designation });
+    
     // Si on a une désignation, l'utiliser en priorité
     if (designation) {
-      return this.detectMaterialTypeFromDesignation(designation);
+      const result = this.detectMaterialTypeFromDesignation(designation);
+      console.log('🎯 detectMaterialTypeFromDesignation result:', result);
+      return result;
     }
     
     if (!profileType) return MaterialType.PLATE;
@@ -223,6 +322,8 @@ export class DSTVToPivotConverter {
       'U_PROFILE': MaterialType.CHANNEL,
       'L_PROFILE': MaterialType.ANGLE,
       'TUBE': MaterialType.TUBE,
+      'TUBE_RECT': MaterialType.TUBE,  // Tube rectangulaire
+      'TUBE_ROUND': MaterialType.TUBE, // Tube circulaire
       'ROUND_BAR': MaterialType.TUBE,
       'FLAT_BAR': MaterialType.PLATE,
       'PLATE': MaterialType.PLATE,
@@ -235,7 +336,14 @@ export class DSTVToPivotConverter {
       'SHS': MaterialType.TUBE
     };
 
-    return typeMap[profileType] || MaterialType.PLATE;
+    const mappedType = typeMap[profileType] || MaterialType.PLATE;
+    
+    // Log spécifique pour débugger le mapping
+    console.log(`🔍 Profile type mapping: "${profileType}" -> "${mappedType}"`);
+    console.log(`   MaterialType.ANGLE = "${MaterialType.ANGLE}"`);
+    console.log(`   typeMap['L_PROFILE'] = "${typeMap['L_PROFILE']}"`);
+    
+    return mappedType;
   }
   
   /**
@@ -244,6 +352,7 @@ export class DSTVToPivotConverter {
    */
   private detectMaterialTypeFromDesignation(designation: string): MaterialType {
     const upper = designation.toUpperCase();
+    console.log('🔎 detectMaterialTypeFromDesignation checking:', upper);
     
     // ====== PROFILS EN I/H (POUTRELLES) ======
     // Normes européennes
@@ -251,7 +360,7 @@ export class DSTVToPivotConverter {
       return MaterialType.BEAM;
     }
     // Normes britanniques
-    if (upper.match(/^(UB|UC|UBP|RSJ)/)) {
+    if (upper.match(/^(UB|UC|UBP|RSJ)/) || upper.match(/^UB\d+x\d+x\d+/)) {
       return MaterialType.BEAM;
     }
     // Normes américaines
@@ -270,13 +379,14 @@ export class DSTVToPivotConverter {
     }
     
     // ====== CORNIÈRES (ANGLES) ======
-    if (upper.match(/^L\s*\d+/) || upper.includes('ANGLE')) {
+    // RSA = Rolled Steel Angle, L = angle profile
+    if (upper.match(/^(L\s*\d+|RSA)/) || upper.includes('ANGLE')) {
       return MaterialType.ANGLE;
     }
     
     // ====== TUBES ======
     // Tubes rectangulaires
-    if (upper.match(/^(RHS|ROR)/)) {
+    if (upper.match(/^(RHS|ROR)/) || upper.startsWith('TUBE RECT')) {
       return MaterialType.TUBE;
     }
     // Tubes carrés
@@ -284,7 +394,11 @@ export class DSTVToPivotConverter {
       return MaterialType.TUBE;
     }
     // Tubes ronds
-    if (upper.match(/^(CHS|TUB|PIPE)/)) {
+    if (upper.match(/^(CHS|PIPE)/) || upper.startsWith('TUBE CIRC')) {
+      return MaterialType.TUBE;
+    }
+    // Tubes génériques (incluant "TUBE" ou "TUB")
+    if (upper.match(/^TUB/)) {
       return MaterialType.TUBE;
     }
     
@@ -322,19 +436,64 @@ export class DSTVToPivotConverter {
    * Map ProfileFace enum to string
    */
   private mapFace(face: any): string {
-    if (typeof face === 'string') return face.toLowerCase();
+    log.trace('mapFace called', { face, faceType: typeof face });
     
-    // Handle enum values
+    // Si c'est déjà une string, on vérifie les codes DSTV ou les noms
+    if (typeof face === 'string') {
+      const faceLower = face.toLowerCase();
+      
+      // Mapping des codes DSTV vers les faces Three.js
+      // o = âme (web)
+      // v = aile supérieure (top flange)  
+      // u = aile inférieure (bottom flange)
+      switch(faceLower) {
+        case 'o':
+        case 'web':
+          log.debug('Mapping to web', { original: face });
+          return 'web';
+        case 'v':
+        case 'top_flange':
+          log.debug('Mapping to top_flange', { original: face });
+          return 'v';  // Garder 'v' pour l'aile supérieure
+        case 'top':  
+          // 'top' pour profil I = généralement l'âme vue du dessus dans DSTV
+          log.debug('Mapping TOP to web for I-profile', { original: face });
+          return 'web';
+        case 'u':
+        case 'bottom':  // 'bottom' depuis ProfileFace.BOTTOM -> aile inférieure  
+        case 'bottom_flange':
+          log.debug('Mapping to bottom_flange', { original: face });
+          return 'u';  // Garder 'u' pour l'aile inférieure
+        case 'front':
+          return 'front';
+        case 'back':
+          return 'back';
+        case 'left':
+          return 'left';
+        case 'right':
+          return 'right';
+        case 'bottom':
+          return 'bottom';
+        default:
+          log.warn('Unknown face, defaulting to front', { face });
+          return 'front';
+      }
+    }
+    
+    // Si c'est une valeur d'enum ProfileFace (string values)
+    // ProfileFace.TOP = 'top' -> doit être mappé à 'web' pour les profils I
     const faceMap: { [key: string]: string } = {
       'front': 'front',
       'back': 'back',
-      'top': 'top',
+      'top': 'web',     // Dans DSTV, TOP = âme/web pour les profils I
       'bottom': 'bottom',
       'left': 'left',
       'right': 'right'
     };
 
-    return faceMap[face] || 'front';
+    const mapped = faceMap[face] || faceMap[String(face).toLowerCase()];
+    log.trace('Face mapped', { original: face, mapped });
+    return mapped || 'front';
   }
 
   /**
@@ -345,6 +504,28 @@ export class DSTVToPivotConverter {
            typeof hole.x === 'number' && !isNaN(hole.x) &&
            typeof hole.y === 'number' && !isNaN(hole.y) &&
            typeof hole.diameter === 'number' && hole.diameter > 0;
+  }
+  
+  /**
+   * Obtient les limites d'un contour
+   */
+  private getContourBounds(points: Array<[number, number]>): {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  } {
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    
+    for (const point of points) {
+      minX = Math.min(minX, point[0]);
+      maxX = Math.max(maxX, point[0]);
+      minY = Math.min(minY, point[1]);
+      maxY = Math.max(maxY, point[1]);
+    }
+    
+    return { minX, maxX, minY, maxY };
   }
   
   /**
@@ -469,3 +650,6 @@ export class DSTVToPivotConverter {
     };
   }
 }
+
+// Export par défaut pour compatibilité ES modules
+export default DSTVToPivotConverter;

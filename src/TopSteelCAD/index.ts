@@ -6,6 +6,9 @@
  * Voir ARCHITECTURE-FINALE.md pour la documentation complète
  */
 
+// Initialiser le logger au démarrage
+import './utils/logger';
+
 // ========================================
 // CORE ENGINE - Moteur principal
 // ========================================
@@ -95,7 +98,7 @@ export type * from './core/features/types';
 // ========================================
 // PARSERS - Parseurs de fichiers
 // ========================================
-export { DSTVParser } from './parsers/DSTVParser';
+export { DSTVParser } from './parsers/dstv/DSTVParser';
 // TODO: Parsers à implémenter
 // export { IFCParser } from './parsers/IFCParser';
 // export { STEPParser } from './parsers/STEPParser';

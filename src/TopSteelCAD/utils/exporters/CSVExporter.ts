@@ -92,7 +92,7 @@ export class CSVExporter {
   /**
    * Génère une ligne CSV pour un élément
    */
-  private static generateRow(element: PivotElement, options: ExportOptions): any[] {
+  private static generateRow(element: PivotElement, options: ExportOptions): unknown[] {
     const { length, width, height, thickness } = element.dimensions;
     
     // Calculs géométriques

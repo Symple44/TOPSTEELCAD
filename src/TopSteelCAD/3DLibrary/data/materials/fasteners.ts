@@ -151,7 +151,7 @@ function getBoltGrade(strengthClass: BoltStrengthClass): SteelGrade {
 }
 
 function getBoltProperties(strengthClass: BoltStrengthClass) {
-  const properties: Record<string, any> = {
+  const properties: Record<string, { yieldStrength: number; tensileStrength: number; density?: number }> = {
     '4.6': { yieldStrength: 240, tensileStrength: 400 },
     '5.6': { yieldStrength: 300, tensileStrength: 500 },
     '6.8': { yieldStrength: 480, tensileStrength: 600 },

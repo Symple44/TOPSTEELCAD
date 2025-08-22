@@ -34,17 +34,17 @@ interface ViewerCoreProps {
  */
 export const ViewerCore: React.FC<ViewerCoreProps> = ({
   elements = [],
-  selectedElementId = null,
-  highlightedElementId = null,
-  onElementSelect,
-  onElementHover,
-  onViewerReady,
+  selectedElementId: _selectedElementId = null,
+  highlightedElementId: _highlightedElementId = null,
+  onElementSelect: _onElementSelect,
+  onElementHover: _onElementHover,
+  onViewerReady: _onViewerReady,
   width = '100%',
   height = '100%',
   className = '',
   onReady,
   onError,
-  config = {}
+  config: _config = {}
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);

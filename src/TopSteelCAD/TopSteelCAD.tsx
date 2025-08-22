@@ -31,7 +31,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
   elements: initialElements = [],
   selectedElementIds,
   onElementSelect,
-  onElementChange,
+  onElementChange: _onElementChange,
   onThemeChange,
   className = '',
   theme = 'light'
@@ -167,7 +167,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
     const newGrid = createAdaptiveGrid(isDark);
     scene.add(newGrid);
     
-    const { size } = calculateSceneBounds();
+    calculateSceneBounds();
   };
 
   useEffect(() => {
@@ -196,9 +196,9 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
           
           // Expose references for tools (ProfessionalViewer)
           if (canvasRef.current) {
-            (canvasRef.current as any).__renderer = engineRef.current.getRenderer();
-            (canvasRef.current as any).__scene = engineRef.current.getScene();
-            (canvasRef.current as any).__camera = engineRef.current.getCamera();
+            (canvasRef.current as unknown).__renderer = engineRef.current.getRenderer();
+            (canvasRef.current as unknown).__scene = engineRef.current.getScene();
+            (canvasRef.current as unknown).__camera = engineRef.current.getCamera();
           }
         
         
@@ -256,7 +256,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
           
           // Axes plus visibles mais discrets
           const axesHelper = new THREE.AxesHelper(1500);
-          const axesMaterials = (axesHelper as any).material as THREE.LineBasicMaterial[];
+          const axesMaterials = (axesHelper as unknown).material as THREE.LineBasicMaterial[];
           if (axesMaterials && axesMaterials.length >= 3) {
             axesMaterials[0].color = new THREE.Color('#dc2626'); // X - Rouge CAD
             axesMaterials[1].color = new THREE.Color('#16a34a'); // Y - Vert CAD  
@@ -315,7 +315,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
               setMeasurementProgress({ pointsCount: data.index, total: data.total });
             });
             
-            eventBusRef.current.on('snap-measurement:created', (data: any) => {
+            eventBusRef.current.on('snap-measurement:created', (_data: any) => {
               setMeasurementProgress({ pointsCount: 0, total: 2 });
             });
           }
@@ -562,7 +562,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
           }
           break;
           
-        case 'm':
+        case 'm': {
           // Activer/Désactiver le mode mesure
           event.preventDefault();
           const newMeasureMode = !measurementMode;
@@ -582,6 +582,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
           // Feedback temporaire dans la console pour debug
           console.log(`📏 Mode mesure: ${newMeasureMode ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`);
           break;
+        }
           
         case 'c':
           // Effacer toutes les mesures (Clear measurements)
@@ -1126,8 +1127,8 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
                 const isPlate = element.materialType === MaterialType.PLATE || 
                                element.name?.toLowerCase().includes('plaque') ||
                                element.name?.toLowerCase().includes('plate');
-                const isBeam = element.materialType === MaterialType.BEAM || 
-                              element.metadata?.profile;
+                // const isBeam = element.materialType === MaterialType.BEAM || 
+                //               element.metadata?.profile;
                 
                 return (
                   <div>

@@ -9,7 +9,7 @@
 import { BufferGeometry, Mesh, Material, MeshStandardMaterial } from '../../lib/three-exports';
 import { ProfileDatabase } from '../database/ProfileDatabase';
 import { UnifiedMaterialsDatabase } from '../database/UnifiedMaterialsDatabase';
-import { SteelProfile, ProfileType } from '../types/profile.types';
+import { SteelProfile } from '../types/profile.types';
 import { UnifiedElement, MaterialCategory } from '../types/material-types';
 import { createMetalMaterial, SteelMaterials } from '../helpers/MaterialFactory';
 
@@ -217,7 +217,7 @@ export class DatabaseGeometryBridge {
   /**
    * Génère une géométrie de plaque
    */
-  private generatePlateGeometry(element: UnifiedElement): BufferGeometry {
+  private generatePlateGeometry(_element: UnifiedElement): BufferGeometry {
     // TODO: Utiliser PlateGenerator quand créé
     throw new Error('PlateGenerator pas encore implémenté');
   }
@@ -225,7 +225,7 @@ export class DatabaseGeometryBridge {
   /**
    * Génère une géométrie de fixation
    */
-  private generateFastenerGeometry(element: UnifiedElement): BufferGeometry {
+  private generateFastenerGeometry(_element: UnifiedElement): BufferGeometry {
     // TODO: Utiliser FastenerGenerator quand créé
     throw new Error('FastenerGenerator pas encore implémenté');
   }
@@ -233,7 +233,7 @@ export class DatabaseGeometryBridge {
   /**
    * Génère une géométrie de soudure
    */
-  private generateWeldGeometry(element: UnifiedElement): BufferGeometry {
+  private generateWeldGeometry(_element: UnifiedElement): BufferGeometry {
     // TODO: Utiliser WeldGenerator quand créé
     throw new Error('WeldGenerator pas encore implémenté');
   }
@@ -246,11 +246,11 @@ export class DatabaseGeometryBridge {
     
     let material: Material;
     
-    if ((element.material as any)?.treatment === 'GALVANIZED') {
+    if ((element.material as unknown)?.treatment === 'GALVANIZED') {
       material = SteelMaterials.galvanized();
-    } else if ((element.material as any)?.treatment === 'PAINTED') {
-      material = SteelMaterials.painted((element.material as any).color);
-    } else if ((element.material as any)?.treatment === 'STAINLESS') {
+    } else if ((element.material as unknown)?.treatment === 'PAINTED') {
+      material = SteelMaterials.painted((element.material as unknown).color);
+    } else if ((element.material as unknown)?.treatment === 'STAINLESS') {
       material = SteelMaterials.stainless();
     } else {
       material = SteelMaterials.raw();
@@ -273,9 +273,9 @@ export class DatabaseGeometryBridge {
    */
   private createMaterialFromElement(element: UnifiedElement): Material {
     const options = {
-      color: (element.material as any)?.color,
-      roughness: (element.material as any)?.roughness,
-      metalness: (element.material as any)?.metalness
+      color: (element.material as unknown)?.color,
+      roughness: (element.material as unknown)?.roughness,
+      metalness: (element.material as unknown)?.metalness
     };
     
     return createMetalMaterial(options);

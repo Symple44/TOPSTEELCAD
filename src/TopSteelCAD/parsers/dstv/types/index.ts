@@ -153,7 +153,7 @@ export interface DSTVMarking {
  * Structure d'une coupe DSTV (nouveau système)
  */
 export interface DSTVCut {
-  face: ProfileFace;
+  face: DSTVFace | ProfileFace | string;  // Accepter les 3 types pour compatibilité
   contour: Array<[number, number]>;
   depth?: number;
   isTransverse?: boolean;
@@ -248,7 +248,7 @@ export interface DSTVProfile {
   steelGrade?: string;
   weight?: number;
   paintingSurface?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -283,7 +283,7 @@ export interface DSTVProfileOld {
   chamfers: DSTVChamfer[];
   
   // Métadonnées
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -336,14 +336,10 @@ export interface DSTVParseResult {
   };
 }
 
-/**
- * Niveau de validation
- */
-export enum ValidationLevel {
-  BASIC = 'basic',
-  STANDARD = 'standard',
-  STRICT = 'strict'
-}
+// Ré-export de ValidationLevel depuis son propre fichier
+export { ValidationLevel } from './ValidationLevel';
+export type { ValidationLevelType } from './ValidationLevel';
+export const ValidationLevels = { BASIC: 'basic', STANDARD: 'standard', STRICT: 'strict' } as const;
 
 /**
  * Résultat de validation pour un profil
@@ -399,3 +395,5 @@ export interface IDSTVValidator {
   validateProfile(profile: DSTVProfile): ValidationResult;
   validateFeature(feature: any, profile: DSTVProfile): ValidationResult;
 }
+
+// Note: Les exports sont déjà faits en haut du fichier, pas besoin de les ré-exporter

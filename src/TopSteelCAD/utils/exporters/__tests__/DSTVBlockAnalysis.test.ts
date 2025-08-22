@@ -6,7 +6,7 @@ import { DSTVExporter } from '../DSTVExporter';
 import { PivotElement } from '../../../../types/viewer';
 
 // Accès aux méthodes privées pour les tests
-const DSTVExporterTest = DSTVExporter as any;
+const DSTVExporterTest = DSTVExporter as unknown;
 
 describe('DSTV Block Analysis', () => {
 
@@ -131,7 +131,7 @@ describe('DSTV Block Analysis', () => {
       const result = DSTVExporterTest.generateSIBlock(mockElement, 1);
       expect(result).toHaveLength(2);
       expect(result[0]).toBe('SI');
-      expect(result[1]).toMatch(/^  v\s+\d+\.\d{2}u\s+\d+\.\d{2}\s+\d+\.\d{2}\s+\d+r\d+$/);
+      expect(result[1]).toMatch(/^ {2}v\s+\d+\.\d{2}u\s+\d+\.\d{2}\s+\d+\.\d{2}\s+\d+r\d+$/);
     });
 
     test('generateSIBlock - Différents numéros de pièce', () => {

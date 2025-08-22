@@ -21,8 +21,9 @@ export const availablePlugins = [
 /**
  * Crée une instance du gestionnaire de plugins avec les plugins prédéfinis
  */
+import { PluginManager } from './PluginManager';
+
 export function createPluginManager(api: any, options: any = {}) {
-  const { PluginManager } = require('./PluginManager');
   return new PluginManager(api, options);
 }
 

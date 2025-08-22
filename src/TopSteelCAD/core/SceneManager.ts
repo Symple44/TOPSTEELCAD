@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { EventBus } from './EventBus';
-import { PivotElement } from '@/types/viewer';
+import { PivotElement, MaterialType } from '@/types/viewer';
 import { GeometryConverter } from '../viewer/GeometryConverter';
 import { VisualFeatureRenderer } from '../viewer/VisualFeatureRenderer';
 import { FeatureOutlineRenderer } from '../viewer/FeatureOutlineRenderer';
@@ -339,36 +339,44 @@ export class SceneManager {
   /**
    * Crée des markings visibles sur la surface (en complément du CSG)
    */
-  private createVisibleMarkings(markings: any[], element: PivotElement, mesh: THREE.Mesh): THREE.Group {
+  private createVisibleMarkings(markings: unknown[], element: PivotElement, mesh: THREE.Mesh): THREE.Group {
     const group = new THREE.Group();
     
     markings.forEach((marking, index) => {
       const text = marking.text || 'X';
       const size = marking.size || 20;
       
-      // Créer une géométrie 3D plus grande pour le texte
-      const scaleFactor = 3; // Augmenter la taille pour la visibilité
-      const textGeometry = new THREE.PlaneGeometry(size * scaleFactor, size * scaleFactor * 0.6);
+      // Créer une géométrie 3D adaptée à la longueur du texte
+      const textLength = text.length;
+      // Taille réaliste basée sur la taille DSTV (10mm par défaut)
+      const scaleFactor = 1; // Pas de multiplication excessive
+      // Largeur proportionnelle au nombre de caractères (environ 0.6 fois la hauteur par caractère)
+      const textWidth = size * scaleFactor * textLength * 0.6;
+      const textHeight = size * scaleFactor;
+      const textGeometry = new THREE.PlaneGeometry(textWidth, textHeight);
       
-      // Créer un canvas pour le texte
+      // Créer un canvas pour le texte avec un ratio correct
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       if (!context) return;
       
-      canvas.width = 512;
-      canvas.height = 256;
+      // Canvas avec un ratio proportionnel au texte
+      const canvasScale = 64; // Pixels par unité de taille
+      canvas.width = Math.max(256, textLength * canvasScale);
+      canvas.height = canvasScale * 2; // Hauteur fixe pour un bon ratio
       
       // Fond transparent
       context.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Texte gravé style industriel
-      context.font = `bold ${canvas.height * 0.7}px Arial Black`;
+      // Police standard industrielle, pas trop épaisse
+      const fontSize = canvas.height * 0.6; // Taille de police proportionnelle
+      context.font = `${fontSize}px Arial`; // Police normale, pas Black
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       
-      // Contour noir pour visibilité
+      // Contour noir fin pour visibilité
       context.strokeStyle = '#000000';
-      context.lineWidth = 4;
+      context.lineWidth = 2; // Contour plus fin
       context.strokeText(text, canvas.width / 2, canvas.height / 2);
       
       // Texte jaune/doré (couleur de marquage industriel)
@@ -388,9 +396,22 @@ export class SceneManager {
       
       // Positionner sur la surface
       if (marking.position) {
-        const thickness = element.dimensions.thickness || 15;
-        const length = element.dimensions.length || 220;
-        const width = element.dimensions.width || 120;
+        // Pour les tubes, ajuster les dimensions
+        let thickness, length, width;
+        
+        console.log(`🔍 Element materialType: "${element.materialType}"`);
+        
+        if (element.materialType === 'tube') {
+          // Pour les tubes: length est la longueur du tube, width/height sont les dimensions de section
+          length = element.dimensions.length || 360;
+          width = element.dimensions.width || 100;  // Largeur de la section
+          thickness = element.dimensions.height || 50;  // Hauteur de la section (utilisée comme référence Y)
+        } else {
+          // Pour les autres éléments (plaques, etc.)
+          thickness = element.dimensions.thickness || 15;
+          length = element.dimensions.length || 220;
+          width = element.dimensions.width || 120;
+        }
         
         // Les positions dans marking.position sont déjà les coordonnées DSTV originales
         // DSTV utilise le coin inférieur gauche comme origine (0,0)
@@ -441,20 +462,189 @@ export class SceneManager {
           z = marking.position[1] - centerY;
         } else {
           // Pour les formes rectangulaires simples
-          const offsetX = marking.position[0] + 15;
-          const offsetY = marking.position[1] + 15;
-          x = offsetX - length / 2;
-          z = offsetY - width / 2;
+          if (element.materialType === 'tube') {
+            // Pour les tubes extrudés selon Z dans Three.js
+            // La longueur du tube est selon Z, pas X
+            // DSTV: x=position le long du tube, y=position sur la circonférence
+            // Three.js: z=position le long du tube, x/y=position sur la section
+            
+            // Pour un tube rectangulaire, les markings sont généralement sur la face supérieure
+            // Position le long du tube (DSTV x -> Three.js z)
+            // Respecter exactement les coordonnées DSTV
+            const dstvX = marking.position[0];  // Position X dans DSTV (le long du tube)
+            const dstvY = marking.position[1];  // Position Y dans DSTV (sur la largeur)
+            
+            // Conversion DSTV -> Three.js
+            // DSTV utilise le coin comme origine (0,0)
+            // Three.js utilise le centre comme origine
+            z = dstvX - length / 2;  // Position le long du tube
+            
+            // Pour la position latérale (sur la largeur du tube)
+            // Si dstvY = 0, le marking devrait être centré ou au bord selon la norme
+            // Pour l'instant, on centre en X si dstvY = 0
+            x = dstvY === 0 ? 0 : dstvY - width / 2;
+            
+            // Vérifier que le texte ne déborde pas de la pièce
+            const halfTextWidth = (textWidth || (size * textLength * 0.6)) / 2;
+            const halfTextHeight = (textHeight || size) / 2;
+            
+            // Vérification le long du tube (axe Z)
+            const textStartZ = z - halfTextWidth;
+            const textEndZ = z + halfTextWidth;
+            const tubeStartZ = -length / 2;
+            const tubeEndZ = length / 2;
+            
+            if (textStartZ < tubeStartZ || textEndZ > tubeEndZ) {
+              console.log(`   ⚠️ WARNING: Text extends outside tube boundaries!`);
+              console.log(`      Text range: [${textStartZ.toFixed(1)}, ${textEndZ.toFixed(1)}]`);
+              console.log(`      Tube range: [${tubeStartZ.toFixed(1)}, ${tubeEndZ.toFixed(1)}]`);
+              
+              // Ajuster la position pour que le texte reste dans les limites
+              if (textStartZ < tubeStartZ) {
+                z = tubeStartZ + halfTextWidth;
+                console.log(`      Adjusted Z position to ${z.toFixed(1)} to keep text inside`);
+              } else if (textEndZ > tubeEndZ) {
+                z = tubeEndZ - halfTextWidth;
+                console.log(`      Adjusted Z position to ${z.toFixed(1)} to keep text inside`);
+              }
+            }
+            
+            // Vérification sur la largeur (axe X)
+            const textStartX = x - halfTextHeight; // Height car le texte est tourné
+            const textEndX = x + halfTextHeight;
+            const tubeStartX = -width / 2;
+            const tubeEndX = width / 2;
+            
+            if (textStartX < tubeStartX || textEndX > tubeEndX) {
+              console.log(`   ⚠️ WARNING: Text extends outside tube width!`);
+              console.log(`      Text range X: [${textStartX.toFixed(1)}, ${textEndX.toFixed(1)}]`);
+              console.log(`      Tube range X: [${tubeStartX.toFixed(1)}, ${tubeEndX.toFixed(1)}]`);
+              
+              // Centrer le texte si il déborde
+              x = 0;
+              console.log(`      Centered text on width to keep it inside`);
+            }
+            
+            console.log(`   📏 DSTV position: x=${dstvX}mm (along tube), y=${dstvY}mm (across tube)`);
+            console.log(`   📍 Three.js position: x=${x.toFixed(1)}mm, z=${z.toFixed(1)}mm`);
+          } else if (element.materialType === 'angle' || element.materialType === MaterialType.ANGLE) {
+            // Pour les cornières (L-profiles)
+            // Les markings sont généralement sur l'aile verticale (face web)
+            // Dans DSTV: x=position le long de la pièce, y=position sur l'aile
+            const dstvX = marking.position[0];  // Position X dans DSTV (le long de la pièce)
+            const dstvY = marking.position[1];  // Position Y dans DSTV (sur l'aile depuis le coin)
+            
+            // Conversion vers Three.js
+            z = dstvX - length / 2;  // Position le long de la pièce
+            // Pour une cornière, l'aile verticale est à X négatif
+            // Le marking devrait être sur la face extérieure de l'aile
+            x = -width / 2 - 0.1;  // Face extérieure de l'aile verticale
+            
+            console.log(`   🔺 L-Profile marking: DSTV(${dstvX}, ${dstvY}) -> Three.js(${x.toFixed(1)}, ?, ${z.toFixed(1)})`);
+          } else {
+            // Pour les plaques et autres
+            const offsetX = marking.position[0] + 15;
+            const offsetY = marking.position[1] + 15;
+            x = offsetX - length / 2;
+            z = offsetY - width / 2;
+          }
         }
         
-        const y = thickness / 2 + 0.1; // Sur la surface supérieure
+        // Position Y : sur la surface supérieure
+        // Le marking est ajouté à elementGroup, et le mesh a sa propre position dans ce groupe
+        // Donc les coordonnées du marking doivent être dans l'espace du groupe, pas du mesh
+        
+        let y;
+        if (element.materialType === 'tube') {
+          // Pour les tubes:
+          // - Le mesh est positionné à mesh.position.y = element.position[1] + yOffset
+          // - Le marking doit être positionné relativement au groupe, pas au mesh
+          // - Donc on doit tenir compte de la position du mesh dans le groupe
+          const meshY = mesh.position.y;  // Position Y du mesh dans le groupe
+          
+          // Le haut du tube dans l'espace du mesh est à height/2
+          // Mais dans l'espace du groupe, c'est à meshY + height/2
+          y = meshY + element.dimensions.height / 2 + 0.1;  // Surface supérieure du tube dans l'espace du groupe
+          
+          console.log(`📐 Marking Y position for tube:`);
+          console.log(`   Tube height: ${element.dimensions.height}`);
+          console.log(`   Mesh position in group: y=${meshY}`);
+          console.log(`   Marking Y in group space: ${y}`);
+          console.log(`   This should place marking ${0.1}mm above tube surface`);
+        } else if (element.materialType === 'angle' || element.materialType === MaterialType.ANGLE) {
+          // Pour les cornières - position Y basée sur la position DSTV
+          const meshY = mesh.position.y;
+          const dstvY = marking.position[1];  // Position Y dans DSTV (sur l'aile)
+          // Convertir la position DSTV Y vers Three.js
+          y = meshY + dstvY - element.dimensions.height / 2;  // Position sur l'aile verticale
+          console.log(`   📐 L-Profile Y: DSTV=${dstvY} -> Three.js=${y.toFixed(1)} (meshY=${meshY})`);
+        } else {
+          // Pour les plaques
+          const meshY = mesh.position.y;
+          y = meshY + thickness / 2 + 0.1;  // Surface supérieure dans l'espace du groupe
+        }
         
         textMesh.position.set(x, y, z);
-        textMesh.rotation.x = -Math.PI / 2; // Rotation pour être lisible du dessus
+        
+        // Gérer la rotation du marking selon la face et l'angle
+        // Par défaut, le texte est dans le plan XZ (horizontal)
+        // Il faut l'orienter selon la face sur laquelle il est placé
+        
+        // Angle de rotation du texte dans son plan (depuis DSTV)
+        const markingAngle = marking.angle || 0;
+        
+        // Déterminer la rotation selon la face
+        // Pour les cornières, le texte est sur l'aile verticale
+        if (element.materialType === 'angle' || element.materialType === MaterialType.ANGLE) {
+          // Le texte est sur l'aile verticale qui fait face à X négatif
+          // Rotation de 90° autour de Y pour faire face à l'extérieur
+          textMesh.rotation.y = Math.PI / 2;
+          // Puis rotation de 90° autour de X pour être vertical sur l'aile
+          textMesh.rotation.z = Math.PI / 2;
+          if (markingAngle !== 0) {
+            textMesh.rotation.x = (markingAngle * Math.PI) / 180;
+          }
+        } else if (marking.face === 'v' || marking.face === 'web' || marking.face === 'top' || !marking.face) {
+          // Face supérieure - le texte doit être parallèle à la surface (rotation de -90° autour de X)
+          // Cela place le texte à plat sur la surface supérieure du tube
+          textMesh.rotation.x = -Math.PI / 2;
+          // Appliquer l'angle de rotation du marking autour de Y (vertical)
+          if (markingAngle !== 0) {
+            textMesh.rotation.y = (markingAngle * Math.PI) / 180; // Convertir en radians
+          }
+        } else if (marking.face === 'u' || marking.face === 'bottom') {
+          // Face inférieure
+          textMesh.rotation.x = Math.PI / 2;
+          if (markingAngle !== 0) {
+            textMesh.rotation.y = (markingAngle * Math.PI) / 180;
+          }
+        } else if (marking.face === 'front') {
+          // Face avant - pas de rotation en X
+          textMesh.rotation.x = 0;
+          if (markingAngle !== 0) {
+            textMesh.rotation.z = (markingAngle * Math.PI) / 180;
+          }
+        } else if (marking.face === 'back') {
+          // Face arrière
+          textMesh.rotation.x = 0;
+          textMesh.rotation.y = Math.PI; // Retourner le texte
+          if (markingAngle !== 0) {
+            textMesh.rotation.z = -(markingAngle * Math.PI) / 180;
+          }
+        } else if (marking.face === 'left' || marking.face === 'right') {
+          // Faces latérales
+          textMesh.rotation.x = 0;
+          textMesh.rotation.y = marking.face === 'left' ? -Math.PI / 2 : Math.PI / 2;
+          if (markingAngle !== 0) {
+            textMesh.rotation.z = (markingAngle * Math.PI) / 180;
+          }
+        }
         
         console.log(`📍 Marking positioned at: [${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
         console.log(`   From DSTV coords: [${marking.position[0]}, ${marking.position[1]}]`);
-        console.log(`   Plate dimensions: ${length}x${width}x${thickness}mm`);
+        console.log(`   Face: ${marking.face || 'default'}, Angle: ${markingAngle}°`);
+        console.log(`   Rotation applied: x=${(textMesh.rotation.x * 180 / Math.PI).toFixed(1)}°, y=${(textMesh.rotation.y * 180 / Math.PI).toFixed(1)}°, z=${(textMesh.rotation.z * 180 / Math.PI).toFixed(1)}°`);
+        console.log(`   ${element.materialType === 'tube' ? 'Tube' : 'Plate'} dimensions: ${length}x${width}x${thickness}mm`);
         if (element.metadata?.contour) {
           console.log(`   Contour points: ${element.metadata.contour.length}`);
         }
@@ -470,7 +660,7 @@ export class SceneManager {
   /**
    * Crée des gravures réalistes sur la surface pour les markings/scribbings (ancienne méthode)
    */
-  private createMarkingSprites(markings: any[], element: PivotElement): THREE.Group {
+  private createMarkingSprites(markings: unknown[], element: PivotElement): THREE.Group {
     const group = new THREE.Group();
     
     markings.forEach((marking, index) => {
@@ -682,7 +872,7 @@ export class SceneManager {
    */
   update(deltaTime: number, elapsedTime: number): void {
     // Animer les éléments si nécessaire
-    this.elementMeshes.forEach((object, id) => {
+    this.elementMeshes.forEach((object, _id) => {
       // Animation personnalisée par élément
       if (object.userData.element?.metadata?.animated) {
         // Rotation simple pour l'exemple

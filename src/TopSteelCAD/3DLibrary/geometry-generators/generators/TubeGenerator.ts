@@ -2,7 +2,7 @@
  * Générateur de géométries pour tous les tubes (rectangulaires, carrés, circulaires)
  */
 
-import { Shape, ExtrudeGeometry, BufferGeometry, CylinderGeometry } from '../../../lib/three-exports';
+import { Shape, ExtrudeGeometry, BufferGeometry } from '../../../lib/three-exports';
 import { ProfileType, ProfileDimensions } from '../../types/profile.types';
 import { BaseProfileGenerator } from '../interfaces/ProfileGeometryGenerator';
 

@@ -235,12 +235,12 @@ EN
 
   describe('error handling', () => {
     it('should handle null input', () => {
-      const tokens = lexer.tokenize(null as any);
+      const tokens = lexer.tokenize(null as unknown);
       expect(tokens).toEqual([]);
     });
 
     it('should handle undefined input', () => {
-      const tokens = lexer.tokenize(undefined as any);
+      const tokens = lexer.tokenize(undefined as unknown);
       expect(tokens).toEqual([]);
     });
 

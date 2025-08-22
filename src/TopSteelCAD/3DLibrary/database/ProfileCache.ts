@@ -4,7 +4,7 @@
  */
 
 export class ProfileCache {
-  private cache: Map<string, any>;
+  private cache: Map<string, unknown>;
   private timestamps: Map<string, number>;
   private accessCount: Map<string, number>;
   private maxSize: number;

@@ -3,7 +3,7 @@
  * Responsable de la tokenisation du contenu DSTV
  */
 
-import { DSTVToken, TokenType, ProfileFace, HoleType } from '../types';
+import { DSTVToken, TokenType, HoleType, ProfileFace } from '../types';
 
 /**
  * Lexer DSTV - Analyse lexicale optimisée
@@ -31,11 +31,19 @@ export class DSTVLexer {
         continue;
       }
 
-      // Handle comments
+      // Handle comments (both * and **)
       if (line.startsWith('**')) {
         tokens.push({
           type: TokenType.COMMENT,
-          value: line.substring(2).trim(),
+          value: line,
+          line: lineNumber,
+          column: 1
+        });
+        continue;
+      } else if (line.startsWith('*')) {
+        tokens.push({
+          type: TokenType.COMMENT,
+          value: line,
           line: lineNumber,
           column: 1
         });
@@ -84,65 +92,103 @@ export class DSTVLexer {
         continue;
       }
       
-      // Parse tokens within a line
+      // Check for inline comments first
+      let workingLine = line;
+      let commentPart = '';
+      const commentMatch = line.match(/(.*)\s(\*\*.*)$/);
+      if (commentMatch) {
+        workingLine = commentMatch[1].trim();
+        commentPart = commentMatch[2];
+      }
+      
+      // Parse tokens within a line  
       let columnIndex = 1;
-      const parts = line.split(/\s+/);
+      const parts = workingLine.split(/\s+/);
 
       for (const part of parts) {
         if (!part) continue;
+        
+        // Add block context to all tokens
+        const addContextToToken = (token: any) => {
+          if (this.currentContext) {
+            token.blockContext = this.currentContext;
+          }
+          return token;
+        };
 
         // Check for face indicators
         if (part === 'v' || part === 'o' || part === 'u') {
-          const faceMap: { [key: string]: ProfileFace } = {
-            'v': ProfileFace.FRONT,
-            'o': ProfileFace.TOP,
-            'u': ProfileFace.BOTTOM
+          // Map DSTV face codes to ProfileFace enum
+          const faceMap = {
+            'v': 'top',     // aile supérieure
+            'o': 'front',   // âme
+            'u': 'bottom'   // aile inférieure
           };
-          
-          tokens.push({
+          tokens.push(addContextToToken({
             type: TokenType.FACE_INDICATOR,
             value: part,
             line: lineNumber,
             column: columnIndex,
-            face: faceMap[part]
-          });
+            face: faceMap[part as 'v'|'o'|'u'] as unknown
+          }));
         }
-        // Check for hole types
-        else if (part === 's' || part === 'c' || part === 't') {
+        // Check for hole types (including modifiers)
+        else if (part === 's' || part === 'c' || part === 't' || part === 'l' || part === 'r') {
           const holeTypeMap: { [key: string]: string } = {
-            's': 'countersunk',
-            'c': 'counterbore',
-            't': 'tapped'
+            's': 'square',
+            'c': 'counterbore', 
+            't': 'tapped',
+            'l': 'slotted',
+            'r': 'rectangular'
           };
           
-          tokens.push({
+          tokens.push(addContextToToken({
             type: TokenType.HOLE_TYPE,
             value: part,
             line: lineNumber,
             column: columnIndex,
             holeType: holeTypeMap[part]
-          });
+          }));
         }
         // Check for numbers (including negative and scientific notation)
         else if (/^[+-]?\d*\.?\d+([eE][+-]?\d+)?$/.test(part)) {
-          tokens.push({
+          tokens.push(addContextToToken({
             type: TokenType.NUMBER,
             value: part,
             line: lineNumber,
             column: columnIndex
-          });
+          }));
+        }
+        // Check for invalid characters
+        else if (/[^A-Za-z0-9._-]/.test(part) && !part.match(/^[+-]?\d*\.?\d+/)) {
+          tokens.push(addContextToToken({
+            type: TokenType.UNKNOWN,
+            value: part,
+            line: lineNumber,
+            column: columnIndex
+          }));
         }
         // Everything else is an identifier
         else {
-          tokens.push({
+          tokens.push(addContextToToken({
             type: TokenType.IDENTIFIER,
             value: part,
             line: lineNumber,
             column: columnIndex
-          });
+          }));
         }
 
         columnIndex += part.length + 1; // +1 for the space
+      }
+      
+      // Add inline comment token if found
+      if (commentPart) {
+        tokens.push({
+          type: TokenType.COMMENT,
+          value: commentPart,
+          line: lineNumber,
+          column: workingLine.length + 2
+        });
       }
     }
 
@@ -156,9 +202,29 @@ export class DSTVLexer {
     const parts = line.split(/\s+/);
     if (parts.length >= 2) {
       const firstPart = parts[0];
-      // Vérifier si ça commence par v, u ou o suivi de nombres
-      // Accepter aussi le format avec 'u' collé au nombre (ex: v  4703.00u)
-      return /^[vuo]\s+[\d.-]+/.test(line) || /^[vuo][\d.-]+/.test(firstPart) || /^[vuo]\s+[\d.-]+[vuo]/.test(line);
+      // Only treat as face data if it's a simple face indicator or face+number
+      // and doesn't contain multiple separate face indicators
+      if (/^[vuo]$/.test(firstPart) || /^[vuo][\d.-]+$/.test(firstPart)) {
+        // Count face indicators - should be at most 1 in first part + 1 attached to a number
+        let faceCount = 0;
+        if (/^[vuo]/.test(firstPart)) faceCount++;
+        
+        for (let i = 1; i < parts.length; i++) {
+          const part = parts[i];
+          // If we find a standalone face indicator, this is not face data
+          if (/^[vuo]$/.test(part) || /^[vuo][\d.-]+$/.test(part)) {
+            return false; // Multiple face indicators = separate tokens
+          }
+          // If it's not a number (with optional attached face), reject
+          if (!/^[\d.-]+[vuo]?$/.test(part)) {
+            return false;
+          }
+          // Count attached faces
+          if (/[vuo]$/.test(part)) faceCount++;
+        }
+        
+        return faceCount <= 2; // At most start face + one attached face
+      }
     }
     return false;
   }
@@ -168,7 +234,7 @@ export class DSTVLexer {
    */
   private parseFaceData(line: string, lineNumber: number): DSTVToken | null {
     const parts = line.split(/\s+/);
-    let face = parts[0].charAt(0) as 'v' | 'u' | 'o';
+    const face = parts[0].charAt(0) as 'v' | 'u' | 'o';
     
     // Extraire les valeurs numériques et les modificateurs
     const values: number[] = [];
@@ -178,8 +244,9 @@ export class DSTVLexer {
     let foundSlotted = false;
     
     // Détecter le format spécial "v  4703.00u" où la face secondaire est collée au nombre
-    let hasSecondaryFace = false;
-    let secondaryFace: 'v' | 'u' | 'o' | null = null;
+    // Variables for future implementation:
+    // let hasSecondaryFace = false;
+    // let secondaryFace: 'v' | 'u' | 'o' | null = null;
     
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
@@ -188,15 +255,15 @@ export class DSTVLexer {
       
       // Vérifier si le nombre a une face collée à la fin (ex: "4703.00u")
       if (cleanPart.match(/^[\d.-]+[vuo]$/)) {
-        const lastChar = cleanPart.slice(-1);
-        secondaryFace = lastChar as 'v' | 'u' | 'o';
+        // const lastChar = cleanPart.slice(-1); // For future implementation
+        // Variables for future implementation:
+        // secondaryFace = lastChar as 'v' | 'u' | 'o';
         cleanPart = cleanPart.slice(0, -1); // Enlever le dernier caractère
-        hasSecondaryFace = true;
+        // hasSecondaryFace = true;
         
-        // Pour les trous (BO), la notation "v...u" signifie souvent un trou dans l'âme
-        if (face === 'v' && secondaryFace === 'u' && this.currentContext === 'BO') {
-          face = 'o'; // 'o' = âme (web) dans le système DSTV pour les trous
-        }
+        // Note: La conversion de face v...u -> o pour les trous est maintenant
+        // gérée dans BOBlockParser qui a le contexte approprié
+        // Le lexer se contente de capturer la notation brute
       }
       
       // Vérifier si c'est un modificateur 'l' pour trou oblong
@@ -230,12 +297,10 @@ export class DSTVLexer {
       }
     }
     
-    // Mapper la face au nouveau système
-    const faceMap: { [key: string]: ProfileFace } = {
-      'v': ProfileFace.FRONT,
-      'o': ProfileFace.TOP,
-      'u': ProfileFace.BOTTOM
-    };
+    // Ne pas mapper les faces DSTV - les garder telles quelles
+    // 'v' = aile supérieure (top flange)
+    // 'o' = âme (web)
+    // 'u' = aile inférieure (bottom flange)
     
     // Créer un token enrichi avec toutes les informations
     const token: DSTVToken & { values?: number[]; holeType?: HoleType; slottedLength?: number; slottedAngle?: number } = {
@@ -243,23 +308,39 @@ export class DSTVLexer {
       value: line,
       line: lineNumber,
       column: 1,
-      face: faceMap[face]
+      face: this.mapDSTVFaceToProfileFace(face)
     };
     
     // Ajouter les propriétés optionnelles si nécessaires
     if (values.length > 0) {
-      (token as any).values = values;
+      (token as unknown).values = values;
     }
     if (holeType !== 'round') {
-      (token as any).holeType = holeType;
+      (token as unknown).holeType = holeType;
     }
     if (slottedLength > 0) {
-      (token as any).slottedLength = slottedLength;
+      (token as unknown).slottedLength = slottedLength;
     }
     if (slottedAngle > 0) {
-      (token as any).slottedAngle = slottedAngle;
+      (token as unknown).slottedAngle = slottedAngle;
     }
     
     return token as DSTVToken;
   }
+  
+  /**
+   * Map DSTV face code to ProfileFace enum
+   */
+  private mapDSTVFaceToProfileFace(face: 'v' | 'u' | 'o'): ProfileFace {
+    const faceMap: Record<'v' | 'u' | 'o', ProfileFace> = {
+      'v': ProfileFace.TOP,     // aile supérieure
+      'o': ProfileFace.FRONT,   // âme  
+      'u': ProfileFace.BOTTOM   // aile inférieure
+    };
+    return faceMap[face];
+  }
 }
+
+// Export par défaut pour compatibilité ES modules
+export default DSTVLexer;
+// Force refresh - faces DSTV corrigées

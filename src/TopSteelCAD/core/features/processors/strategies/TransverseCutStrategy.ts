@@ -91,7 +91,7 @@ export class TransverseCutStrategy extends BaseCutStrategy {
     return geometry;
   }
   
-  calculatePosition(feature: Feature, element: PivotElement): THREE.Vector3 {
+  calculatePosition(_feature: Feature, _element: PivotElement): THREE.Vector3 {
     // Les découpes transversales sont centrées
     return new THREE.Vector3(0, 0, 0);
   }

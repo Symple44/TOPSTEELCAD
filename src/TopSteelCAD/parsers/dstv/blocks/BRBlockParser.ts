@@ -32,7 +32,7 @@ export class BRBlockParser {
     const chamfers: DSTVChamfer[] = [];
     
     let currentFace: ProfileFace = ProfileFace.FRONT;
-    let chamferType: 'simple' | 'double' | 'rounded' = 'simple';
+    // let chamferType: 'simple' | 'double' | 'rounded' = 'simple'; // TODO: Use chamferType in chamfer creation
     
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
@@ -69,11 +69,11 @@ export class BRBlockParser {
         // Détection du type de chanfrein
         const typeIndicator = token.value.toLowerCase();
         if (typeIndicator === 'r' || typeIndicator === 'round') {
-          chamferType = 'rounded';
+          // chamferType = 'rounded'; // TODO: Use for rounded chamfers
         } else if (typeIndicator === 'd' || typeIndicator === 'double') {
-          chamferType = 'double';
+          // chamferType = 'double'; // TODO: Use for double chamfers
         } else if (typeIndicator === 's' || typeIndicator === 'simple') {
-          chamferType = 'simple';
+          // chamferType = 'simple'; // TODO: Use for simple chamfers
         }
       }
     }
@@ -85,14 +85,14 @@ export class BRBlockParser {
    * Vérifie si un token contient des données de chanfrein
    */
   private hasChamferData(token: DSTVToken): boolean {
-    return !!(token as any).values && Array.isArray((token as any).values);
+    return !!(token as unknown).values && Array.isArray((token as unknown).values);
   }
   
   /**
    * Parse les données de chanfrein depuis un token
    */
   private parseChamferData(token: DSTVToken, face: ProfileFace): DSTVChamfer | null {
-    const values = (token as any).values;
+    const values = (token as unknown).values;
     
     if (!values || values.length < 3) {
       return null;
@@ -222,7 +222,7 @@ export class BRBlockParser {
    * Détermine l'arête basée sur la position
    */
   private determineEdgeFromPosition(position: [number, number, number]): 'top' | 'bottom' | 'left' | 'right' | 'all' {
-    const [x, y, z] = position;
+    const [x, y] = position; // z coordinate not used for edge determination
     
     // Heuristique simple basée sur la position
     // Si x est proche de 0, c'est probablement l'arête gauche
@@ -253,7 +253,7 @@ export class BRBlockParser {
    * Convertit les chanfreins en découpes pour compatibilité
    * Utilisé pour l'intégration avec le système de features existant
    */
-  static chamfersToCuts(chamfers: DSTVChamfer[]): any[] {
+  static chamfersToCuts(chamfers: DSTVChamfer[]): unknown[] {
     return chamfers.map(chamfer => {
       // Calculer le contour du chanfrein comme une découpe triangulaire
       const contour = this.calculateChamferContour(chamfer);
@@ -333,3 +333,5 @@ export class BRBlockParser {
     return contour;
   }
 }
+// Export par défaut pour compatibilité ES modules
+export default BRBlockParser;

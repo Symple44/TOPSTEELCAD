@@ -9,7 +9,7 @@ import { ThemeConfig } from '../themes/types';
 export interface ViewerFeature {
   id: string;
   enabled: boolean;
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
 }
 
 // Position de la toolbar
@@ -124,8 +124,8 @@ export interface ViewerAPI {
   unregisterPlugin: (pluginId: string) => void;
   
   // Events
-  on: (event: string, handler: Function) => void;
-  off: (event: string, handler: Function) => void;
+  on: (event: string, handler: (...args: unknown[]) => void) => void;
+  off: (event: string, handler: (...args: unknown[]) => void) => void;
   emit: (event: string, data?: any) => void;
   
   // Mode et thème
@@ -178,7 +178,7 @@ export interface CommandExtension {
   id: string;
   name: string;
   description?: string;
-  handler: (api: ViewerAPI, ...args: any[]) => any;
+  handler: (api: ViewerAPI, ...args: unknown[]) => any;
 }
 
 export interface ShortcutExtension {

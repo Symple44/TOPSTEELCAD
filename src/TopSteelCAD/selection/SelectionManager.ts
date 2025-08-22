@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { EventBus } from '../core/EventBus';
-import { PivotElement } from '../../types/viewer';
 
 /**
  * Modes de sélection

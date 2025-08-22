@@ -2,7 +2,7 @@
  * Types pour le système de plugins TopSteelCAD
  */
 
-import { ViewerAPI, ViewerPlugin, ToolExtension, PanelExtension, CommandExtension, ShortcutExtension, FeatureExtension } from '../modes/types';
+import { ViewerAPI, ViewerPlugin } from '../modes/types';
 
 // État du plugin
 export type PluginState = 'unloaded' | 'loading' | 'loaded' | 'active' | 'inactive' | 'error';
@@ -41,7 +41,7 @@ export interface PluginMetadata {
 export interface PluginConfig {
   enabled?: boolean;
   autoActivate?: boolean;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
   permissions?: PluginPermission[];
 }
 
@@ -79,18 +79,18 @@ export interface PluginStorage {
 
 // Interface de logging pour le plugin
 export interface PluginLogger {
-  debug(message: string, ...args: any[]): void;
-  info(message: string, ...args: any[]): void;
-  warn(message: string, ...args: any[]): void;
-  error(message: string, ...args: any[]): void;
+  debug(message: string, ...args: unknown[]): void;
+  info(message: string, ...args: unknown[]): void;
+  warn(message: string, ...args: unknown[]): void;
+  error(message: string, ...args: unknown[]): void;
 }
 
 // Gestionnaire d'événements du plugin
 export interface PluginEventEmitter {
-  on(event: string, handler: Function): void;
-  off(event: string, handler: Function): void;
+  on(event: string, handler: (...args: unknown[]) => void): void;
+  off(event: string, handler: (...args: unknown[]) => void): void;
   emit(event: string, data?: any): void;
-  once(event: string, handler: Function): void;
+  once(event: string, handler: (...args: unknown[]) => void): void;
 }
 
 // Plugin étendu avec métadonnées et contexte

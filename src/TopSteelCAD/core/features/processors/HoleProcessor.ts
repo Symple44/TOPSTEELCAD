@@ -7,8 +7,8 @@ import { Evaluator, Brush, SUBTRACTION } from 'three-bvh-csg';
 import { 
   Feature, 
   IFeatureProcessor, 
-  ProcessorResult,
-  ProfileFace 
+  ProcessorResult
+  // ProfileFace 
 } from '../types';
 import { PivotElement, MaterialType } from '@/types/viewer';
 import { PositionCalculator } from '../utils/PositionCalculator';
@@ -132,12 +132,19 @@ export class HoleProcessor implements IFeatureProcessor {
       }
       
       // Ajouter les informations du nouveau trou
+      // Garder la position DSTV originale ET la position 3D transformée
+      const originalPosition = Array.isArray(feature.position) 
+        ? feature.position 
+        : [feature.position.x, feature.position.y, feature.position.z || 0];
+      
       resultGeometry.userData.holes.push({
-        position: position3D.position,
+        position: position3D.position,  // Position 3D transformée pour Three.js
+        originalPosition: originalPosition,  // Position DSTV originale
         diameter: feature.parameters.diameter,
         type: feature.parameters.holeType || 'round',
         face: position3D.face,
         rotation: position3D.rotation,
+        depth: position3D.depth,  // Ajouter la profondeur
         slottedLength: feature.parameters.slottedLength
       });
       
@@ -353,16 +360,30 @@ export class HoleProcessor implements IFeatureProcessor {
     
     // Pour les profils en I (BEAM) avec trous dans l'âme
     if (materialType === MaterialType.BEAM && (face === 'o' || face === 'web')) {
-      // Pour l'âme : X = position le long de la poutre, Y = hauteur sur l'âme
+      // Pour l'âme avec face 'o' : 
+      // X = position le long de la poutre, Y = hauteur sur l'âme
       return (
         position.x >= -margin && position.x <= length + margin &&
-        position.y >= -margin && position.y <= height + margin &&  // Y comparé à la hauteur
-        Math.abs(position.z) <= width/2 + margin  // Z limité par la largeur de l'âme
+        position.y >= -margin && position.y <= height + margin &&
+        Math.abs(position.z) <= width/2 + margin
+      );
+    }
+    
+    // Pour les profils en I (BEAM) - face 'v' indique des trous dans l'âme vue du dessus
+    // Dans DSTV, 'v' avec Y représentant la position latérale indique un trou dans l'âme
+    if (materialType === MaterialType.BEAM && face === 'v') {
+      // Face 'v' = vue du dessus, trous dans l'âme
+      // X = position le long de la poutre
+      // Y = position latérale sur la largeur totale du profil
+      return (
+        position.x >= -margin && position.x <= length + margin &&
+        position.y >= -margin && position.y <= width + margin &&  // Y comparé à la largeur
+        Math.abs(position.z) <= height/2 + margin
       );
     }
     
     // Pour les profils en I (BEAM) avec trous dans les ailes
-    if (materialType === MaterialType.BEAM && (face === 'v' || face === 'u' || face === 'top_flange' || face === 'bottom_flange')) {
+    if (materialType === MaterialType.BEAM && (face === 'u' || face === 'top_flange' || face === 'bottom_flange')) {
       // Pour les ailes : X = position le long de la poutre, Y = position latérale sur l'aile
       return (
         position.x >= -margin && position.x <= length + margin &&
@@ -398,7 +419,7 @@ export class HoleProcessor implements IFeatureProcessor {
     const count = positions.count;
     
     // Créer ou récupérer l'attribut de couleur
-    let colors = geometry.attributes.color;
+    const colors = geometry.attributes.color;
     let colorArray: Float32Array;
     
     if (!colors) {

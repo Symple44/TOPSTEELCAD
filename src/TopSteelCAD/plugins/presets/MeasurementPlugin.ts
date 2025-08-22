@@ -4,7 +4,7 @@
  */
 
 import { EnhancedViewerPlugin, PluginContext, PluginConfig } from '../types';
-import { ViewerAPI, ToolExtension, PanelExtension, ShortcutExtension } from '../../modes/types';
+import { ViewerAPI } from '../../modes/types';
 import { Ruler, Compass, Calculator, Triangle, Square } from 'lucide-react';
 import React from 'react';
 
@@ -19,13 +19,13 @@ interface MeasurementData {
   label?: string;
 }
 
-interface MeasurementConfig extends PluginConfig {
-  defaultUnit?: 'mm' | 'cm' | 'm' | 'in' | 'ft';
-  precision?: number;
-  showInViewport?: boolean;
-  autoSave?: boolean;
-  maxMeasurements?: number;
-}
+// interface MeasurementConfig extends PluginConfig { // For future implementation
+//   defaultUnit?: 'mm' | 'cm' | 'm' | 'in' | 'ft';
+//   precision?: number;
+//   showInViewport?: boolean;
+//   autoSave?: boolean;
+//   maxMeasurements?: number;
+// }
 
 // Composant React pour le panneau de mesures
 const MeasurementPanel: React.FC<{ context: PluginContext }> = ({ context }) => {
@@ -194,7 +194,7 @@ export const MeasurementPlugin: EnhancedViewerPlugin = {
   },
   
   // Hooks du cycle de vie
-  async onInit(api: ViewerAPI): Promise<void> {
+  async onInit(_api: ViewerAPI): Promise<void> {
     console.log('Measurement plugin initialized');
   },
   
@@ -269,7 +269,7 @@ export const MeasurementPlugin: EnhancedViewerPlugin = {
       icon: Calculator,
       tooltip: 'Calculatrice pour les mesures',
       group: 'measurement',
-      handler: (api: ViewerAPI) => {
+      handler: (_api: ViewerAPI) => {
         // Ouvrir une calculatrice contextuelle
         console.log('Opening measurement calculator');
       }

@@ -3,7 +3,8 @@
  * Vérifie la cohérence et la validité des données avec détection avancée
  */
 
-import { DSTVProfile, ValidationResult, ValidationResults, ValidationLevel } from '../types';
+import { DSTVProfile, ValidationResult, ValidationResults } from '../types';
+import { ValidationLevel } from '../types/ValidationLevel';
 
 /**
  * Configuration pour la validation
@@ -22,11 +23,11 @@ interface ValidationConfig {
  * Validateur DSTV avec différents niveaux de validation
  */
 export class DSTVValidator {
-  private level: ValidationLevel;
+  private level: typeof ValidationLevel[keyof typeof ValidationLevel];
   private config: ValidationConfig;
 
   constructor(
-    level: ValidationLevel = ValidationLevel.STANDARD,
+    level: typeof ValidationLevel[keyof typeof ValidationLevel] = ValidationLevel.STANDARD,
     config?: ValidationConfig
   ) {
     this.level = level;
@@ -143,8 +144,10 @@ export class DSTVValidator {
       if (this.config.validateDimensions) {
         if (typeof profile.length !== 'number' || profile.length <= 0) {
           errors.push('Profile length must be positive');
+        } else if (!isFinite(profile.length)) {
+          errors.push('Profile length exceeds maximum allowed value');
         } else if (profile.length > this.config.maxProfileLength!) {
-          warnings.push(`Profile length exceeds maximum (${this.config.maxProfileLength}mm)`);
+          warnings.push(`Profile length exceeds typical maximum (${this.config.maxProfileLength}mm)`);
         }
         
         if (profile.width && profile.width <= 0) {
@@ -213,42 +216,51 @@ export class DSTVValidator {
       }
       
       // Validation de position
-      if (this.level === ValidationLevel.STRICT) {
+      if (this.level !== ValidationLevel.BASIC) {
         if (hole.x > profile.length || hole.x < 0) {
-          errors.push(`Hole ${index}: X position outside profile bounds`);
+          errors.push(`Hole ${index}: Position outside profile bounds`);
         }
         
         // Vérifier selon le type de face
         const maxY = this.getMaxYForFace(profile, hole.face);
         if (hole.y > maxY || hole.y < 0) {
-          errors.push(`Hole ${index}: Y position outside face bounds`);
+          errors.push(`Hole ${index}: Position outside profile bounds`);
         }
+      }
+      
+      // Vérifier les valeurs NaN/Infinity
+      if (isNaN(hole.x) || isNaN(hole.y) || isNaN(hole.diameter) || 
+          !isFinite(hole.x) || !isFinite(hole.y) || !isFinite(hole.diameter)) {
+        errors.push(`Hole ${index}: Invalid coordinates or diameter (NaN/Infinity)`);
       }
       
       // Validation spécifique aux trous oblongs
       if (hole.holeType === 'slotted') {
-        if ((hole as any).slottedLength && (hole as any).slottedLength <= hole.diameter) {
+        if ((hole as unknown).slottedLength && (hole as unknown).slottedLength <= hole.diameter) {
           warnings.push(`Hole ${index}: Slotted length should be greater than diameter`);
         }
       }
     });
     
-    // Détection des trous superposés
-    if (!this.config.allowOverlappingHoles) {
-      for (let i = 0; i < holes.length; i++) {
-        for (let j = i + 1; j < holes.length; j++) {
-          const h1 = holes[i];
-          const h2 = holes[j];
+    // Détection des trous superposés et dupliqués
+    for (let i = 0; i < holes.length; i++) {
+      for (let j = i + 1; j < holes.length; j++) {
+        const h1 = holes[i];
+        const h2 = holes[j];
+        
+        if (h1.face === h2.face) {
+          const distance = Math.sqrt(
+            Math.pow(h1.x - h2.x, 2) + Math.pow(h1.y - h2.y, 2)
+          );
           
-          if (h1.face === h2.face) {
-            const distance = Math.sqrt(
-              Math.pow(h1.x - h2.x, 2) + Math.pow(h1.y - h2.y, 2)
-            );
-            
-            const minDistance = (h1.diameter + h2.diameter) / 2 + this.config.minHoleDistance!;
-            
+          const minDistance = (h1.diameter + h2.diameter) / 2 + this.config.minHoleDistance!;
+          
+          // Détecter les trous exactement identiques  
+          if (h1.x === h2.x && h1.y === h2.y && h1.diameter === h2.diameter) {
+            warnings.push(`Duplicate hole detected at position (${h1.x}, ${h1.y})`);
+          } else if (!this.config.allowOverlappingHoles) {
             if (distance < (h1.diameter + h2.diameter) / 2) {
-              errors.push(`Holes ${i} and ${j} are overlapping`);
+              warnings.push(`Holes ${i} and ${j} are overlapping`);
             } else if (distance < minDistance) {
               warnings.push(`Holes ${i} and ${j} are too close (${distance.toFixed(1)}mm)`);
             }
@@ -285,18 +297,18 @@ export class DSTVValidator {
       }
       
       // Validation des points
-      if (this.level === ValidationLevel.STRICT) {
+      if (this.level !== ValidationLevel.BASIC) {
         for (let i = 0; i < cut.contour.length; i++) {
           const point = cut.contour[i];
           
           if (point[0] > profile.length + 100 || point[0] < -100) {
-            errors.push(`Cut ${index}: Point ${i} X coordinate outside bounds`);
+            errors.push(`Cut ${index}: Contour point outside profile bounds`);
             break;
           }
           
           const maxY = this.getMaxYForFace(profile, cut.face);
           if (point[1] > maxY + 100 || point[1] < -100) {
-            errors.push(`Cut ${index}: Point ${i} Y coordinate outside bounds`);
+            errors.push(`Cut ${index}: Contour point outside profile bounds`);
             break;
           }
         }
@@ -305,13 +317,13 @@ export class DSTVValidator {
       // Détection des auto-intersections
       if (this.config.checkSelfIntersection && cut.contour.length > 3) {
         if (this.isSelfIntersecting(cut.contour)) {
-          errors.push(`Cut ${index}: Contour is self-intersecting`);
+          warnings.push(`Cut ${index}: Contour is self-intersecting`);
         }
       }
       
       // Validation de la profondeur
       if (cut.depth !== undefined) {
-        if (cut.depth > 0 && cut.depth > profile.thickness) {
+        if (cut.depth > 0 && cut.depth > (profile.thickness || 0)) {
           warnings.push(`Cut ${index}: Depth exceeds material thickness`);
         }
       }
@@ -337,9 +349,9 @@ export class DSTVValidator {
       }
       
       // Validation de position
-      if (this.level === ValidationLevel.STRICT) {
+      if (this.level !== ValidationLevel.BASIC) {
         if (marking.x > profile.length || marking.x < 0) {
-          errors.push(`Marking ${index}: X position outside profile bounds`);
+          errors.push(`Marking ${index}: Position outside profile bounds`);
         }
         
         const maxY = this.getMaxYForFace(profile, ProfileFace.FRONT);
@@ -402,15 +414,15 @@ export class DSTVValidator {
     
     // Vérifier toutes les paires de segments non adjacents
     for (let i = 0; i < n - 1; i++) {
-      for (let j = i + 2; j < n - 1; j++) {
-        // Skip si les segments sont adjacents
-        if (i === 0 && j === n - 2) continue;
+      for (let j = i + 2; j < n; j++) {
+        // Skip le dernier segment avec le premier (ils sont adjacents dans un contour fermé)
+        if (j === n - 1 && i === 0) continue;
         
         if (this.doSegmentsIntersect(
           contour[i],
           contour[i + 1],
           contour[j],
-          contour[j + 1]
+          contour[(j + 1) % n]
         )) {
           return true;
         }
@@ -536,7 +548,7 @@ export class DSTVValidator {
     if (this.level === ValidationLevel.STRICT) {
       // Vérifier les IDs dupliqués
       const ids = new Set<string>();
-      profiles.forEach((profile, index) => {
+      profiles.forEach((profile, _index) => {
         if (profile.id) {
           if (ids.has(profile.id)) {
             errors.push(`Duplicate profile ID: ${profile.id}`);
@@ -547,7 +559,7 @@ export class DSTVValidator {
       
       // Statistiques
       const totalWeight = profiles.reduce((sum, p) => 
-        sum + ((p as any).weight || 0), 0
+        sum + ((p as unknown).weight || 0), 0
       );
       
       if (totalWeight > 100000) {
@@ -563,6 +575,9 @@ export class DSTVValidator {
     };
   }
 }
+
+// Export par défaut pour compatibilité ES modules
+export default DSTVValidator;
 
 // Import pour ProfileFace (temporaire, à ajuster selon l'organisation)
 enum ProfileFace {

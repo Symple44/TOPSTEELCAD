@@ -157,7 +157,7 @@ export class VisualFeatureRenderer {
   /**
    * Met à jour les features d'un élément
    */
-  updateFeatures(elementId: string, features: any[]): void {
+  updateFeatures(elementId: string, _features: unknown[]): void {
     const group = this.featureGroups.get(elementId);
     if (!group) return;
     

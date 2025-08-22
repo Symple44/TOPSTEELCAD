@@ -94,11 +94,7 @@ export class SimpleCutStrategy extends BaseCutStrategy {
       : face;
     
     switch (mappedFace) {
-      case ProfileFace.WEB:
       case 'v': // Face supérieure
-        position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
-        break;
-        
       case ProfileFace.TOP_FLANGE:
         position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
         break;
@@ -108,6 +104,8 @@ export class SimpleCutStrategy extends BaseCutStrategy {
         break;
         
       case ProfileFace.WEB:
+      default:
+        // For web cuts, keep centered position
         position.z = 0;
         break;
     }
@@ -121,7 +119,7 @@ export class SimpleCutStrategy extends BaseCutStrategy {
   private orientGeometry(
     geometry: THREE.BufferGeometry, 
     face: string, 
-    element: PivotElement
+    _element: PivotElement
   ): void {
     const rotationMatrix = new THREE.Matrix4();
     

@@ -7,14 +7,6 @@ import {
   // Navigation
   Home,
   MousePointer,
-  Move3D,
-  RotateCcw,
-  ZoomIn,
-  ZoomOut,
-  
-  // Visibilité
-  Eye,
-  EyeOff,
   Search,
   Filter,
   
@@ -23,7 +15,6 @@ import {
   Compass,
   Square,
   Triangle,
-  Circle,
   PenTool,
   Type,
   
@@ -36,10 +27,8 @@ import {
   Download,
   Upload,
   Save,
-  FolderOpen,
   
   // Avancé
-  Scissors,
   Copy,
   RotateCw,
   Scale,
@@ -54,7 +43,6 @@ import {
   FlaskConical,
   
   // Vue
-  MoreVertical,
   ScanLine,
   Box
 } from 'lucide-react';

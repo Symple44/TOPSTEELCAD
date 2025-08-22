@@ -69,15 +69,16 @@ export class DSTVSyntaxParser {
           orderNumber: stData.orderNumber,
           steelGrade: stData.steelGrade,
           weight: stData.weight,
+          // Dimensions directement sur le profil
+          width: stData.width,
+          height: stData.height,
+          webThickness: stData.webThickness,
+          flangeThickness: stData.flangeThickness,
           metadata: {
             quantity: stData.quantity,
             itemNumber: stData.itemNumber,
             drawingNumber: stData.drawingNumber,
-            height: stData.height,
-            width: stData.width,
             radius: stData.radius,
-            webThickness: stData.webThickness,
-            flangeThickness: stData.flangeThickness,
             paintingSurface: stData.paintingSurface,
             reserved: stData.reserved
           }
@@ -90,14 +91,26 @@ export class DSTVSyntaxParser {
       }
       // Check for BO block (holes)
       else if (token.type === TokenType.BLOCK_START && token.value === 'BO' && currentProfile) {
+        console.log('📍 Parsing BO block for profile:', currentProfile.designation);
         const boBlockTokens = [];
         i++;
         while (i < tokens.length && !(tokens[i].type === TokenType.BLOCK_END || tokens[i].type === TokenType.BLOCK_START)) {
           boBlockTokens.push(tokens[i]);
           i++;
         }
-
-        const holes = this.boParser.parse(boBlockTokens);
+        
+        console.log(`  Collected ${boBlockTokens.length} tokens for BO block`);
+        // Passer le contexte du profil pour l'interprétation des faces
+        const profileContext = {
+          profileType: currentProfile.profileType,
+          length: currentProfile.length,
+          width: currentProfile.width,
+          height: currentProfile.height,
+          webThickness: currentProfile.webThickness,
+          flangeThickness: currentProfile.flangeThickness
+        };
+        const holes = this.boParser.parse(boBlockTokens, profileContext);
+        console.log(`  Parsed ${holes.length} holes from BO block`);
         currentProfile.holes = [...(currentProfile.holes || []), ...holes];
 
         // Skip EN if present
@@ -114,7 +127,17 @@ export class DSTVSyntaxParser {
           i++;
         }
 
-        const cuts = this.akParser.parse(akBlockTokens);
+        // Passer le contexte du profil pour l'analyse des coupes
+        const profileContext = {
+          profileType: currentProfile.profileType,
+          length: currentProfile.length,
+          width: currentProfile.width,
+          height: currentProfile.height,
+          webThickness: currentProfile.webThickness,
+          flangeThickness: currentProfile.flangeThickness
+        };
+        const cuts = this.akParser.parse(akBlockTokens, profileContext);
+        console.log(`🔪 AK block parsed: ${cuts.length} cut(s) found`);
         currentProfile.cuts = [...(currentProfile.cuts || []), ...cuts];
 
         // Skip EN if present
@@ -152,3 +175,6 @@ export class DSTVSyntaxParser {
     return profiles;
   }
 }
+
+// Export par défaut pour compatibilité ES modules
+export default DSTVSyntaxParser;

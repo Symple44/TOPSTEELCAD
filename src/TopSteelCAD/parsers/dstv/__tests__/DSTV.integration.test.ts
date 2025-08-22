@@ -275,7 +275,7 @@ EN`;
       const startTime = performance.now();
       
       // Full pipeline
-      const tokens = lexer.tokenize(dstvContent);
+      // const tokens = lexer.tokenize(dstvContent); // Not used in test
       const profiles = parser.parse(dstvContent);
       const validationResult = validator.validateProfiles(profiles);
       const pivotScene = converter.convertProfiles(profiles);
@@ -291,7 +291,7 @@ EN`;
       expect(pivotScene.elements).toHaveLength(50);
       
       // Each element should have correct features
-      pivotScene.elements.forEach((element, i) => {
+      pivotScene.elements.forEach((element, _i) => {
         expect(element.features!.filter(f => f.type === 'hole')).toHaveLength(20);
         expect(element.features!.filter(f => f.type === 'cut')).toHaveLength(1);
         expect(element.features!.filter(f => f.type === 'marking')).toHaveLength(1);

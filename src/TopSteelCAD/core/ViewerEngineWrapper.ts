@@ -38,7 +38,7 @@ export class ViewerEngineWrapper {
    * Configure la scène de base (fond, lumières, grille)
    */
   private setupBasicScene(): void {
-    const scene = (this.engine as any).sceneManager.getScene();
+    const scene = (this.engine as unknown).sceneManager.getScene();
     
     // Fond dégradé
     scene.background = new THREE.Color(0x1a1a1a);
@@ -66,7 +66,7 @@ export class ViewerEngineWrapper {
    */
   get sceneManager() {
     // Accéder à la propriété publique sceneManager
-    return (this.engine as any).sceneManager;
+    return (this.engine as unknown).sceneManager;
   }
   
   /**

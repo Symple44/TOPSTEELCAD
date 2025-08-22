@@ -1,17 +1,17 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { 
-  ViewerState, 
-  ViewerActions, 
+  // ViewerState, 
+  // ViewerActions, 
   ViewerStore,
-  Measurement,
-  Annotation,
-  SectionPlane,
-  CameraState,
-  ViewerMode,
-  ViewerConfig
+  // Measurement,
+  // Annotation,
+  // SectionPlane,
+  // CameraState,
+  // ViewerMode,
+  // ViewerConfig
 } from '../types';
-import { PivotElement } from '@/types/viewer';
+// import { PivotElement } from '@/types/viewer';
 
 /**
  * Store Zustand pour la gestion d'état centralisée du viewer
@@ -183,7 +183,7 @@ export const useViewerStore = create<ViewerStore>()(
     },
 
     isolateElements: (ids) => {
-      const { elements } = get();
+      // const { elements } = get();
       set({ 
         isolatedElementIds: new Set(ids),
         hiddenElementIds: new Set(),

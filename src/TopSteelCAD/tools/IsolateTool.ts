@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { BaseTool, ToolConfig } from './BaseTool';
 
 /**

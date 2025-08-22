@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { PivotElement } from '../types/viewer';
-import { Loader2, Home, ZoomIn, ZoomOut, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Home, ZoomIn, ZoomOut, Eye } from 'lucide-react';
 import { ViewerEngine } from './core/ViewerEngine';
 
 /**

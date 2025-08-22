@@ -304,7 +304,7 @@ export class CameraController {
   ): void {
     if (!this.orthographicCamera) return;
     
-    let targetSize = this.calculateTargetSize(elements, selectedId);
+    const targetSize = this.calculateTargetSize(elements, selectedId);
     let viewWidth = targetSize.width;
     let viewHeight = targetSize.height;
     
@@ -337,7 +337,7 @@ export class CameraController {
     viewHeight *= this.config.zoomMargin;
     
     // Calculer le zoom
-    const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+    // const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
     const defaultHeight = Math.abs(this.orthographicCamera.top - this.orthographicCamera.bottom);
     const defaultWidth = Math.abs(this.orthographicCamera.right - this.orthographicCamera.left);
     
@@ -461,7 +461,7 @@ export class CameraController {
   public zoomToFit(selectedId?: string | null, elements?: PivotElement[], animated: boolean = true): void {
     if (!elements || elements.length === 0) return;
     
-    let box = new THREE.Box3();
+    const box = new THREE.Box3();
     
     if (selectedId) {
       // Zoom sur l'élément sélectionné
@@ -592,7 +592,7 @@ export class CameraController {
         const maxDim = Math.max(size.x, size.y, size.z);
         
         // Calculer la distance optimale pour voir l'élément
-        let optimalDistance = maxDim * 2.5; // Distance pour bien voir la pièce
+        const optimalDistance = maxDim * 2.5; // Distance pour bien voir la pièce
         
         if (this.controls) {
           // Animation fluide vers le nouvel élément

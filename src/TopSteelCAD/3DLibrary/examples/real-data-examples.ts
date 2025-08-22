@@ -8,7 +8,7 @@ import { UnifiedMaterialsDatabase } from '../database/UnifiedMaterialsDatabase';
 import { DatabaseGeometryBridge } from '../integration/DatabaseGeometryBridge';
 import { GeometryGeneratorFactory } from '../geometry-generators/GeometryGeneratorFactory';
 import { ProfileType } from '../types/profile.types';
-import { MaterialCategory } from '../types/material-types';
+// MaterialCategory import removed - not used in this file
 
 // ========================================
 // 1. INITIALISATION AVEC LAZY LOADING
@@ -112,7 +112,7 @@ export async function createIndustrialStructure() {
   const bridge = new DatabaseGeometryBridge();
   const structure = {
     name: 'Bâtiment Industriel Type',
-    elements: [] as any[],
+    elements: [] as unknown[],
     totalWeight: 0,
     bom: new Map<string, any>()
   };

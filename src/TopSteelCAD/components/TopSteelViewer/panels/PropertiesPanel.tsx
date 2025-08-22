@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { PivotElement, MaterialType } from '@/types/viewer';
 import { ViewerStore } from '../types';
 
@@ -16,7 +16,7 @@ interface PropertiesPanelProps {
  */
 export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   element,
-  store,
+  store: _store,
   theme = 'dark',
   onUpdate
 }) => {

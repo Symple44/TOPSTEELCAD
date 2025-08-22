@@ -125,11 +125,7 @@ export class CompoundCutStrategy extends BaseCutStrategy {
         : face;
       
       switch (mappedFace) {
-        case ProfileFace.WEB:
         case 'v': // Face supérieure
-          position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
-          break;
-          
         case ProfileFace.TOP_FLANGE:
           position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
           break;
@@ -139,6 +135,8 @@ export class CompoundCutStrategy extends BaseCutStrategy {
           break;
           
         case ProfileFace.WEB:
+        default:
+          // Use the web positioning logic
           position.y = centerY - (dims.height || dims.width || 100) / 2;
           break;
       }
@@ -175,7 +173,7 @@ export class CompoundCutStrategy extends BaseCutStrategy {
   private orientGeometry(
     geometry: THREE.BufferGeometry, 
     face: string, 
-    element: PivotElement
+    _element: PivotElement
   ): void {
     const rotationMatrix = new THREE.Matrix4();
     

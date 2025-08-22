@@ -20,12 +20,10 @@ export class FeatureOutlineRenderer {
     const holes = geometry.userData.holes || [];
     const yOffset = geometry.userData.yOffset || 0; // Récupérer le décalage Y
     
-    console.log(`🔍 Creating outlines for ${holes.length} holes in ${element.name} (yOffset=${yOffset})`);
     
     // Créer des contours pour chaque trou
     holes.forEach((hole: any, index: number) => {
-      console.log(`  - Hole ${index}: Ø${hole.diameter}mm at [${hole.position}], type=${hole.type}, face=${hole.face}`);
-      const outline = this.createHoleOutline(hole, index, yOffset);
+const outline = this.createHoleOutline(hole, index, yOffset);
       if (outline) {
         group.add(outline);
       }
@@ -39,11 +37,26 @@ export class FeatureOutlineRenderer {
   
   /**
    * Crée un contour visuel pour un trou
+   * @param yOffset - Le décalage Y appliqué au mesh pour le positionner au-dessus du quadrillage
    */
   private createHoleOutline(hole: any, index: number, yOffset: number = 0): THREE.Object3D | null {
     const diameter = hole.diameter || 10;
+    // Utiliser la position originale DSTV si disponible, sinon la position transformée
+    const originalPos = hole.originalPosition || hole.position || [0, 0, 0];
     const position = hole.position || [0, 0, 0];
-    const rotation = hole.rotation || [0, 0, 0];
+    const rotation = hole.rotation || [0, 0, 0]; // Récupérer la rotation du trou
+    const depth = hole.depth || hole.thickness || 10; // Profondeur du trou (utiliser thickness si depth n'existe pas)
+    const face = hole.face || 'web';
+    
+    console.log(`🔵 Creating hole outline ${index}:`, {
+      position,
+      originalPosition: originalPos,
+      rotation,
+      diameter,
+      depth,
+      face,
+      yOffset
+    });
     
     // Créer un groupe pour le contour
     const outlineGroup = new THREE.Group();
@@ -52,89 +65,124 @@ export class FeatureOutlineRenderer {
     // Créer un contour en ligne (LineLoop) au lieu d'un anneau plein
     const radius = diameter / 2 + 2; // Légèrement plus grand que le trou
     const segments = 32;
-    const points = [];
     
-    // Créer les points du cercle dans le bon plan selon la face
-    if (hole.face === 'top' || hole.face === 'bottom' || 
-        hole.face === 'bottom_flange' || hole.face === 'top_flange') {
-      // Surface horizontale - créer le cercle dans le plan XZ (horizontal)
-      for (let i = 0; i <= segments; i++) {
-        const angle = (i / segments) * Math.PI * 2;
-        points.push(new THREE.Vector3(
-          Math.cos(angle) * radius,  // X
-          0,                          // Y (hauteur constante)
-          Math.sin(angle) * radius    // Z
-        ));
-      }
+    // Créer DEUX cercles : un à l'entrée et un à la sortie du trou
+    const colors = [0x00ff00, 0xff0000]; // Vert pour l'entrée, rouge pour la sortie
+    
+    // Pour les cornières avec trous sur l'aile verticale (rotation [0, 0, -π/2])
+    // Les trous percent selon X (à travers l'épaisseur de l'aile)
+    let positions: THREE.Vector3[];
+    
+    if (Math.abs(rotation[2] + Math.PI/2) < 0.01) {
+      // Trou orienté selon X (aile verticale de la cornière)
+      // IMPORTANT: Appliquer le yOffset pour aligner avec le mesh repositionné
+      const halfThickness = depth / 2;
+      
+      positions = [
+        new THREE.Vector3(
+          position[0] - halfThickness, // X: décalé pour l'entrée
+          position[1] + yOffset, // Y: position du trou + offset du mesh
+          position[2]  // Z: EXACTEMENT la même que le trou
+        ), // Entrée
+        new THREE.Vector3(
+          position[0] + halfThickness, // X: décalé pour la sortie
+          position[1] + yOffset, // Y: position du trou + offset du mesh
+          position[2]  // Z: EXACTEMENT la même que le trou
+        ) // Sortie
+      ];
+    } else if (Math.abs(rotation[0] - Math.PI/2) < 0.01) {
+      // Trou orienté selon Z (âme de profil en I)
+      positions = [
+        new THREE.Vector3(position[0], position[1] + yOffset, position[2]), // Entrée
+        new THREE.Vector3(
+          position[0],
+          position[1] + yOffset, 
+          position[2] + depth
+        ) // Sortie
+      ];
     } else {
-      // Surface verticale (âme) - créer le cercle dans le plan XY (vertical)
+      // Trou vertical par défaut (selon Y)
+      positions = [
+        new THREE.Vector3(position[0], position[1] + yOffset, position[2]), // Entrée
+        new THREE.Vector3(
+          position[0],
+          position[1] + depth + yOffset, 
+          position[2]
+        ) // Sortie
+      ];
+    }
+    
+    positions.forEach((pos, idx) => {
+      const points = [];
+      
+      // Créer les points du cercle dans le plan XZ (perpendiculaire à Y par défaut)
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
         points.push(new THREE.Vector3(
-          Math.cos(angle) * radius,  // X
-          Math.sin(angle) * radius,  // Y
-          0                           // Z (profondeur constante)
+          Math.cos(angle) * radius,    // X
+          0,                           // Y 
+          Math.sin(angle) * radius     // Z
         ));
       }
-    }
+      
+      // Créer la géométrie de ligne
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      
+      // Matériau de ligne lumineux
+      const lineMaterial = new THREE.LineBasicMaterial({
+        color: colors[idx],  // Vert ou rouge selon entrée/sortie
+        linewidth: 3,        // Épaisseur de ligne
+        transparent: true,
+        opacity: 0.8
+      });
+      
+      // Créer le contour en ligne
+      const ringMesh = new THREE.LineLoop(lineGeometry, lineMaterial);
+      
+      // Positionner l'anneau à l'extrémité correspondante
+      ringMesh.position.copy(pos);
+      
+      // Appliquer la rotation du trou à l'outline
+      if (rotation && (rotation[0] !== 0 || rotation[1] !== 0 || rotation[2] !== 0)) {
+        ringMesh.rotation.set(rotation[0], rotation[1], rotation[2]);
+      }
+      
+      console.log(`  -> Ring ${idx + 1} at: [${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}]`);
+      
+      outlineGroup.add(ringMesh);
+    });
     
-    // Créer la géométrie de ligne
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    
-    // Matériau de ligne lumineux
-    const lineMaterial = new THREE.LineBasicMaterial({
-      color: 0x00ff00,  // Vert fluo
-      linewidth: 3,     // Épaisseur de ligne (note: peut ne pas fonctionner sur tous les renderers)
+    // Ajouter une ligne reliant les deux cercles pour visualiser l'axe du trou
+    const axisPoints = [
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, depth, 0)
+    ];
+    const axisGeometry = new THREE.BufferGeometry().setFromPoints(axisPoints);
+    const axisMaterial = new THREE.LineBasicMaterial({
+      color: 0xffff00,  // Jaune pour l'axe
+      linewidth: 2,
       transparent: true,
-      opacity: 1.0
+      opacity: 0.6
     });
-    
-    // Créer le contour en ligne
-    const ringMesh = new THREE.LineLoop(lineGeometry, lineMaterial);
-    
-    // Positionner l'anneau
-    // Pour les plaques, ajuster la position Y pour être sur la surface
-    let adjustedY = position[1] + yOffset; // Appliquer le décalage Y
-    if (hole.face === 'top') {
-      // Sur la face supérieure de la plaque
-      adjustedY = (hole.thickness || 10) / 2 + yOffset; // Moitié de l'épaisseur + décalage
-    } else if (hole.face === 'bottom') {
-      // Sur la face inférieure de la plaque
-      adjustedY = -(hole.thickness || 10) / 2 + yOffset;
+    const axisLine = new THREE.Line(axisGeometry, axisMaterial);
+    axisLine.position.set(position[0], position[1] + yOffset, position[2]);
+    if (rotation && (rotation[0] !== 0 || rotation[1] !== 0 || rotation[2] !== 0)) {
+      axisLine.rotation.set(rotation[0], rotation[1], rotation[2]);
     }
-    
-    ringMesh.position.set(position[0], adjustedY, position[2]);
-    
-    // Pas de rotation nécessaire car les cercles sont créés directement dans le bon plan
-    // - Surfaces horizontales : cercle créé dans le plan XZ
-    // - Surfaces verticales : cercle créé dans le plan XY
-    // Les contours sont maintenant correctement orientés dès leur création
-    
-    // Debug pour comprendre les rotations
-    console.log(`    Ring for face ${hole.face}: rotation applied [${ringMesh.rotation.x.toFixed(3)}, ${ringMesh.rotation.y.toFixed(3)}, ${ringMesh.rotation.z.toFixed(3)}]`);
-    
-    outlineGroup.add(ringMesh);
-    
-    // Ajouter un indicateur de centre (petite sphère)
-    const centerGeometry = new THREE.SphereGeometry(1, 8, 8);
-    const centerMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffff00  // Jaune
-    });
-    const centerMesh = new THREE.Mesh(centerGeometry, centerMaterial);
-    centerMesh.position.set(position[0], position[1] + yOffset, position[2]);
-    
-    outlineGroup.add(centerMesh);
+    outlineGroup.add(axisLine);
     
     // Pour les trous oblongs, créer une forme oblongue au lieu d'un cercle
     if (hole.type === 'slotted' && hole.slottedLength) {
       const slottedOutline = this.createSlottedHoleOutline(hole);
       if (slottedOutline) {
-        // Remplacer l'anneau circulaire par la forme oblongue
-        outlineGroup.remove(ringMesh);
-        lineGeometry.dispose();
+        // Remplacer les anneaux circulaires par la forme oblongue
+        // Note: Les anneaux ont déjà été ajoutés dans outlineGroup
+        // On nettoie tout et on ajoute la forme oblongue
+        outlineGroup.clear();
         // Appliquer le décalage Y à la forme oblongue
         slottedOutline.position.y += yOffset;
         outlineGroup.add(slottedOutline);
+        outlineGroup.add(axisLine); // Ré-ajouter l'axe
       }
     }
     
@@ -149,7 +197,7 @@ export class FeatureOutlineRenderer {
     const diameter = hole.diameter || 10;
     const elongation = hole.slottedLength || 0;
     const position = hole.position || [0, 0, 0];
-    const rotation = hole.rotation || [0, 0, 0];
+    // Removed unused rotation variable - using hole.slottedAngle instead
     
     // Matériau magenta pour les trous oblongs
     const material = new THREE.MeshBasicMaterial({
@@ -208,11 +256,7 @@ export class FeatureOutlineRenderer {
       }
     }
     
-    console.log(`    Slotted hole on face ${hole.face}: rotation [${rotation[0]}, ${rotation[1]}, ${rotation[2]}], angle=${hole.slottedAngle}°`);
-    
     group.add(mesh);
-    
-    console.log(`    Slotted hole outline: Ø${diameter}mm, elongation=${elongation}mm, angle=${hole.slottedAngle}°`);
     
     return group;
   }
@@ -238,7 +282,6 @@ export class FeatureOutlineRenderer {
       if (child instanceof THREE.Mesh) {
         const material = child.material as THREE.MeshBasicMaterial;
         material.color.setHex(color);
-        material.emissive.setHex(color);
       }
     });
   }

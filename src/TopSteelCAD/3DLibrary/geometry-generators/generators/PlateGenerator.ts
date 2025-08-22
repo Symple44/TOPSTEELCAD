@@ -56,7 +56,7 @@ export class PlateGenerator implements ProfileGeometryGenerator {
     // Extraire les dimensions
     const width = profile.dimensions.width || 1000;
     const thickness = profile.dimensions.thickness || 10;
-    const height = profile.dimensions.height || 0; // Hauteur de la plaque (souvent 0 pour les plaques)
+    // const height = profile.dimensions.height || 0; // Hauteur de la plaque (souvent 0 pour les plaques) - currently unused
     
     // Pour une plaque, on utilise width x length x thickness
     const geometry = new THREE.BoxGeometry(width, length, thickness);

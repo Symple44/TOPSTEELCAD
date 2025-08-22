@@ -6,7 +6,8 @@
 // ========================================
 // Core Three.js
 // ========================================
-export * as THREE from 'three';
+import * as THREE from 'three';
+export { THREE };
 export {
   // Core
   Scene,
@@ -366,7 +367,7 @@ export function createMetalMaterial(options: {
   metalness?: number;
   envMapIntensity?: number;
 }): any {
-  const THREE = require('three');
+  // THREE is already imported at the top of the file
   return new THREE.MeshStandardMaterial({
     color: options.color || 0x8b9dc3,
     roughness: options.roughness ?? 0.4,
@@ -378,8 +379,8 @@ export function createMetalMaterial(options: {
 /**
  * Calcule la boîte englobante d'un groupe d'objets
  */
-export function computeBoundingBox(objects: any[]): any {
-  const THREE = require('three');
+export function computeBoundingBox(objects: unknown[]): any {
+  // THREE is already imported at the top of the file
   const box = new THREE.Box3();
   objects.forEach(obj => {
     box.expandByObject(obj);

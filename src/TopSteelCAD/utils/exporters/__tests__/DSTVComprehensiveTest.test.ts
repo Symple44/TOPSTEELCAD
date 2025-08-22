@@ -3,8 +3,8 @@
  * Analyse minutieuse de tous les blocs et options
  */
 import { DSTVExporter } from '../DSTVExporter';
-import { DSTVParser } from '../../../parsers/DSTVParser';
-import { PivotElement, MaterialType } from '../../../../types/viewer';
+import { DSTVParser } from '../../../parsers/dstv/DSTVParser';
+import { PivotElement } from '../../../../types/viewer';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -137,7 +137,7 @@ describe('DSTV Comprehensive Tests', () => {
    */
   const createElementWithFeatures = (): PivotElement => {
     const element = createIPEElement();
-    (element as any).features = [
+    (element as unknown).features = [
       {
         type: 'hole',
         face: 'v',
@@ -269,7 +269,7 @@ describe('DSTV Comprehensive Tests', () => {
       expect(akBlocks.length).toBe(3); // v, o, u faces
 
       // Chaque bloc AK doit avoir 5 lignes de coordonnées
-      let akIndex = exampleLines.findIndex(line => line.startsWith('AK'));
+      const akIndex = exampleLines.findIndex(line => line.startsWith('AK'));
       if (akIndex >= 0) {
         // Vérifier le format des coordonnées (format réel du fichier T1.NC1)
         for (let i = 1; i <= 5; i++) {
@@ -384,7 +384,7 @@ describe('DSTV Comprehensive Tests', () => {
  * Fonction helper pour générer le contenu de test
  * (Simule la sortie de DSTVExporter basée sur les patterns observés)
  */
-function generateTestContent(element: PivotElement, pieceNumber: number, options: { includeFeatures?: boolean, includeMetadata?: boolean }): string[] {
+function generateTestContent(element: PivotElement, pieceNumber: number, _options: { includeFeatures?: boolean, includeMetadata?: boolean }): string[] {
   const lines: string[] = [];
   
   // Bloc ST

@@ -35,9 +35,10 @@ export class TextProcessor implements IFeatureProcessor {
       
       const params = feature.parameters;
       const text = params.text || '';
-      const fontSize = params.fontSize || 10;
-      const depth = params.depth || 1;
-      const textType = params.textType || 'engraved'; // engraved, embossed, stencil
+      // const fontSize = params.fontSize || 10;
+      // Unused variables for future implementation
+      // const depth = params.depth || 1;
+      // const textType = params.textType || 'engraved'; // engraved, embossed, stencil
       
       // La création de texte 3D nécessite TextGeometry de Three.js
       // qui nécessite le chargement de fonts
@@ -63,7 +64,7 @@ export class TextProcessor implements IFeatureProcessor {
     }
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     const params = feature.parameters;
     

@@ -15,7 +15,6 @@ import {
   Search,
   Layers,
   Info,
-  Settings,
   Grid3X3,
   Ruler,
   Camera,

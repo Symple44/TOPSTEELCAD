@@ -18,7 +18,7 @@ function convertDSTVToFeatures(element: PivotElement): Feature[] {
   const features: Feature[] = [];
   
   // Convertir les features de coupe
-  const cuttingFeatures = element.metadata?.cuttingFeatures as any[] || [];
+  const cuttingFeatures = element.metadata?.cuttingFeatures as unknown[] || [];
   cuttingFeatures.forEach((dstvFeature, index) => {
     // Déterminer le type de feature
     let featureType = FeatureType.HOLE;
@@ -75,7 +75,7 @@ function convertDSTVToFeatures(element: PivotElement): Feature[] {
     features.push({
       id: `${dstvFeature.type}-${index}`,
       type: featureType,
-      coordinateSystem: 'local' as any,
+      coordinateSystem: 'local' as unknown,
       position: new THREE.Vector3(
         dstvFeature.position[0],
         dstvFeature.position[1],
@@ -93,7 +93,7 @@ function convertDSTVToFeatures(element: PivotElement): Feature[] {
   });
   
   // Convertir les contours
-  const cuttingContours = element.metadata?.cuttingContours as any[] || [];
+  const cuttingContours = element.metadata?.cuttingContours as unknown[] || [];
   cuttingContours.forEach((contour, index) => {
     const points = contour.points?.map((p: any) => new THREE.Vector2(p.x, p.y)) || [];
     const bulges = contour.points?.map((p: any) => p.bulge || 0) || [];
@@ -101,7 +101,7 @@ function convertDSTVToFeatures(element: PivotElement): Feature[] {
     features.push({
       id: `contour-${index}`,
       type: FeatureType.CONTOUR,
-      coordinateSystem: 'local' as any,
+      coordinateSystem: 'local' as unknown,
       position: new THREE.Vector3(0, 0, 0),
       rotation: new THREE.Euler(0, 0, 0),
       parameters: {
@@ -289,7 +289,7 @@ interface LODFeatureProps {
 }
 
 const LODFeatureRenderer: React.FC<LODFeatureProps> = ({ element, distance }) => {
-  const features = element.metadata?.cuttingFeatures as any[] || [];
+  const features = element.metadata?.cuttingFeatures as unknown[] || [];
   
   // Déterminer le niveau de détail
   const lodLevel = useMemo(() => {

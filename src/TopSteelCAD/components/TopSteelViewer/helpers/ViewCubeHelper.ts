@@ -22,7 +22,7 @@ export class ViewCubeHelper {
     this.scene.background = null; // Transparent
     
     // Caméra orthographique pour le cube
-    const aspect = 1;
+    // const aspect = 1;
     const frustumSize = 4;
     this.camera = new THREE.OrthographicCamera(
       -frustumSize / 2,

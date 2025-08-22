@@ -99,7 +99,7 @@ class ConsoleTransport implements LogTransport {
 /**
  * Transport de stockage en mémoire (pour debug/tests)
  */
-class MemoryTransport implements LogTransport {
+export class MemoryTransport implements LogTransport {
   private entries: LogEntry[] = [];
   private maxEntries: number;
   
@@ -122,6 +122,41 @@ class MemoryTransport implements LogTransport {
   
   clear(): void {
     this.entries = [];
+  }
+  
+  /**
+   * Exporte les logs dans un format lisible
+   */
+  export(): string {
+    return this.entries.map(entry => {
+      const level = LogLevel[entry.level].padEnd(5);
+      const time = entry.timestamp.toISOString();
+      const module = entry.context?.module || 'APP';
+      let line = `[${time}] [${level}] [${module}] ${entry.message}`;
+      if (entry.data) {
+        line += '\n  DATA: ' + JSON.stringify(entry.data, null, 2).replace(/\n/g, '\n  ');
+      }
+      if (entry.error) {
+        line += '\n  ERROR: ' + entry.error.stack;
+      }
+      return line;
+    }).join('\n');
+  }
+  
+  /**
+   * Télécharge les logs
+   */
+  download(): void {
+    const content = this.export();
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `topsteelcad-logs-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 }
 
@@ -353,6 +388,45 @@ export class ChildLogger {
 export const logger = Logger.getInstance();
 
 /**
+ * Transport mémoire global pour debug
+ */
+export const memoryTransport = new MemoryTransport(5000);
+
+// Configuration en mode développement
+console.log('🔧 Initialisation du logger...');
+
+// Toujours exposer le logger, pas seulement en DEV
+logger.configure({
+  level: LogLevel.TRACE,
+  transports: [memoryTransport], // Seulement en mémoire
+  enabled: true
+});
+
+// Exposer globalement pour debug (seulement dans le navigateur)
+if (typeof window !== 'undefined') {
+  (window as unknown).topsteelLogger = {
+    logger,
+    memory: memoryTransport,
+    download: () => memoryTransport.download(),
+    show: () => console.log(memoryTransport.export()),
+    clear: () => memoryTransport.clear(),
+    enableConsole: (enable: boolean) => {
+      if (enable) {
+        logger.addTransport(new ConsoleTransport());
+      } else {
+        logger.configure({ transports: [memoryTransport] });
+      }
+    }
+  };
+
+  console.log('✅ Logger configuré. Utilisez window.topsteelLogger pour accéder aux logs.');
+  console.log('  - .download() pour télécharger les logs');
+  console.log('  - .show() pour afficher les logs');
+  console.log('  - .clear() pour vider les logs');
+  console.log('  - .enableConsole(true) pour activer la sortie console');
+}
+
+/**
  * Helpers pour créer des loggers spécialisés
  */
 export function createModuleLogger(module: string): ChildLogger {
@@ -412,11 +486,17 @@ export function LogMethod(level: LogLevel = LogLevel.DEBUG) {
   return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
     
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       const className = target.constructor.name;
       const log = createComponentLogger(className);
       
-      log.debug(`${propertyName} called`, { args });
+      switch(level) {
+        case LogLevel.ERROR: log.error(`${propertyName} called`, undefined, { args }); break;
+        case LogLevel.WARN: log.warn(`${propertyName} called`, { args }); break;
+        case LogLevel.INFO: log.info(`${propertyName} called`, { args }); break;
+        case LogLevel.DEBUG: log.debug(`${propertyName} called`, { args }); break;
+        default: log.debug(`${propertyName} called`, { args });
+      }
       
       try {
         const result = method.apply(this, args);
@@ -424,7 +504,13 @@ export function LogMethod(level: LogLevel = LogLevel.DEBUG) {
         if (result instanceof Promise) {
           return result
             .then(res => {
-              log.debug(`${propertyName} completed`, { result: res });
+              switch(level) {
+                case LogLevel.ERROR: log.error(`${propertyName} completed`, undefined, { result: res }); break;
+                case LogLevel.WARN: log.warn(`${propertyName} completed`, { result: res }); break;
+                case LogLevel.INFO: log.info(`${propertyName} completed`, { result: res }); break;
+                case LogLevel.DEBUG: log.debug(`${propertyName} completed`, { result: res }); break;
+                default: log.debug(`${propertyName} completed`, { result: res });
+              }
               return res;
             })
             .catch(err => {
@@ -433,7 +519,13 @@ export function LogMethod(level: LogLevel = LogLevel.DEBUG) {
             });
         }
         
-        log.debug(`${propertyName} completed`, { result });
+        switch(level) {
+          case LogLevel.ERROR: log.error(`${propertyName} completed`, undefined, { result }); break;
+          case LogLevel.WARN: log.warn(`${propertyName} completed`, { result }); break;
+          case LogLevel.INFO: log.info(`${propertyName} completed`, { result }); break;
+          case LogLevel.DEBUG: log.debug(`${propertyName} completed`, { result }); break;
+          default: log.debug(`${propertyName} completed`, { result });
+        }
         return result;
       } catch (error) {
         log.error(`${propertyName} failed`, error as Error);
@@ -449,7 +541,7 @@ export function LogMethod(level: LogLevel = LogLevel.DEBUG) {
 export function LogPerformance(target: any, propertyName: string, descriptor: PropertyDescriptor) {
   const method = descriptor.value;
   
-  descriptor.value = function (...args: any[]) {
+  descriptor.value = function (...args: unknown[]) {
     const className = target.constructor.name;
     const log = createComponentLogger(className);
     const start = performance.now();

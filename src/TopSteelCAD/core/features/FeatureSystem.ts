@@ -288,15 +288,14 @@ export class FeatureSystem {
     features: Feature[],
     element: PivotElement
   ): FeatureResult {
-    const startTime = performance.now();
+    // const startTime = performance.now(); // Timing disabled
     
     // Vérifier le cache si activé
     if (this.config.cacheEnabled) {
       const cacheKey = this.cache.generateKey(element, features);
       const cached = this.cache.get(cacheKey);
       if (cached) {
-        const endTime = performance.now();
-        console.log(`[FeatureSystem] Cache hit! Processing time: ${(endTime - startTime).toFixed(2)}ms`);
+        // const endTime = performance.now(); // Timing disabled
         
         return {
           geometry: cached,
@@ -338,7 +337,7 @@ export class FeatureSystem {
       
       // Traiter par batch si possible
       if (featuresOfType.length > 1 && this.canProcessBatch(processor)) {
-        const batchResult = (processor as any).processBatch?.(
+        const batchResult = (processor as unknown).processBatch?.(
           currentGeometry,
           featuresOfType,
           element
@@ -393,8 +392,7 @@ export class FeatureSystem {
       currentGeometry.attributes.position as THREE.BufferAttribute
     );
     
-    const endTime = performance.now();
-    console.log(`[FeatureSystem] Processing completed in ${(endTime - startTime).toFixed(2)}ms`);
+    // const endTime = performance.now(); // Timing disabled
     
     return {
       geometry: currentGeometry,
@@ -428,28 +426,29 @@ export class FeatureSystem {
     const priority: Record<FeatureType, number> = {
       // Contours et grandes découpes d'abord
       [FeatureType.CONTOUR]: 1,
-      [FeatureType.CUTOUT]: 2,
-      [FeatureType.NOTCH]: 3,
-      [FeatureType.COPING]: 4,
+      [FeatureType.CUT]: 2,
+      [FeatureType.CUTOUT]: 3,
+      [FeatureType.NOTCH]: 4,
+      [FeatureType.COPING]: 5,
       
       // Puis les trous et perçages
-      [FeatureType.SLOT]: 5,
-      [FeatureType.DRILL_PATTERN]: 6,
-      [FeatureType.HOLE]: 7,
-      [FeatureType.TAPPED_HOLE]: 8,
-      [FeatureType.COUNTERSINK]: 9,
-      [FeatureType.COUNTERBORE]: 10,
+      [FeatureType.SLOT]: 6,
+      [FeatureType.DRILL_PATTERN]: 7,
+      [FeatureType.HOLE]: 8,
+      [FeatureType.TAPPED_HOLE]: 9,
+      [FeatureType.COUNTERSINK]: 10,
+      [FeatureType.COUNTERBORE]: 11,
       
       // Finitions
-      [FeatureType.CHAMFER]: 11,
-      [FeatureType.BEVEL]: 12,
+      [FeatureType.CHAMFER]: 12,
+      [FeatureType.BEVEL]: 13,
       
       // Marquages et textes
-      [FeatureType.MARKING]: 13,
-      [FeatureType.TEXT]: 14,
+      [FeatureType.MARKING]: 14,
+      [FeatureType.TEXT]: 15,
       
       // Soudures en dernier
-      [FeatureType.WELD]: 15
+      [FeatureType.WELD]: 16
     };
     
     return types.sort((a, b) => (priority[a] || 99) - (priority[b] || 99));
@@ -459,7 +458,7 @@ export class FeatureSystem {
    * Vérifie si un processeur supporte le traitement par batch
    */
   private canProcessBatch(processor: IFeatureProcessor): boolean {
-    return typeof (processor as any).processBatch === 'function';
+    return typeof (processor as unknown).processBatch === 'function';
   }
   
   /**

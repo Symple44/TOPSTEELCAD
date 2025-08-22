@@ -86,14 +86,14 @@ export class IKBlockParser {
    * Vérifie si un token contient des données de contour
    */
   private hasContourData(token: DSTVToken): boolean {
-    return !!(token as any).values && Array.isArray((token as any).values);
+    return !!(token as unknown).values && Array.isArray((token as unknown).values);
   }
   
   /**
    * Parse un point de contour depuis un token
    */
   private parseContourPoint(token: DSTVToken): { x: number; y: number; depth?: number } | null {
-    const values = (token as any).values;
+    const values = (token as unknown).values;
     
     if (!values || values.length < 2) {
       return null;
@@ -114,10 +114,10 @@ export class IKBlockParser {
     isTransverse: boolean;
     contourType: 'rectangular' | 'circular' | 'oval' | 'irregular';
   } {
-    // Vérifier si le contour est fermé
-    const first = points[0];
-    const last = points[points.length - 1];
-    const isClosed = Math.abs(first[0] - last[0]) < 0.01 && Math.abs(first[1] - last[1]) < 0.01;
+    // TODO: Vérifier si le contour est fermé
+    // const first = points[0];
+    // const last = points[points.length - 1];
+    // const isClosed = Math.abs(first[0] - last[0]) < 0.01 && Math.abs(first[1] - last[1]) < 0.01; // TODO: Use for closed contour detection
     
     // Déterminer le type de contour
     const contourType = this.detectContourType(points);
@@ -268,3 +268,5 @@ export class IKBlockParser {
     return { minX, maxX, minY, maxY };
   }
 }
+// Export par défaut pour compatibilité ES modules
+export default IKBlockParser;

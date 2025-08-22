@@ -9,7 +9,7 @@ import { PivotElement } from '@/types/viewer';
 
 // Import des processors existants
 import { HoleProcessor } from './HoleProcessor';
-import { CutProcessor } from './CutProcessor';
+// import { CutProcessor } from './CutProcessor';
 import { ChamferProcessor } from './ChamferProcessor';
 import { WeldProcessor } from './WeldProcessor';
 import { MarkingProcessor } from './MarkingProcessor';

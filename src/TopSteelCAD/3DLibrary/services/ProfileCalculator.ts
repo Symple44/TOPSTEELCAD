@@ -11,7 +11,7 @@ import {
   ProfileCalculation,
   ProfileType
 } from '../types/profile.types';
-import { SafetyFactors, STEEL_DENSITY } from '../types/enums';
+import { SafetyFactors } from '../types/enums';
 
 export class ProfileCalculator {
   
@@ -195,9 +195,9 @@ export class ProfileCalculator {
    */
   public static calculateResistance(profile: SteelProfile, steelGrade: SteelGrade): ProfileResistance {
     const fy = steelGrade.yieldStrength; // MPa
-    const fu = steelGrade.tensileStrength; // MPa
+    // const fu = steelGrade.tensileStrength; // MPa - currently unused
     const gammaM0 = SafetyFactors.GAMMA_M0;
-    const gammaM2 = SafetyFactors.GAMMA_M2;
+    // const gammaM2 = SafetyFactors.GAMMA_M2; // currently unused
 
     // Résistance en traction (EN 1993-1-1 §6.2.3)
     const tensionResistance = (profile.area * fy * 100) / (gammaM0 * 1000); // kN

@@ -4,7 +4,8 @@
  */
 
 import * as THREE from 'three';
-import { CSG } from 'three-csg-ts';
+import { Evaluator, Brush, SUBTRACTION } from 'three-bvh-csg';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { FeatureProcessor, ProcessResult } from './FeatureProcessor';
 import { Feature, FeatureType } from '../types';
 import { PivotElement } from '@/types/viewer';
@@ -12,14 +13,21 @@ import { PositionCalculator } from '../utils/PositionCalculator';
 
 export class CutProcessor extends FeatureProcessor {
   private positionCalculator: PositionCalculator;
+  private evaluator: Evaluator;
   
   constructor() {
     super();
     this.positionCalculator = new PositionCalculator();
+    this.evaluator = new Evaluator();
+    this.evaluator.useGroups = false;
+    this.evaluator.attributes = ['position', 'normal', 'uv'];
+    // Force reload - v5
   }
   
   canProcess(feature: Feature): boolean {
-    return feature.type === FeatureType.CUTOUT || feature.type === FeatureType.NOTCH;
+    return feature.type === FeatureType.CUT || 
+           feature.type === FeatureType.CUTOUT || 
+           feature.type === FeatureType.NOTCH;
   }
   
   process(
@@ -27,9 +35,6 @@ export class CutProcessor extends FeatureProcessor {
     feature: Feature,
     element: PivotElement
   ): ProcessResult {
-    console.log(`✂️ CutProcessor: Processing cut for element ${element.id}`);
-    console.log(`  - Feature:`, feature);
-    console.log(`  - Element dimensions:`, element.dimensions);
     
     // Valider la feature
     const validationErrors = this.validateFeature(feature, element);
@@ -54,56 +59,64 @@ export class CutProcessor extends FeatureProcessor {
         };
       }
       
-      console.log(`  🔪 Creating ${isTransverse ? 'transverse ' : ''}cut with ${contourPoints.length} points on face ${face}`);
-      console.log(`  Points:`, contourPoints.map(p => `(${p[0]}, ${p[1]})`).join(', '));
-      if (isTransverse) {
-        console.log(`  🎯 This is a transverse cut (removes end of profile)`);
+      console.log(`🔪 Processing cut with ${contourPoints.length} points on face ${face}`);
+      if (face === 'v' || face === 'u') {
+        const bounds = this.getContourBounds(contourPoints);
+        console.log(`    Original bounds: X[${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}] Y[${bounds.minY.toFixed(1)}, ${bounds.maxY.toFixed(1)}]`);
+        
+        // Vérifier si les découpes sont à l'extrémité
+        const isAtEnd = bounds.minX > element.dimensions.length * 0.9;
+        if (isAtEnd) {
+          console.log(`    ⚠️ Cut is at beam extremity (X > ${(element.dimensions.length * 0.9).toFixed(1)})`);
+        }
       }
       
-      // Créer la géométrie de découpe
-      const cutGeometry = isTransverse 
-        ? this.createTransverseCutGeometry(contourPoints, element)
+      // Pour la face 'v' et 'u', toujours utiliser createCutGeometry normal
+      // car createTransverseCutGeometry ne fonctionne pas correctement pour les ailes
+      const cutGeometry = (isTransverse && face !== 'v' && face !== 'u')
+        ? this.createTransverseCutGeometry(contourPoints, element, face)
         : this.createCutGeometry(contourPoints, depth, face, element);
       
-      // Positionner la géométrie de découpe
-      // Les coordonnées sont déjà incluses dans la forme Shape,
-      // on doit juste positionner le tout par rapport au centre de la pièce
-      const position = this.calculateCutPosition(contourPoints, face, element);
-      console.log(`    Translating cut to position: (${position.x.toFixed(1)}, ${position.y.toFixed(1)}, ${position.z.toFixed(1)})`);
-      cutGeometry.translate(position.x, position.y, position.z);
-      
-      // Debug: afficher la position finale de la géométrie de découpe
+      // Les coordonnées sont déjà transformées dans createCutGeometry
+      // Pas besoin de translation supplémentaire
+      // Perform geometry bounds validation
       cutGeometry.computeBoundingBox();
-      const finalBbox = cutGeometry.boundingBox!;
-      console.log(`    Cut geometry final position: X(${finalBbox.min.x.toFixed(1)}, ${finalBbox.max.x.toFixed(1)}), Y(${finalBbox.min.y.toFixed(1)}, ${finalBbox.max.y.toFixed(1)}), Z(${finalBbox.min.z.toFixed(1)}, ${finalBbox.max.z.toFixed(1)})`);
-      
-      // Debug: afficher la position de la géométrie de base
       geometry.computeBoundingBox();
-      const baseBbox = geometry.boundingBox!;
-      console.log(`    Base geometry bounds: X(${baseBbox.min.x.toFixed(1)}, ${baseBbox.max.x.toFixed(1)}), Y(${baseBbox.min.y.toFixed(1)}, ${baseBbox.max.y.toFixed(1)}), Z(${baseBbox.min.z.toFixed(1)}, ${baseBbox.max.z.toFixed(1)})`);
       
-      // Vérifier l'intersection
-      const intersectsX = finalBbox.max.x >= baseBbox.min.x && finalBbox.min.x <= baseBbox.max.x;
-      const intersectsY = finalBbox.max.y >= baseBbox.min.y && finalBbox.min.y <= baseBbox.max.y;
-      const intersectsZ = finalBbox.max.z >= baseBbox.min.z && finalBbox.min.z <= baseBbox.max.z;
-      console.log(`    Intersection check: X=${intersectsX}, Y=${intersectsY}, Z=${intersectsZ}`);
+      // Effectuer l'opération CSG de soustraction avec three-bvh-csg
+      console.log(`🔪 Applying cut with ${contourPoints.length} points on face ${face}`);
+      console.log(`  Cut geometry bounds:`, cutGeometry.boundingBox);
+      console.log(`  Original geometry vertex count:`, geometry.attributes.position?.count || 0);
       
-      if (!intersectsX || !intersectsY || !intersectsZ) {
-        console.error(`    ❌ Cut geometry does not intersect with base geometry!`);
+      // Créer les brushes pour CSG
+      const baseBrush = new Brush(geometry);
+      baseBrush.updateMatrixWorld();
+      
+      const cutBrush = new Brush(cutGeometry);
+      cutBrush.updateMatrixWorld();
+      
+      // Effectuer la soustraction
+      const resultBrush = this.evaluator.evaluate(baseBrush, cutBrush, SUBTRACTION);
+      const resultGeometry = resultBrush.geometry.clone();
+      
+      // Nettoyer le brush résultant
+      resultBrush.geometry.dispose();
+      
+      // Calculer les normales et optimiser la géométrie
+      resultGeometry.computeVertexNormals();
+      resultGeometry.computeBoundingBox();
+      resultGeometry.computeBoundingSphere();
+      
+      console.log(`  Result geometry vertex count:`, resultGeometry.attributes.position?.count || 0);
+      
+      // Vérifier si la géométrie a changé
+      const originalVertexCount = geometry.attributes.position?.count || 0;
+      const resultVertexCount = resultGeometry.attributes.position?.count || 0;
+      
+      if (resultVertexCount === originalVertexCount) {
+        console.warn(`⚠️ Cut operation did not modify geometry - cut may be outside bounds`);
+        // Continuer quand même car certaines découpes peuvent ne pas modifier le nombre de vertices
       }
-      
-      // Effectuer l'opération CSG de soustraction
-      console.log(`  🔧 Performing CSG subtraction...`);
-      console.log(`    Base geometry vertices: ${geometry.attributes.position.count}`);
-      console.log(`    Cut geometry vertices: ${cutGeometry.attributes.position.count}`);
-      
-      const meshCSG = CSG.fromGeometry(geometry);
-      const cutCSG = CSG.fromGeometry(cutGeometry);
-      const resultCSG = meshCSG.subtract(cutCSG);
-      const resultGeometry = CSG.toGeometry(resultCSG, new THREE.Matrix4());
-      
-      console.log(`    Result geometry vertices: ${resultGeometry.attributes.position.count}`);
-      console.log(`    Vertices changed: ${geometry.attributes.position.count !== resultGeometry.attributes.position.count}`);
       
       // Nettoyer
       cutGeometry.dispose();
@@ -121,19 +134,12 @@ export class CutProcessor extends FeatureProcessor {
         depth
       });
       
-      // Vérifier que la géométrie a bien été modifiée
-      if (geometry.attributes.position.count === resultGeometry.attributes.position.count) {
-        console.warn(`  ⚠️ Cut may not have been applied - vertex count unchanged`);
-      } else {
-        console.log(`  ✅ Cut applied successfully - geometry modified`);
-      }
       
       return {
         success: true,
         geometry: resultGeometry
       };
     } catch (error) {
-      console.error('❌ Error applying cut:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -141,7 +147,7 @@ export class CutProcessor extends FeatureProcessor {
     }
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     const params = feature.parameters || {};
     
@@ -152,6 +158,28 @@ export class CutProcessor extends FeatureProcessor {
     }
     
     return errors;
+  }
+  
+  /**
+   * Obtient les limites d'un contour
+   */
+  private getContourBounds(points: Array<[number, number]>): {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  } {
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    
+    for (const point of points) {
+      minX = Math.min(minX, point[0]);
+      maxX = Math.max(maxX, point[0]);
+      minY = Math.min(minY, point[1]);
+      maxY = Math.max(maxY, point[1]);
+    }
+    
+    return { minX, maxX, minY, maxY };
   }
   
   /**
@@ -166,51 +194,41 @@ export class CutProcessor extends FeatureProcessor {
     // Calculer les dimensions de l'élément pour centrer la forme
     const dims = element.dimensions;
     const length = dims.length || 1000;
-    const width = dims.width || 150;
     const height = dims.height || 300;
     
+    console.log(`  Creating cut geometry for face ${face}:`);
+    console.log(`    Element dims: L=${dims.length}, H=${dims.height}, W=${dims.width}`);
+    console.log(`    Original contour points:`, contourPoints);
+    
     // Créer une forme (Shape) à partir des points du contour
-    // IMPORTANT: Transformer les coordonnées DSTV (depuis le coin) en coordonnées Three.js (centrées)
-    // Pour les ailes, la forme doit être créée dans le plan XZ (horizontal)
+    // IMPORTANT: Pour les ailes (face v/u), créer la forme dans le plan XZ (horizontal)
     const shape = new THREE.Shape();
     
     // Transformer et ajouter les points
-    // Pour la face 'v' (aile supérieure), les coordonnées représentent:
-    // X = position le long de la poutre (0 à length)
-    // Y = position sur la largeur totale du profil (0 à 251.4mm pour UB254x146x31)
     const transformedPoints = contourPoints.map(p => {
       if (face === 'v' || face === 'u') {
-        // Pour les ailes, transformer les coordonnées DSTV en coordonnées Three.js centrées
-        // Les coordonnées Y dans DSTV vont de 0 à 251.4 (hauteur totale du profil)
-        // On doit les transformer en coordonnées centrées pour Three.js
-        return [
-          p[0] - length / 2,     // Centrer sur X (le long de la poutre)
-          p[1] - height / 2      // Centrer sur Y (largeur du profil)
+        // Pour les ailes, créer une forme dans le plan XZ
+        // X = position le long de la poutre
+        // Z = position sur la largeur de l'aile
+        const transformedPoint = [
+          p[0] - length / 2,     // X: centrer sur la longueur
+          p[1] - dims.width / 2  // Z: centrer sur la largeur
         ];
+        console.log(`      Point [${p[0].toFixed(1)}, ${p[1].toFixed(1)}] -> X=${transformedPoint[0].toFixed(1)}, Z=${transformedPoint[1].toFixed(1)}`);
+        return transformedPoint;
       } else {
-        // Pour l'âme : X = position le long de la poutre, Y = hauteur
+        // Pour l'âme, forme dans le plan XY
         return [
-          p[0] - length / 2,
-          p[1] - height / 2
+          p[0] - length / 2,     // X
+          p[1] - height / 2      // Y
         ];
       }
     });
     
-    console.log(`    Transformed first point: (${transformedPoints[0][0].toFixed(1)}, ${transformedPoints[0][1].toFixed(1)})`);
-    
-    // Pour les ailes, créer la forme dans le bon plan
-    if (face === 'v' || face === 'u') {
-      // Pour les ailes : créer dans le plan XZ (X = longueur, Z = largeur)
-      shape.moveTo(transformedPoints[0][0], transformedPoints[0][1]);
-      for (let i = 1; i < transformedPoints.length; i++) {
-        shape.lineTo(transformedPoints[i][0], transformedPoints[i][1]);
-      }
-    } else {
-      // Pour l'âme : créer dans le plan XY comme avant
-      shape.moveTo(transformedPoints[0][0], transformedPoints[0][1]);
-      for (let i = 1; i < transformedPoints.length; i++) {
-        shape.lineTo(transformedPoints[i][0], transformedPoints[i][1]);
-      }
+    // Créer la forme 2D
+    shape.moveTo(transformedPoints[0][0], transformedPoints[0][1]);
+    for (let i = 1; i < transformedPoints.length; i++) {
+      shape.lineTo(transformedPoints[i][0], transformedPoints[i][1]);
     }
     
     // Fermer la forme si nécessaire
@@ -222,64 +240,124 @@ export class CutProcessor extends FeatureProcessor {
     
     // Paramètres d'extrusion
     // Pour l'aile, la profondeur doit traverser complètement l'épaisseur
-    const flangeThickness = element.dimensions.flangeThickness || 10;
+    // IMPORTANT: flangeThickness est 7.6mm pour UB254x146x31
+    const flangeThickness = element.dimensions.flangeThickness || element.metadata?.flangeThickness || 7.6;
+    console.log(`    Using flangeThickness: ${flangeThickness}mm from element:`, {
+      fromDimensions: element.dimensions.flangeThickness,
+      fromMetadata: element.metadata?.flangeThickness,
+      fallback: 7.6
+    });
     // Pour une découpe dans l'aile, on doit traverser toute l'épaisseur
     // On utilise une grande valeur pour s'assurer de traverser complètement
     const actualDepth = face === 'v' || face === 'u' 
       ? 50  // Profondeur fixe large pour garantir la traversée complète de l'aile
       : depth * 2.0;
     
-    const extrudeSettings = {
-      depth: actualDepth,
-      bevelEnabled: false,
-      bevelThickness: 0,
-      bevelSize: 0,
-      bevelSegments: 1
-    };
+    let geometry: THREE.BufferGeometry;
     
-    console.log(`    Extrusion depth: ${actualDepth.toFixed(1)}mm for face ${face}`);
+    if (face === 'v' || face === 'u') {
+      // Pour les ailes, créer un BoxGeometry directement à partir des bounds
+      const bounds = this.getContourBounds(contourPoints);
+      const cutWidth = bounds.maxX - bounds.minX;
+      const cutDepth = bounds.maxY - bounds.minY;
+      
+      geometry = new THREE.BoxGeometry(cutWidth, actualDepth, cutDepth);
+      
+      // Positionner le box aux bonnes coordonnées
+      const centerX = (bounds.minX + bounds.maxX) / 2 - length / 2;
+      const centerZ = (bounds.minY + bounds.maxY) / 2 - dims.width / 2;
+      
+      geometry.translate(centerX, 0, centerZ);
+      console.log(`    Created box for face ${face}: size=${cutWidth}x${actualDepth}x${cutDepth} at X=${centerX.toFixed(1)}, Z=${centerZ.toFixed(1)}`);
+    } else {
+      // Pour l'âme, utiliser ExtrudeGeometry
+      const extrudeSettings = {
+        depth: actualDepth,
+        bevelEnabled: false,
+        bevelThickness: 0,
+        bevelSize: 0,
+        bevelSegments: 1
+      };
+      
+      geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    }
     
-    // Créer la géométrie extrudée
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    
-    // Debug: afficher la taille de la géométrie avant transformation
     geometry.computeBoundingBox();
-    let bbox = geometry.boundingBox!;
-    console.log(`    Cut geometry initial size: X(${bbox.min.x.toFixed(1)}, ${bbox.max.x.toFixed(1)}), Y(${bbox.min.y.toFixed(1)}, ${bbox.max.y.toFixed(1)}), Z(${bbox.min.z.toFixed(1)}, ${bbox.max.z.toFixed(1)})`);
     
     // Orienter la géométrie selon la face AVANT de la translater
     const rotationMatrix = new THREE.Matrix4();
     
     switch (face) {
-      case 'v': // Face supérieure (top flange)
-        // La découpe doit traverser l'aile supérieure verticalement (selon Y)
-        // L'extrusion se fait selon Z, on doit la réorienter selon Y
-        rotationMatrix.makeRotationX(-Math.PI / 2);
-        geometry.applyMatrix4(rotationMatrix);
-        // Après rotation, l'extrusion est maintenant selon Y (vers le bas)
-        // Décaler pour que la découpe traverse bien l'aile
-        geometry.translate(0, -actualDepth / 2, 0);
-        break;
+      case 'v': { // Face supérieure (top flange)
+        // Pour face 'v', le BoxGeometry est créé centré à l'origine
+        // On doit le positionner pour qu'il traverse l'aile supérieure
         
-      case 'u': // Face inférieure (bottom flange) 
+        // IMPORTANT: Pour un profil UB254x146x31:
+        // - height = 146.1mm (hauteur totale du profil)
+        // - flangeThickness = 7.6mm (épaisseur de l'aile)
+        // L'aile supérieure est située de Y = (height/2 - flangeThickness) à Y = height/2
+        const topFlangeBottom = (height / 2) - flangeThickness;
+        const topFlangeTop = height / 2;
+        
+        // Le BoxGeometry doit être positionné pour que son centre soit aligné avec l'aile
+        // Pour garantir qu'il traverse complètement l'aile, on le centre sur l'aile
+        // mais on s'assure qu'il dépasse largement de chaque côté
+        const cutCenterY = (topFlangeBottom + topFlangeTop) / 2;
+        
+        // Positionner le centre du BoxGeometry au centre de l'aile
+        geometry.translate(0, cutCenterY, 0);
+        
+        // Vérifier l'intersection - IMPORTANT: recalculer après translation
+        geometry.computeBoundingBox();
+        const cutMinY = geometry.boundingBox!.min.y;
+        const cutMaxY = geometry.boundingBox!.max.y;
+        
+        console.log(`    Face v cut positioning:`);
+        console.log(`      Top flange: Y[${topFlangeBottom.toFixed(1)}, ${topFlangeTop.toFixed(1)}] (thickness=${flangeThickness}mm)`);
+        console.log(`      Cut box: Y[${cutMinY.toFixed(1)}, ${cutMaxY.toFixed(1)}] (height=${actualDepth}mm)`);
+        console.log(`      Cut center: Y=${cutCenterY.toFixed(1)}`);
+        
+        // Vérifier que la découpe intersecte bien l'aile
+        const intersects = cutMaxY >= topFlangeBottom && cutMinY <= topFlangeTop;
+        if (!intersects) {
+          console.warn(`      ⚠️ Cut does NOT intersect top flange!`);
+        } else {
+          const overlapBottom = Math.max(0, topFlangeBottom - cutMinY);
+          const overlapTop = Math.max(0, cutMaxY - topFlangeTop);
+          console.log(`      ✓ Cut intersects flange (overlap: ${overlapBottom.toFixed(1)}mm below, ${overlapTop.toFixed(1)}mm above)`);
+        }
+        
+        break;
+      }
+        
+      case 'u': { // Face inférieure (bottom flange) 
         // Même rotation que pour l'aile supérieure
         rotationMatrix.makeRotationX(-Math.PI / 2);
         geometry.applyMatrix4(rotationMatrix);
-        // La découpe doit partir du bas de l'aile et monter
+        // Positionner pour que la découpe traverse l'aile inférieure
+        // L'aile inférieure est à Y = -height/2 jusqu'à Y = -height/2 + flangeThickness
+        const bottomFlangeBottom = -height / 2;
+        // La géométrie doit partir du bas et monter à travers l'aile
+        // Après rotation et inversion, on positionne depuis le bas
+        geometry.translate(0, bottomFlangeBottom + actualDepth, 0);
         break;
+      }
         
       case 'o': // Âme (web)
+      case 'web':
         // La découpe doit traverser l'âme horizontalement (selon Z)
         // L'extrusion se fait déjà selon Z, pas de rotation nécessaire
         // Centrer sur Z pour traverser l'âme
         geometry.translate(0, 0, -actualDepth / 2);
         break;
+        
+      default:
+        // Par défaut, traiter comme l'âme
+        geometry.translate(0, 0, -actualDepth / 2);
+        break;
     }
     
-    // Debug: afficher la taille après transformation
     geometry.computeBoundingBox();
-    bbox = geometry.boundingBox!;
-    console.log(`    Cut geometry after rotation: X(${bbox.min.x.toFixed(1)}, ${bbox.max.x.toFixed(1)}), Y(${bbox.min.y.toFixed(1)}, ${bbox.max.y.toFixed(1)}), Z(${bbox.min.z.toFixed(1)}, ${bbox.max.z.toFixed(1)})`);
     
     return geometry;
   }
@@ -297,7 +375,6 @@ export class CutProcessor extends FeatureProcessor {
     const height = dims.height || 300;
     const width = dims.width || 150;
     const flangeThickness = dims.flangeThickness || 10;
-    const webThickness = dims.webThickness || 7;
     
     // Calculer les limites du contour
     let minX = Infinity, maxX = -Infinity;
@@ -310,17 +387,15 @@ export class CutProcessor extends FeatureProcessor {
       maxY = Math.max(maxY, point[1]);
     }
     
-    console.log(`    Cut bounds: X(${minX.toFixed(1)}, ${maxX.toFixed(1)}), Y(${minY.toFixed(1)}, ${maxY.toFixed(1)})`);
-    
     // Ne pas centrer - utiliser directement les coordonnées DSTV
     // Les coordonnées DSTV sont déjà dans le repère local de la pièce
     const startX = minX;  // Position de début en X
     const startY = minY;  // Position de début en Y
     
-    let position = new THREE.Vector3();
+    const position = new THREE.Vector3();
     
     switch (face) {
-      case 'v': // Face supérieure (top flange)
+      case 'v': { // Face supérieure (top flange)
         // Positionner la découpe au niveau de l'aile supérieure
         // La hauteur du profil UB254x146x31 est 251.4mm
         // L'épaisseur de l'aile est 7.6mm
@@ -331,20 +406,18 @@ export class CutProcessor extends FeatureProcessor {
           topFlangeCenter,       // Position Y au centre de l'aile
           0                      // Déjà centré sur Z
         );
-        console.log(`    Cut on top flange at: (${position.x.toFixed(1)}, ${position.y.toFixed(1)}, ${position.z.toFixed(1)})`);
-        console.log(`    Profile height: ${height}mm, Flange thickness: ${flangeThickness}mm, Center Y: ${topFlangeCenter}mm`);
-        break;
+break;
+      }
         
-      case 'u': // Face inférieure (bottom flange)
+      case 'u': { // Face inférieure (bottom flange)
         const bottomFlangeY = -(height / 2) + (flangeThickness / 2);  // Centre de l'aile inférieure
         position.set(
           0,                     // Déjà centré sur X
           bottomFlangeY,         // Position Y au centre de l'aile
           0                      // Déjà centré sur Z
         );
-        console.log(`    Cut on bottom flange at: (${position.x.toFixed(1)}, ${position.y.toFixed(1)}, ${position.z.toFixed(1)})`);
-        console.log(`    Flange thickness: ${flangeThickness}mm, Bottom flange center Y: ${bottomFlangeY}mm`);
-        break;
+break;
+      }
         
       case 'o': // Âme (web)
         // Si c'est un contour avec extension, le traiter comme l'aile supérieure
@@ -354,8 +427,7 @@ export class CutProcessor extends FeatureProcessor {
             height / 2 - flangeThickness,
             startY - width / 2
           );
-          console.log(`    Complex cut treated as top flange`);
-        } else {
+} else {
           position.set(
             startX - length / 2,
             startY - height / 2,
@@ -368,71 +440,340 @@ export class CutProcessor extends FeatureProcessor {
         position.set(startX - length / 2, startY - height / 2, 0);
     }
     
-    console.log(`  📍 Cut position for face ${face}: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`);
-    
     return position;
   }
   
   /**
    * Crée une géométrie de découpe transversale qui traverse tout le profil
+   * 
+   * Types de découpes supportées:
+   * 1. Découpe complète : enlève toute l'extrémité du profil
+   * 2. Découpe en L : garde le centre, enlève les coins haut et bas
+   * 3. Découpe partielle haute : enlève seulement le haut
+   * 4. Découpe partielle basse : enlève seulement le bas
+   * 
+   * @param contourPoints Points définissant le contour de la partie à GARDER
+   * @param element Élément sur lequel appliquer la découpe
    */
   private createTransverseCutGeometry(
     contourPoints: Array<[number, number]>,
-    element: PivotElement
+    element: PivotElement,
+    face?: string
   ): THREE.BufferGeometry {
     const dims = element.dimensions;
     const length = dims.length || 1000;
     const width = dims.width || 150;
     const height = dims.height || 300;
     
-    console.log(`    Creating transverse cut geometry`);
+    // Analyser les limites du contour
+    const bounds = this.getContourBounds(contourPoints);
     
-    // Pour une découpe transversale, on crée un bloc qui traverse tout le profil
-    // La forme est définie dans le plan XY (longueur x hauteur)
+    // Déterminer le type de découpe basé sur les coordonnées Y
+    // Pour face v/u, Y représente la largeur, donc on compare avec width
+    // Pour face o/web, Y représente la hauteur, donc on compare avec height
+    const yDimension = (face === 'v' || face === 'u') ? width : height;
+    const cutType = this.determineCutType(bounds, yDimension);
+    
+    // Créer les géométries de découpe selon le type
+    switch (cutType) {
+      case 'L_SHAPE':
+        return this.createLShapeCut(bounds, length, width, height);
+      case 'TOP_CUT':
+        return this.createTopCut(bounds, length, width, height, face);
+      case 'BOTTOM_CUT':
+        return this.createBottomCut(bounds, length, width, height, face);
+      case 'FULL_CUT':
+        return this.createFullCut(bounds, length, width, height);
+      default:
+        // Cas standard : utiliser les limites du contour
+        return this.createSimpleCut(bounds, length, width, height);
+    }
+  }
+
+  /**
+   * Détermine le type de découpe basé sur les coordonnées Y
+   * @param bounds - Les limites du contour
+   * @param dimension - La dimension maximale Y (width pour face v/u, height pour face o)
+   */
+  private determineCutType(bounds: any, dimension: number): string {
+    const tolerance = 10; // Tolérance en mm
+    const hasBottomGap = bounds.minY > tolerance;
+    const hasTopGap = bounds.maxY < dimension - tolerance;
+    
+    if (hasBottomGap && hasTopGap) {
+      return 'L_SHAPE'; // Découpe en L : garde le centre
+    } else if (hasTopGap && !hasBottomGap) {
+      return 'TOP_CUT'; // Découpe du haut seulement
+    } else if (hasBottomGap && !hasTopGap) {
+      return 'BOTTOM_CUT'; // Découpe du bas seulement
+    } else if (bounds.minY < tolerance && bounds.maxY > dimension - tolerance) {
+      return 'FULL_CUT'; // Découpe complète de l'extrémité
+    }
+    return 'CUSTOM'; // Découpe personnalisée
+  }
+
+  /**
+   * Crée une découpe en forme de L (enlève les coins haut et bas)
+   */
+  private createLShapeCut(
+    bounds: any,
+    length: number,
+    width: number,
+    height: number
+  ): THREE.BufferGeometry {
+    const geometries: THREE.BufferGeometry[] = [];
+    
+    // Rectangle du bas (de 0 à bounds.minY)
+    if (bounds.minY > 1) {
+      const shape1 = new THREE.Shape();
+      const x1 = bounds.minX - length / 2;
+      const x2 = bounds.maxX - length / 2;
+      const y1 = -height / 2;
+      const y2 = bounds.minY - height / 2;
+        
+      shape1.moveTo(x1, y1);
+      shape1.lineTo(x2, y1);
+      shape1.lineTo(x2, y2);
+      shape1.lineTo(x1, y2);
+      shape1.closePath();
+      
+      const extrudeSettings = {
+        depth: width * 2.0,
+        bevelEnabled: false
+      };
+      
+      const geom1 = new THREE.ExtrudeGeometry(shape1, extrudeSettings);
+      geom1.translate(0, 0, -width);
+      geometries.push(geom1);
+      
+    }
+    
+    // Rectangle du haut (de bounds.maxY à height)
+    if (bounds.maxY < height - 1) {
+      const shape2 = new THREE.Shape();
+      const x1 = bounds.minX - length / 2;
+      const x2 = bounds.maxX - length / 2;
+      const y1 = bounds.maxY - height / 2;
+      const y2 = height / 2;
+      
+      shape2.moveTo(x1, y1);
+      shape2.lineTo(x2, y1);
+      shape2.lineTo(x2, y2);
+      shape2.lineTo(x1, y2);
+      shape2.closePath();
+      
+      const extrudeSettings = {
+        depth: width * 2.0,
+        bevelEnabled: false
+      };
+      
+      const geom2 = new THREE.ExtrudeGeometry(shape2, extrudeSettings);
+      geom2.translate(0, 0, -width);
+      geometries.push(geom2);
+      
+    }
+    
+    // Fusionner les géométries
+    if (geometries.length > 0) {
+      const mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries);
+      return mergedGeometry;
+    }
+    
+    // Fallback : retourner une géométrie vide si aucune découpe
+    return new THREE.BufferGeometry();
+  }
+
+  /**
+   * Crée une découpe du haut seulement
+   * Pour face 'v': découpe en haut de l'aile (Y=0 à Y=bounds.maxY)
+   */
+  private createTopCut(
+    bounds: any,
+    length: number,
+    width: number,
+    height: number,
+    face?: string
+  ): THREE.BufferGeometry {
     const shape = new THREE.Shape();
+    const x1 = bounds.minX - length / 2;
+    const x2 = bounds.maxX - length / 2;
     
-    // Transformer les points pour les centrer
-    const transformedPoints = contourPoints.map(p => [
-      p[0] - length / 2,  // Centrer sur X
-      p[1] - height / 2   // Centrer sur Y
-    ]);
-    
-    // Créer la forme
-    shape.moveTo(transformedPoints[0][0], transformedPoints[0][1]);
-    for (let i = 1; i < transformedPoints.length; i++) {
-      shape.lineTo(transformedPoints[i][0], transformedPoints[i][1]);
-    }
-    
-    // Fermer la forme si nécessaire
-    const firstPoint = transformedPoints[0];
-    const lastPoint = transformedPoints[transformedPoints.length - 1];
-    if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
+    // Pour face 'v', créer dans le plan XZ et positionner correctement
+    if (face === 'v') {
+      // Découpe du haut de l'aile : de Z=-width/2 à Z=bounds.maxY-width/2
+      const z1 = -width / 2;  // Bord gauche de l'aile
+      const z2 = bounds.maxY - width / 2;  // Limite de la découpe
+      
+      // Créer la forme dans le plan XZ
+      shape.moveTo(x1, z1);
+      shape.lineTo(x2, z1);
+      shape.lineTo(x2, z2);
+      shape.lineTo(x1, z2);
       shape.closePath();
+      
+      const extrudeSettings = {
+        depth: 50,  // Profondeur pour traverser l'épaisseur de l'aile
+        bevelEnabled: false
+      };
+      
+      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      
+      // Rotation pour orienter correctement (extrusion selon Y)
+      const rotationMatrix = new THREE.Matrix4();
+      rotationMatrix.makeRotationX(-Math.PI / 2);
+      geometry.applyMatrix4(rotationMatrix);
+      
+      // Positionner à la hauteur de l'aile supérieure
+      const flangeThickness = 10;  // Épaisseur typique de l'aile
+      const topFlangeY = height / 2 - flangeThickness / 2;
+      geometry.translate(0, topFlangeY, 0);
+      
+      console.log(`    Top cut (face v): X(${x1.toFixed(1)}, ${x2.toFixed(1)}), Z(${z1.toFixed(1)}, ${z2.toFixed(1)})`);
+      return geometry;
     }
     
-    // Extruder sur toute la largeur du profil plus une marge
+    // Code original pour les autres faces
+    const y1 = -width / 2;
+    const y2 = bounds.maxY - width / 2;
+    
+    shape.moveTo(x1, y1);
+    shape.lineTo(x2, y1);
+    shape.lineTo(x2, y2);
+    shape.lineTo(x1, y2);
+    shape.closePath();
+    
     const extrudeSettings = {
-      depth: width * 1.5,  // 1.5x la largeur pour garantir la traversée complète
-      bevelEnabled: false,
-      bevelThickness: 0,
-      bevelSize: 0,
-      bevelSegments: 1
+      depth: width * 2.0,
+      bevelEnabled: false
     };
     
-    console.log(`    Transverse extrusion depth: ${extrudeSettings.depth.toFixed(1)}mm`);
-    
-    // Créer la géométrie extrudée
     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geometry.translate(0, 0, -width);
     
-    // Centrer la géométrie sur Z
-    geometry.translate(0, 0, -extrudeSettings.depth / 2);
+    console.log(`    Top cut: X(${x1.toFixed(1)}, ${x2.toFixed(1)}), Y(${y1.toFixed(1)}, ${y2.toFixed(1)})`);
+    return geometry;
+  }
+
+  /**
+   * Crée une découpe du bas seulement
+   * Pour face 'v': découpe en bas de l'aile (Y=bounds.minY à Y=width)
+   */
+  private createBottomCut(
+    bounds: any,
+    length: number,
+    width: number,
+    height: number,
+    face?: string
+  ): THREE.BufferGeometry {
+    const shape = new THREE.Shape();
+    const x1 = bounds.minX - length / 2;
+    const x2 = bounds.maxX - length / 2;
+    // Pour face 'v', Y représente la largeur, donc on utilise width pas height
+    const y1 = bounds.minY - width / 2;  // Limite basse de la découpe
+    const y2 = width / 2;  // Bord supérieur de l'aile en coordonnées Three.js
     
-    // Debug
-    geometry.computeBoundingBox();
-    const bbox = geometry.boundingBox!;
-    console.log(`    Transverse cut geometry size: X(${bbox.min.x.toFixed(1)}, ${bbox.max.x.toFixed(1)}), Y(${bbox.min.y.toFixed(1)}, ${bbox.max.y.toFixed(1)}), Z(${bbox.min.z.toFixed(1)}, ${bbox.max.z.toFixed(1)})`);
+    shape.moveTo(x1, y1);
+    shape.lineTo(x2, y1);
+    shape.lineTo(x2, y2);
+    shape.lineTo(x1, y2);
+    shape.closePath();
+    
+    const extrudeSettings = {
+      depth: width * 2.0,
+      bevelEnabled: false
+    };
+    
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geometry.translate(0, 0, -width);
+    
+    console.log(`    Bottom cut: X(${x1.toFixed(1)}, ${x2.toFixed(1)}), Y(${y1.toFixed(1)}, ${y2.toFixed(1)})`);
+    return geometry;
+  }
+
+  /**
+   * Crée une découpe complète de l'extrémité
+   */
+  private createFullCut(
+    bounds: any,
+    length: number,
+    width: number,
+    height: number
+  ): THREE.BufferGeometry {
+    const shape = new THREE.Shape();
+    const x1 = bounds.minX - length / 2;
+    const x2 = bounds.maxX - length / 2;
+    const y1 = -height / 2 - 10;
+    const y2 = height / 2 + 10;
+    
+    shape.moveTo(x1, y1);
+    shape.lineTo(x2, y1);
+    shape.lineTo(x2, y2);
+    shape.lineTo(x1, y2);
+    shape.closePath();
+    
+    const extrudeSettings = {
+      depth: width * 2.0,
+      bevelEnabled: false
+    };
+    
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geometry.translate(0, 0, -width);
     
     return geometry;
+  }
+
+  /**
+   * Crée une découpe simple basée sur les limites du contour
+   */
+  private createSimpleCut(
+    bounds: any,
+    length: number,
+    width: number,
+    height: number
+  ): THREE.BufferGeometry {
+    const shape = new THREE.Shape();
+    const x1 = bounds.minX - length / 2;
+    const x2 = bounds.maxX - length / 2;
+    const y1 = bounds.minY - height / 2;
+    const y2 = bounds.maxY - height / 2;
+    
+    shape.moveTo(x1, y1);
+    shape.lineTo(x2, y1);
+    shape.lineTo(x2, y2);
+    shape.lineTo(x1, y2);
+    shape.closePath();
+    
+    const extrudeSettings = {
+      depth: width * 2.0,
+      bevelEnabled: false
+    };
+    
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geometry.translate(0, 0, -width);
+    
+    return geometry;
+  }
+  
+  /**
+   * Obtient les limites d'un contour
+   */
+  private getContourBounds(points: Array<[number, number]>): {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  } {
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    
+    for (const point of points) {
+      minX = Math.min(minX, point[0]);
+      maxX = Math.max(maxX, point[0]);
+      minY = Math.min(minY, point[1]);
+      maxY = Math.max(maxY, point[1]);
+    }
+    
+    return { minX, maxX, minY, maxY };
   }
   
   dispose(): void {

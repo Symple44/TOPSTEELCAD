@@ -119,7 +119,7 @@ export class BeveledCutStrategy extends BaseCutStrategy {
   private orientGeometry(
     geometry: THREE.BufferGeometry, 
     face: string, 
-    element: PivotElement
+    _element: PivotElement
   ): void {
     const rotationMatrix = new THREE.Matrix4();
     

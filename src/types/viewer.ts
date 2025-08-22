@@ -1,6 +1,6 @@
 // Types de base pour le viewer 3D TopSteel
 
-import { Vector3, Euler, Matrix4 } from 'three';
+// Removed unused imports: Vector3, Euler, Matrix4
 
 // ================================
 // OBJET PIVOT - STANDARD INTERNE

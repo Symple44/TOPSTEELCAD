@@ -42,6 +42,7 @@ export class GeometryConverter {
         return this.createAngleGeometry(dimensions);
         
       case MaterialType.TUBE:
+        console.log('🔧 Creating TUBE geometry with dimensions:', dimensions);
         return this.createTubeGeometry(dimensions);
         
       case MaterialType.CHANNEL:
@@ -70,16 +71,14 @@ export class GeometryConverter {
     const {
       length = 6000,
       height = 300,
-      width = 150,
       flangeThickness = 10.7,
       webThickness = 7.1,
-      flangeWidth = 150
+      // Utiliser width d'abord, puis flangeWidth, puis valeur par défaut
+      flangeWidth = dimensions.width || dimensions.flangeWidth || 150
     } = dimensions;
     
     // Vérifier si des contours sont définis (découpes sur les ailes)
     if (metadata?.contours && metadata.contours.length > 0) {
-      console.log(`✂️ Beam has ${metadata.contours.length} contours (cuts)`);
-      // Pour l'instant, utiliser la géométrie standard
       // TODO: Implémenter les découpes sur les ailes
     }
     
@@ -135,7 +134,7 @@ export class GeometryConverter {
     const {
       length = 6000,
       height = 300,
-      width = 150,
+      // width = 150,
       flangeThickness = 10.7,
       webThickness = 7.1,
       flangeWidth = 150
@@ -346,34 +345,105 @@ export class GeometryConverter {
   }
   
   /**
-   * Crée une géométrie de tube
+   * Crée une géométrie de tube (circulaire ou rectangulaire)
    */
   private createTubeGeometry(dimensions: any): THREE.BufferGeometry {
     if (!dimensions) return new THREE.BoxGeometry(100, 100, 1000);
     
     const {
       length = 2000,
+      width = 100,
+      height = 100,
       diameter = 100,
-      thickness = 5
+      thickness = 5,
+      webThickness = 5,
+      flangeThickness = 5
     } = dimensions;
     
-    // Tube circulaire simplifié
-    const outerRadius = diameter / 2;
-    const innerRadius = outerRadius - thickness;
+    // Déterminer si c'est un tube rectangulaire ou circulaire
+    // Un tube est rectangulaire si:
+    // 1. width et height sont définis et > 0
+    // 2. ET diameter n'est pas défini ou égal à 0
+    // 3. OU si width !== height (tubes rectangulaires non carrés)
+    const isRectangular = (width > 0 && height > 0 && (!diameter || diameter === 0)) || 
+                         (width > 0 && height > 0 && width !== height);
     
-    const geometry = new THREE.CylinderGeometry(
-      outerRadius,
-      outerRadius,
-      length,
-      32,
-      1,
-      false
-    );
+    // L'épaisseur doit être celle des parois, pas la largeur/hauteur!
+    const actualThickness = thickness || webThickness || flangeThickness || 5;
     
-    // Rotation pour avoir la longueur selon Z
-    geometry.rotateX(Math.PI / 2);
+    console.log('🔍 TUBE Detection:', {
+      width,
+      height,
+      diameter,
+      thickness: actualThickness,
+      webThickness,
+      flangeThickness,
+      isRectangular,
+      reason: isRectangular ? 'Rectangular tube' : 'Circular tube'
+    });
     
-    return geometry;
+    if (isRectangular) {
+      // Tube rectangulaire/carré
+      
+      // Créer le tube rectangulaire avec épaisseur
+      const outerShape = new THREE.Shape();
+      outerShape.moveTo(-width/2, -height/2);
+      outerShape.lineTo(width/2, -height/2);
+      outerShape.lineTo(width/2, height/2);
+      outerShape.lineTo(-width/2, height/2);
+      outerShape.closePath();
+      
+      // Créer le trou intérieur (parois d'épaisseur actualThickness)
+      const innerWidth = width - 2 * actualThickness;
+      const innerHeight = height - 2 * actualThickness;
+      
+      console.log('📏 Tube rect dimensions:', {
+        outer: `${width}x${height}`,
+        inner: `${innerWidth}x${innerHeight}`,
+        wallThickness: actualThickness
+      });
+      
+      if (innerWidth > 0 && innerHeight > 0) {
+        const hole = new THREE.Path();
+        hole.moveTo(-innerWidth/2, -innerHeight/2);
+        hole.lineTo(innerWidth/2, -innerHeight/2);
+        hole.lineTo(innerWidth/2, innerHeight/2);
+        hole.lineTo(-innerWidth/2, innerHeight/2);
+        hole.closePath();
+        outerShape.holes.push(hole);
+      }
+      
+      // Extruder la forme
+      const extrudeSettings = {
+        depth: length,
+        bevelEnabled: false
+      };
+      
+      const geometry = new THREE.ExtrudeGeometry(outerShape, extrudeSettings);
+      geometry.translate(0, 0, -length/2);
+      
+      return geometry;
+    } else {
+      // Tube circulaire
+      // Utiliser diameter si défini, sinon utiliser width ou height (pour tubes carrés)
+      const effectiveDiameter = diameter || width || height || 100;
+      const outerRadius = effectiveDiameter / 2;
+      // const innerRadius = outerRadius - thickness; // Currently unused
+      
+      const geometry = new THREE.CylinderGeometry(
+        outerRadius,
+        outerRadius,
+        length,
+        32,
+        1,
+        false
+      );
+      
+      // Rotation pour avoir la longueur selon Z
+      geometry.rotateX(Math.PI / 2);
+      
+      return geometry;
+    }
   }
   
   /**

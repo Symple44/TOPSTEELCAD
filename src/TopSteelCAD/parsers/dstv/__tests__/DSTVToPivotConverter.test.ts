@@ -2,7 +2,7 @@
  * Tests unitaires pour DSTVToPivotConverter
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { DSTVToPivotConverter } from '../converters/DSTVToPivotConverter';
 import { DSTVProfile, ProfileFace } from '../types';
 import { MaterialType } from '../../../3DLibrary/types/profile.types';
@@ -285,8 +285,8 @@ describe('DSTVToPivotConverter', () => {
     it('should handle null/undefined profiles', () => {
       const profiles = [
         createTestProfile(),
-        null as any,
-        undefined as any,
+        null as unknown,
+        undefined as unknown,
         createTestProfile()
       ];
 
@@ -299,7 +299,7 @@ describe('DSTVToPivotConverter', () => {
       const profile = createTestProfile();
       profile.holes = [
         { x: 100, y: 100, diameter: 20, face: ProfileFace.FRONT },
-        null as any,
+        null as unknown,
         { x: NaN, y: 100, diameter: 20, face: ProfileFace.FRONT }
       ];
 
@@ -314,7 +314,7 @@ describe('DSTVToPivotConverter', () => {
       const profile = {
         designation: 'TEST',
         // Missing length and profileType
-      } as any;
+      } as unknown;
 
       const scene = converter.convertProfiles([profile]);
       

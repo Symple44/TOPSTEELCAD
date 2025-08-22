@@ -10,8 +10,8 @@ export class Pass {
   clear: boolean = false;
   renderToScreen: boolean = false;
 
-  setSize(width: number, height: number): void {}
-  render(renderer: any, writeBuffer: any, readBuffer: any, deltaTime?: number, maskActive?: boolean): void {}
+  setSize(_width: number, _height: number): void {}
+  render(_renderer: any, _writeBuffer: any, _readBuffer: any, _deltaTime?: number, _maskActive?: boolean): void {}
   dispose(): void {}
 }
 
@@ -43,7 +43,7 @@ export class EffectComposer {
     }
   }
 
-  render(deltaTime?: number): void {
+  render(_deltaTime?: number): void {
     // Stub implementation - just render directly
     if (this.renderer) {
       // Base rendering handled by ViewerEngine
@@ -99,7 +99,7 @@ export class OutlinePass extends Pass {
 }
 
 export class SMAAPass extends Pass {
-  constructor(width: number, height: number) {
+  constructor(_width: number, _height: number) {
     super();
   }
 }

@@ -3,7 +3,7 @@
  * Collecte et analyse les métriques de performance en temps réel
  */
 
-import { Logger } from '../../utils/Logger';
+import { Logger } from '../../utils/logger';
 
 /**
  * Type de métrique
@@ -296,7 +296,7 @@ export class PerformanceMonitor {
   } {
     const memoryUsage = typeof performance !== 'undefined' && 
                        'memory' in performance
-      ? (performance as any).memory?.usedJSHeapSize || 0
+      ? (performance as unknown).memory?.usedJSHeapSize || 0
       : 0;
     
     return {
@@ -511,7 +511,7 @@ export function Measure(name?: string) {
     const originalMethod = descriptor.value;
     const metricName = name || `${target.constructor.name}.${propertyName}`;
     
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       return performanceMonitor.measure(
         metricName,
         () => originalMethod.apply(this, args)

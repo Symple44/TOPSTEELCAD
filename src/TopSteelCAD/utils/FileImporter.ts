@@ -175,7 +175,8 @@ export class FileImporter {
   private static async importDSTV(file: File): Promise<ImportResult> {
     try {
       // Importer dynamiquement le DSTVParser
-      const { DSTVParser } = await import('../parsers/DSTVParser');
+      const module = await import('../parsers/dstv/DSTVParser');
+      const DSTVParser = module.DSTVParser || module.default;
       
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -193,7 +194,7 @@ export class FileImporter {
             
             resolve({
               success: true,
-              elements,
+              elements: elements as PivotElement[],
               warnings: elements.length === 0 ? ['Aucun élément trouvé dans le fichier DSTV'] : undefined,
               metadata: {
                 fileName: file.name,
@@ -231,7 +232,7 @@ export class FileImporter {
   /**
    * Import OBJ (géométries 3D)
    */
-  private static async importOBJ(file: File): Promise<ImportResult> {
+  private static async importOBJ(_file: File): Promise<ImportResult> {
     // Parser OBJ basique - à développer selon les besoins
     return {
       success: false,
@@ -242,7 +243,7 @@ export class FileImporter {
   /**
    * Import GLTF (modèles 3D complets)
    */
-  private static async importGLTF(file: File): Promise<ImportResult> {
+  private static async importGLTF(_file: File): Promise<ImportResult> {
     // Parser GLTF - à développer selon les besoins
     return {
       success: false,

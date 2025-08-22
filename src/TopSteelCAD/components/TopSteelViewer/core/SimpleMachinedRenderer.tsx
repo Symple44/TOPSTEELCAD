@@ -8,7 +8,7 @@
 import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { PivotElement, MaterialType, AssemblyType } from '@/types/viewer';
-import { FeatureSystem } from '@/TopSteelCAD/core/features/FeatureSystem';
+// import { FeatureSystem } from '@/TopSteelCAD/core/features/FeatureSystem'; // TODO: Implement feature system integration
 import { Feature, FeatureType, ProfileFace, CoordinateSystem } from '@/TopSteelCAD/core/features/types';
 
 /**
@@ -16,7 +16,7 @@ import { Feature, FeatureType, ProfileFace, CoordinateSystem } from '@/TopSteelC
  */
 function convertDSTVToFeatures(element: PivotElement): Feature[] {
   const features: Feature[] = [];
-  const cuttingFeatures = element.metadata?.cuttingFeatures as any[] || [];
+  const cuttingFeatures = element.metadata?.cuttingFeatures as unknown[] || [];
   
   cuttingFeatures.forEach((dstvFeature, index) => {
     let featureType = FeatureType.HOLE;
@@ -288,7 +288,7 @@ const FeatureOverlays: React.FC<{ element: PivotElement; features: Feature[] }> 
         // Rendu visuel selon le type de feature
         switch (feature.type) {
           case FeatureType.HOLE:
-          case FeatureType.TAPPED_HOLE:
+          case FeatureType.TAPPED_HOLE: {
             const diameter = feature.parameters.diameter || 20;
             const isThreaded = feature.type === FeatureType.TAPPED_HOLE;
             
@@ -326,9 +326,10 @@ const FeatureOverlays: React.FC<{ element: PivotElement; features: Feature[] }> 
                 ))}
               </group>
             );
+          }
             
           case FeatureType.COUNTERSINK:
-          case FeatureType.COUNTERBORE:
+          case FeatureType.COUNTERBORE: {
             const sinkDia = feature.parameters.sinkDiameter || 30;
             const holeDia = feature.parameters.diameter || 15;
             const sinkDepth = feature.parameters.sinkDepth || 5;
@@ -348,8 +349,9 @@ const FeatureOverlays: React.FC<{ element: PivotElement; features: Feature[] }> 
                 </mesh>
               </group>
             );
+          }
             
-          case FeatureType.SLOT:
+          case FeatureType.SLOT: {
             return (
               <mesh 
                 key={key} 
@@ -370,8 +372,9 @@ const FeatureOverlays: React.FC<{ element: PivotElement; features: Feature[] }> 
                 />
               </mesh>
             );
+          }
             
-          case FeatureType.CUTOUT:
+          case FeatureType.CUTOUT: {
             return (
               <mesh 
                 key={key} 
@@ -391,8 +394,9 @@ const FeatureOverlays: React.FC<{ element: PivotElement; features: Feature[] }> 
                 />
               </mesh>
             );
+          }
             
-          case FeatureType.MARKING:
+          case FeatureType.MARKING: {
             return (
               <mesh 
                 key={key} 
@@ -406,8 +410,9 @@ const FeatureOverlays: React.FC<{ element: PivotElement; features: Feature[] }> 
                 />
               </mesh>
             );
+          }
             
-          case FeatureType.TEXT:
+          case FeatureType.TEXT: {
             // Pour le texte, on affiche un placeholder
             return (
               <mesh 
@@ -423,6 +428,7 @@ const FeatureOverlays: React.FC<{ element: PivotElement; features: Feature[] }> 
                 />
               </mesh>
             );
+          }
             
           default:
             return null;

@@ -4,8 +4,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { PivotElement, MaterialType } from '../types/viewer';
 import { 
-  Loader2, Eye, EyeOff, 
-  Layers, Grid3X3, Info, 
+  Loader2, EyeOff,
+  Layers, Info, 
   ChevronLeft, ChevronRight, Sun, Moon
 } from 'lucide-react';
 import { ViewerEngine } from './core/ViewerEngine';
@@ -36,7 +36,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
   onElementChange,
   onThemeChange,
   theme = 'dark',
-  className = ''
+  className: _className = ''
 }) => {
   // Références essentielles (comme dans Standard)
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -187,9 +187,9 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           });
           
           if (canvasRef.current) {
-            (canvasRef.current as any).__renderer = engineRef.current.getRenderer();
-            (canvasRef.current as any).__scene = engineRef.current.getScene();
-            (canvasRef.current as any).__camera = engineRef.current.getCamera();
+            (canvasRef.current as unknown).__renderer = engineRef.current.getRenderer();
+            (canvasRef.current as unknown).__scene = engineRef.current.getScene();
+            (canvasRef.current as unknown).__camera = engineRef.current.getCamera();
           }
           
           if (containerRef.current && canvasRef.current) {
@@ -231,7 +231,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             
             // Axes
             const axesHelper = new THREE.AxesHelper(1500);
-            const axesMaterials = (axesHelper as any).material as THREE.LineBasicMaterial[];
+            const axesMaterials = (axesHelper as unknown).material as THREE.LineBasicMaterial[];
             if (axesMaterials && axesMaterials.length >= 3) {
               axesMaterials[0].color = new THREE.Color('#dc2626');
               axesMaterials[1].color = new THREE.Color('#16a34a');
@@ -481,7 +481,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           }
           break;
           
-        case 'm':
+        case 'm': {
           event.preventDefault();
           const newMeasureMode = !measurementMode;
           setMeasurementMode(newMeasureMode);
@@ -491,6 +491,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           canvas.style.cursor = newMeasureMode ? 'crosshair' : 'default';
           console.log(`📏 Mode mesure: ${newMeasureMode ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`);
           break;
+        }
           
         case 'c':
           // Effacer toutes les mesures avec Ctrl+C
@@ -1047,7 +1048,6 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             overflow: 'auto',
             padding: '0.75rem'
           }}>
-            {console.log(`🔍 Rendu hiérarchie avec ${allElements.length} éléments`)}
             {allElements.map(element => (
               <div
                 key={element.id}

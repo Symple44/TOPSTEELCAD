@@ -125,7 +125,7 @@ describe('DSTVLexer - Complete Tests', () => {
       const token = tokens[0];
       expect(token.type).toBe(TokenType.FACE_INDICATOR);
       expect(token.face).toBe(ProfileFace.TOP);
-      expect((token as any).values).toEqual([100, 200, 10]);
+      expect((token as unknown).values).toEqual([100, 200, 10]);
     });
   });
   
@@ -141,19 +141,19 @@ describe('DSTVLexer - Complete Tests', () => {
       const dataTokens = tokens.filter(t => t.type !== TokenType.BLOCK_START);
       expect(dataTokens.length).toBeGreaterThan(0);
       // Le lexer devrait détecter le modificateur 'l'
-      const hasSlotted = tokens.some(t => (t as any).holeType === 'slotted');
+      const hasSlotted = tokens.some(t => (t as unknown).holeType === 'slotted');
       expect(hasSlotted).toBe(true);
     });
     
     test('should detect square holes with s modifier', () => {
       const tokens = lexer.tokenize('BO\n100 200 30 s');
-      const hasSquare = tokens.some(t => (t as any).holeType === 'square');
+      const hasSquare = tokens.some(t => (t as unknown).holeType === 'square');
       expect(hasSquare).toBe(true);
     });
     
     test('should detect rectangular holes with r modifier', () => {
       const tokens = lexer.tokenize('BO\n100 200 30 40 r');
-      const hasRect = tokens.some(t => (t as any).holeType === 'rectangular');
+      const hasRect = tokens.some(t => (t as unknown).holeType === 'rectangular');
       expect(hasRect).toBe(true);
     });
   });
@@ -319,7 +319,7 @@ AK
       // Tokens between BO and AK should have BO context
       for (let i = boIndex + 1; i < akIndex; i++) {
         if (tokens[i].type === TokenType.NUMBER) {
-          expect((tokens[i] as any).blockContext).toBe('BO');
+          expect((tokens[i] as unknown).blockContext).toBe('BO');
         }
       }
     });

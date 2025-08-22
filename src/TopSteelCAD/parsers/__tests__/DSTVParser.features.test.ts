@@ -1,7 +1,7 @@
 /**
  * Test du parsing des features DSTV (trous, découpes, etc.)
  */
-import { DSTVParser } from '../DSTVParser';
+import { DSTVParser } from '../dstv/DSTVParser';
 import * as fs from 'fs';
 import * as path from 'path';
 

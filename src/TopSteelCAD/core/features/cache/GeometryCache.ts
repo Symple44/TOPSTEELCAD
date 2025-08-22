@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { createHash } from 'crypto';
+// import { createHash } from 'crypto';
 
 /**
  * Entrée du cache

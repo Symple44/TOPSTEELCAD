@@ -32,7 +32,7 @@ export class JSONExporter {
         position: el.position,
         rotation: el.rotation,
         material: el.material,
-        ...(options.includeFeatures && { features: el.features }),
+        ...(options.includeFeatures && { features: (el as unknown).features }),
         ...(options.includeMetadata && {
           metadata: el.metadata,
           sourceFormat: el.sourceFormat,
@@ -72,11 +72,11 @@ export class JSONExporter {
       const { length, width, height } = element.dimensions;
 
       minX = Math.min(minX, x - length / 2);
-      minY = Math.min(minY, y - height / 2);
+      minY = Math.min(minY, y - (height || 0) / 2);
       minZ = Math.min(minZ, z - width / 2);
 
       maxX = Math.max(maxX, x + length / 2);
-      maxY = Math.max(maxY, y + height / 2);
+      maxY = Math.max(maxY, y + (height || 0) / 2);
       maxZ = Math.max(maxZ, z + width / 2);
     });
 

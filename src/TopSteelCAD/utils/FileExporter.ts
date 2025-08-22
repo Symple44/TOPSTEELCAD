@@ -129,9 +129,9 @@ export class FileExporter {
    * Export OBJ (géométries 3D) - À développer
    */
   private static async exportOBJ(
-    elements: PivotElement[], 
-    fileName: string, 
-    options: ExportOptions
+    _elements: PivotElement[], 
+    _fileName: string, 
+    _options: ExportOptions
   ): Promise<ExportResult> {
     return {
       success: false,
@@ -143,9 +143,9 @@ export class FileExporter {
    * Export GLTF (modèles 3D complets) - À développer
    */
   private static async exportGLTF(
-    elements: PivotElement[], 
-    fileName: string, 
-    options: ExportOptions
+    _elements: PivotElement[], 
+    _fileName: string, 
+    _options: ExportOptions
   ): Promise<ExportResult> {
     return {
       success: false,

@@ -4,8 +4,10 @@
  */
 
 import { lazy } from 'react';
-import type { ComponentType } from 'react';
+// import type { ComponentType } from 'react';
 import type { PivotElement } from '@/types/viewer';
+
+// Les types sont définis localement pour éviter les erreurs de dépendances circulaires
 
 // Types pour les props des renderers
 export interface RendererProps {

@@ -1,7 +1,7 @@
 /**
  * Test simple pour vérifier le round-trip DSTV
  */
-import { DSTVParser } from '../../../parsers/DSTVParser';
+import { DSTVParser } from '../../../parsers/dstv/DSTVParser';
 import * as fs from 'fs';
 import * as path from 'path';
 

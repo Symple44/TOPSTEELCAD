@@ -10,7 +10,7 @@ import {
   IFeatureProcessor, 
   ProcessorResult 
 } from '../types';
-import { PivotElement, MaterialType } from '@/types/viewer';
+import { PivotElement } from '@/types/viewer';
 import { PositionCalculator, ProfileGeometryType } from '../utils/PositionCalculator';
 
 /**
@@ -149,7 +149,7 @@ export class CopingProcessor implements IFeatureProcessor {
     }
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     const params = feature.parameters;
     
@@ -385,7 +385,7 @@ export class CopingProcessor implements IFeatureProcessor {
     let geometry: THREE.BufferGeometry;
     
     switch (copingType) {
-      case CopingType.SINGLE_BEVEL:
+      case CopingType.SINGLE_BEVEL: {
         // Créer une forme biseautée
         const shape = new THREE.Shape();
         shape.moveTo(0, 0);
@@ -399,8 +399,9 @@ export class CopingProcessor implements IFeatureProcessor {
           bevelEnabled: false
         });
         break;
+      }
         
-      case CopingType.DOUBLE_BEVEL:
+      case CopingType.DOUBLE_BEVEL: {
         // Créer une forme à double biseau
         const shape2 = new THREE.Shape();
         shape2.moveTo(width * 0.25, 0);
@@ -416,6 +417,7 @@ export class CopingProcessor implements IFeatureProcessor {
           bevelEnabled: false
         });
         break;
+      }
         
       default:
         // Coupe droite simple

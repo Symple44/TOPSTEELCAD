@@ -153,7 +153,7 @@ export class ShapeFactory {
       designation: `M${diameter}`,
       type: ProfileType.FASTENER,
       dimensions: { diameter, length }
-    } as any, length);
+    } as unknown, length);
   }
   
   /**
@@ -165,7 +165,7 @@ export class ShapeFactory {
       designation: type.toUpperCase(),
       type: ProfileType.WELD,
       dimensions: { thickness: size, length }
-    } as any, length);
+    } as unknown, length);
   }
 }
 
