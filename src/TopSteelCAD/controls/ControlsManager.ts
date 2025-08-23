@@ -180,21 +180,21 @@ export class ControlsManager {
     this.transformControls = new TransformControls(this.camera, this.domElement);
     
     // Configuration
-    (this.transformControls as unknown).size = 1;
-    (this.transformControls as unknown).space = 'local';
+    (this.transformControls as any).size = 1;
+    (this.transformControls as any).space = 'local';
     
     // Écouteurs - TransformControls utilise des événements non typés
-    (this.transformControls as unknown).addEventListener('change', () => {
+    (this.transformControls as any).addEventListener('change', () => {
       this.onTransformChange();
     });
     
-    (this.transformControls as unknown).addEventListener('dragging-changed', (event: any) => {
+    (this.transformControls as any).addEventListener('dragging-changed', (event: any) => {
       // Désactiver OrbitControls pendant la transformation
       this.orbitControls.enabled = !event.value;
       this.isTransforming = event.value;
     });
     
-    (this.transformControls as unknown).addEventListener('objectChange', () => {
+    (this.transformControls as any).addEventListener('objectChange', () => {
       if (this.transformTarget) {
         this.eventBus.emit('transform:objectChanged', {
           object: this.transformTarget,
@@ -482,7 +482,7 @@ export class ControlsManager {
    */
   setTransformMode(mode: TransformMode): void {
     if (this.transformControls) {
-      (this.transformControls as unknown).mode = mode;
+      (this.transformControls as any).mode = mode;
       this.eventBus.emit('transform:modeChanged', mode);
     }
   }
@@ -601,7 +601,7 @@ export class ControlsManager {
     this.orbitControls.enabled = enabled;
     
     if (this.transformControls) {
-      (this.transformControls as unknown).enabled = enabled;
+      (this.transformControls as any).enabled = enabled;
     }
   }
   

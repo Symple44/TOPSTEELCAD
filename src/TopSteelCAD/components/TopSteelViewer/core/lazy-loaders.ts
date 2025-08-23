@@ -4,7 +4,7 @@
  */
 
 import { lazy } from 'react';
-// import type { ComponentType } from 'react';
+import type { ComponentType } from 'react';
 import type { PivotElement } from '@/types/viewer';
 
 // Les types sont définis localement pour éviter les erreurs de dépendances circulaires
@@ -31,7 +31,7 @@ export interface SceneProps {
 /**
  * Renderer simple - Chargé par défaut car léger
  */
-export const SimpleMachinedElement = lazy(() =>
+export const SimpleMachinedElement: ComponentType<any> = lazy(() =>
   import('./SimpleMachinedRenderer').then(module => ({
     default: module.SimpleMachinedElement
   }))
@@ -40,7 +40,7 @@ export const SimpleMachinedElement = lazy(() =>
 /**
  * Renderer avec CSG - Chargé à la demande
  */
-export const MachinedElementRenderer = lazy(() =>
+export const MachinedElementRenderer: ComponentType<any> = lazy(() =>
   import('./MachinedElementRenderer').then(module => ({
     default: module.MachinedElementRenderer
   }))
@@ -49,7 +49,7 @@ export const MachinedElementRenderer = lazy(() =>
 /**
  * Scene avec CSG - Utilise MachinedElementRenderer directement
  */
-export const MachinedScene = lazy(() =>
+export const MachinedScene: ComponentType<any> = lazy(() =>
   import('./MachinedElementRenderer').then(module => ({
     default: module.MachinedElementRenderer // Utiliser le renderer comme composant de scène
   }))
@@ -58,7 +58,7 @@ export const MachinedScene = lazy(() =>
 /**
  * Renderer avancé avec LOD, cache et animations - Chargé à la demande
  */
-export const AdvancedFeatureRenderer = lazy(() =>
+export const AdvancedFeatureRenderer: ComponentType<any> = lazy(() =>
   import('./AdvancedFeatureRenderer').then(module => ({
     default: module.AdvancedFeatureRenderer
   }))
@@ -67,7 +67,7 @@ export const AdvancedFeatureRenderer = lazy(() =>
 /**
  * Scene avancée
  */
-export const AdvancedFeatureScene = lazy(() =>
+export const AdvancedFeatureScene: ComponentType<any> = lazy(() =>
   import('./AdvancedFeatureRenderer').then(module => ({
     default: module.AdvancedFeatureScene
   }))
@@ -76,19 +76,19 @@ export const AdvancedFeatureScene = lazy(() =>
 /**
  * Composants d'assemblage - Chargés à la demande
  */
-export const BoltAssembly = lazy(() =>
+export const BoltAssembly: ComponentType<any> = lazy(() =>
   import('./AssemblyRenderer').then(module => ({
     default: module.BoltAssembly
   }))
 );
 
-export const FilletWeld = lazy(() =>
+export const FilletWeld: ComponentType<any> = lazy(() =>
   import('./AssemblyRenderer').then(module => ({
     default: module.FilletWeld
   }))
 );
 
-export const ButtWeld = lazy(() =>
+export const ButtWeld: ComponentType<any> = lazy(() =>
   import('./AssemblyRenderer').then(module => ({
     default: module.ButtWeld
   }))

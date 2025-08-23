@@ -105,7 +105,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
       
       // Ajouter les features (perçages, découpes, laser)
       if (element.metadata?.cuttingFeatures) {
-        const cuttingFeatures = element.metadata.cuttingFeatures as unknown[];
+        const cuttingFeatures = element.metadata.cuttingFeatures as any[];
         cuttingFeatures.forEach((feature, idx) => {
           features.push({
             id: `${element.id}-feature-${idx}`,
@@ -579,7 +579,7 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
         <div className="flex items-center gap-2">
           <select
             value={filterType}
-            onChange={(e) => setFilterType(e.target.value as unknown)}
+            onChange={(e) => setFilterType(e.target.value as any)}
             className={`flex-1 px-2 py-1 text-xs rounded ${themeClasses.input} focus:outline-none`}
           >
             <option value="all">Tous les types</option>

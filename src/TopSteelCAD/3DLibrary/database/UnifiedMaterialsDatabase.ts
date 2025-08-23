@@ -3,14 +3,14 @@
  * Centralise : profilés, plaques, boulonnerie, soudures, accessoires
  */
 
-import { UnifiedElement, MaterialCategory, ElementFilter } from '../types/material-types';
+import { UnifiedElement, MaterialCategory, ElementFilter, ProfileType, SteelGrade, SurfaceFinish } from '../types/material-types';
 import { PLATES_DATABASE } from '../data/materials/plates';
 import { FASTENERS_DATABASE } from '../data/materials/fasteners';
 import { WELDS_ACCESSORIES_DATABASE } from '../data/materials/welds-accessories';
 
 // Import des données de profilés existantes (adaptation)
 import { ProfileDatabase } from './ProfileDatabase';
-import { ProfileType, SteelProfile } from '../types/profile.types';
+import { ProfileType as ProfileTypeOld, SteelProfile } from '../types/profile.types';
 
 /**
  * Classe singleton pour gérer tous les matériaux de manière unifiée
@@ -90,7 +90,7 @@ export class UnifiedMaterialsDatabase {
       name: profile.designation,
       description: `Profilé ${profile.designation} selon ${profile.source}`,
       category: MaterialCategory.PROFILES,
-      type: profile.type as unknown,
+      type: this.mapProfileTypeOldToNew(profile.type),
       dimensions: {
         length: 6000, // Longueur standard
         width: profile.dimensions.width,
@@ -104,8 +104,8 @@ export class UnifiedMaterialsDatabase {
       },
       material: {
         designation: 'S355', // Grade par défaut
-        grade: 'S355' as unknown,
-        finish: 'RAW' as unknown,
+        grade: SteelGrade.S355,
+        finish: SurfaceFinish.RAW,
         yieldStrength: 355,
         tensileStrength: 510,
         standard: profile.source
@@ -130,9 +130,27 @@ export class UnifiedMaterialsDatabase {
   }
 
   /**
+   * Convertit ProfileTypeOld vers ProfileType
+   */
+  private mapProfileTypeOldToNew(type: ProfileTypeOld): ProfileType {
+    // Pour l'instant, on retourne un type par défaut basé sur le nom
+    // car les types exacts ne correspondent pas entre les deux enums
+    if (type.includes('IPE') || type.includes('HE')) return ProfileType.IPE;
+    if (type.includes('UPN') || type.includes('UAP')) return ProfileType.UPN;
+    if (type.includes('L_')) return ProfileType.L_EQUAL;
+    if (type.includes('TUBE')) return ProfileType.TUBE_CIRCULAR;
+    if (type.includes('RHS')) return ProfileType.RHS;
+    if (type.includes('SHS')) return ProfileType.SHS;
+    if (type.includes('CHS')) return ProfileType.CHS;
+    
+    // Type par défaut
+    return ProfileType.IPE;
+  }
+
+  /**
    * Couleur par défaut selon le type de profilé
    */
-  private getProfileColor(type: ProfileType): string {
+  private getProfileColor(type: ProfileType | ProfileTypeOld): string {
     const colors: Record<string, string> = {
       [ProfileType.IPE]: '#3B82F6',
       [ProfileType.HEA]: '#10B981', 
@@ -288,7 +306,7 @@ export class UnifiedMaterialsDatabase {
     
     // Filtre par grades
     if (filter.grades && filter.grades.length > 0) {
-      results = results.filter(m => filter.grades!.includes(m.material.grade as unknown));
+      results = results.filter(m => filter.grades!.includes(m.material.grade));
     }
     
     // Filtres dimensionnels
@@ -427,13 +445,13 @@ export class UnifiedMaterialsDatabase {
     
     const stats: Record<string, unknown> = {
       totalElements: this.materials.size,
-      byCategory: {}
+      byCategory: {} as Record<string, number>
     };
     
     // Statistiques par catégorie
     Object.values(MaterialCategory).forEach(category => {
       const categoryMaterials = this.categorizedMaterials.get(category) || [];
-      stats.byCategory[category] = categoryMaterials.length;
+      (stats.byCategory as Record<string, number>)[category] = categoryMaterials.length;
     });
     
     return stats;

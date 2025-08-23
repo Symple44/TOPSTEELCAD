@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { Evaluator, Brush, SUBTRACTION } from 'three-bvh-csg';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { FeatureProcessor, ProcessResult } from './FeatureProcessor';
-import { Feature, FeatureType } from '../types';
+import {Feature, FeatureType, ProfileFace} from '../types';
 import { PivotElement } from '@/types/viewer';
 import { PositionCalculator } from '../utils/PositionCalculator';
 
@@ -47,8 +47,9 @@ export class CutProcessor extends FeatureProcessor {
     
     try {
       // Récupérer les points du contour
-      const contourPoints = feature.parameters.points || [];
-      const face = feature.face || 'WEB';
+      const rawContourPoints = feature.parameters.points || [];
+      const contourPoints = this.normalizePoints(rawContourPoints);
+      const face = feature.face || ProfileFace.WEB;
       const depth = feature.parameters.depth || element.dimensions.flangeThickness || 10;
       const isTransverse = feature.parameters.isTransverse || false;
       
@@ -60,7 +61,7 @@ export class CutProcessor extends FeatureProcessor {
       }
       
       console.log(`🔪 Processing cut with ${contourPoints.length} points on face ${face}`);
-      if (face === 'v' || face === 'u') {
+      if (face === ProfileFace.WEB || face === ProfileFace.BOTTOM) {
         const bounds = this.getContourBounds(contourPoints);
         console.log(`    Original bounds: X[${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}] Y[${bounds.minY.toFixed(1)}, ${bounds.maxY.toFixed(1)}]`);
         
@@ -73,7 +74,7 @@ export class CutProcessor extends FeatureProcessor {
       
       // Pour la face 'v' et 'u', toujours utiliser createCutGeometry normal
       // car createTransverseCutGeometry ne fonctionne pas correctement pour les ailes
-      const cutGeometry = (isTransverse && face !== 'v' && face !== 'u')
+      const cutGeometry = (isTransverse && face !== ProfileFace.WEB && face !== ProfileFace.BOTTOM_FLANGE)
         ? this.createTransverseCutGeometry(contourPoints, element, face)
         : this.createCutGeometry(contourPoints, depth, face, element);
       
@@ -161,6 +162,19 @@ export class CutProcessor extends FeatureProcessor {
   }
   
   /**
+   * Normalise les points vers le format [number, number]
+   */
+  private normalizePoints(points: Array<[number, number] | { x: number; y: number; }>): Array<[number, number]> {
+    return points.map(point => {
+      if (Array.isArray(point)) {
+        return point;
+      } else {
+        return [point.x, point.y] as [number, number];
+      }
+    });
+  }
+
+  /**
    * Obtient les limites d'un contour
    */
   private getContourBounds(points: Array<[number, number]>): {
@@ -188,7 +202,7 @@ export class CutProcessor extends FeatureProcessor {
   private createCutGeometry(
     contourPoints: Array<[number, number]>,
     depth: number,
-    face: string,
+    face: ProfileFace | undefined,
     element: PivotElement
   ): THREE.BufferGeometry {
     // Calculer les dimensions de l'élément pour centrer la forme
@@ -206,7 +220,7 @@ export class CutProcessor extends FeatureProcessor {
     
     // Transformer et ajouter les points
     const transformedPoints = contourPoints.map(p => {
-      if (face === 'v' || face === 'u') {
+      if (face === ProfileFace.WEB || face === ProfileFace.BOTTOM) {
         // Pour les ailes, créer une forme dans le plan XZ
         // X = position le long de la poutre
         // Z = position sur la largeur de l'aile
@@ -249,13 +263,13 @@ export class CutProcessor extends FeatureProcessor {
     });
     // Pour une découpe dans l'aile, on doit traverser toute l'épaisseur
     // On utilise une grande valeur pour s'assurer de traverser complètement
-    const actualDepth = face === 'v' || face === 'u' 
+    const actualDepth = face === ProfileFace.WEB || face === ProfileFace.BOTTOM 
       ? 50  // Profondeur fixe large pour garantir la traversée complète de l'aile
       : depth * 2.0;
     
     let geometry: THREE.BufferGeometry;
     
-    if (face === 'v' || face === 'u') {
+    if (face === ProfileFace.WEB || face === ProfileFace.BOTTOM) {
       // Pour les ailes, créer un BoxGeometry directement à partir des bounds
       const bounds = this.getContourBounds(contourPoints);
       const cutWidth = bounds.maxX - bounds.minX;
@@ -288,7 +302,7 @@ export class CutProcessor extends FeatureProcessor {
     const rotationMatrix = new THREE.Matrix4();
     
     switch (face) {
-      case 'v': { // Face supérieure (top flange)
+      case ProfileFace.WEB: { // Face supérieure (top flange)
         // Pour face 'v', le BoxGeometry est créé centré à l'origine
         // On doit le positionner pour qu'il traverse l'aile supérieure
         
@@ -330,7 +344,7 @@ export class CutProcessor extends FeatureProcessor {
         break;
       }
         
-      case 'u': { // Face inférieure (bottom flange) 
+      case ProfileFace.BOTTOM_FLANGE: { // Face inférieure (bottom flange) 
         // Même rotation que pour l'aile supérieure
         rotationMatrix.makeRotationX(-Math.PI / 2);
         geometry.applyMatrix4(rotationMatrix);
@@ -343,7 +357,7 @@ export class CutProcessor extends FeatureProcessor {
         break;
       }
         
-      case 'o': // Âme (web)
+      case ProfileFace.TOP_FLANGE: // Âme (web)
       case 'web':
         // La découpe doit traverser l'âme horizontalement (selon Z)
         // L'extrusion se fait déjà selon Z, pas de rotation nécessaire
@@ -367,7 +381,7 @@ export class CutProcessor extends FeatureProcessor {
    */
   private calculateCutPosition(
     contourPoints: Array<[number, number]>,
-    face: string,
+    face: ProfileFace | undefined,
     element: PivotElement
   ): THREE.Vector3 {
     const dims = element.dimensions;
@@ -395,7 +409,7 @@ export class CutProcessor extends FeatureProcessor {
     const position = new THREE.Vector3();
     
     switch (face) {
-      case 'v': { // Face supérieure (top flange)
+      case ProfileFace.WEB: { // Face supérieure (top flange)
         // Positionner la découpe au niveau de l'aile supérieure
         // La hauteur du profil UB254x146x31 est 251.4mm
         // L'épaisseur de l'aile est 7.6mm
@@ -409,7 +423,7 @@ export class CutProcessor extends FeatureProcessor {
 break;
       }
         
-      case 'u': { // Face inférieure (bottom flange)
+      case ProfileFace.BOTTOM_FLANGE: { // Face inférieure (bottom flange)
         const bottomFlangeY = -(height / 2) + (flangeThickness / 2);  // Centre de l'aile inférieure
         position.set(
           0,                     // Déjà centré sur X
@@ -419,7 +433,7 @@ break;
 break;
       }
         
-      case 'o': // Âme (web)
+      case ProfileFace.TOP_FLANGE: // Âme (web)
         // Si c'est un contour avec extension, le traiter comme l'aile supérieure
         if (contourPoints.length > 5) {
           position.set(
@@ -458,7 +472,7 @@ break;
   private createTransverseCutGeometry(
     contourPoints: Array<[number, number]>,
     element: PivotElement,
-    face?: string
+    face?: ProfileFace | undefined
   ): THREE.BufferGeometry {
     const dims = element.dimensions;
     const length = dims.length || 1000;
@@ -471,7 +485,7 @@ break;
     // Déterminer le type de découpe basé sur les coordonnées Y
     // Pour face v/u, Y représente la largeur, donc on compare avec width
     // Pour face o/web, Y représente la hauteur, donc on compare avec height
-    const yDimension = (face === 'v' || face === 'u') ? width : height;
+    const yDimension = (face === ProfileFace.WEB || face === ProfileFace.BOTTOM) ? width : height;
     const cutType = this.determineCutType(bounds, yDimension);
     
     // Créer les géométries de découpe selon le type
@@ -592,14 +606,14 @@ break;
     length: number,
     width: number,
     height: number,
-    face?: string
+    face?: ProfileFace | undefined
   ): THREE.BufferGeometry {
     const shape = new THREE.Shape();
     const x1 = bounds.minX - length / 2;
     const x2 = bounds.maxX - length / 2;
     
     // Pour face 'v', créer dans le plan XZ et positionner correctement
-    if (face === 'v') {
+    if (face === ProfileFace.WEB) {
       // Découpe du haut de l'aile : de Z=-width/2 à Z=bounds.maxY-width/2
       const z1 = -width / 2;  // Bord gauche de l'aile
       const z2 = bounds.maxY - width / 2;  // Limite de la découpe
@@ -663,7 +677,7 @@ break;
     length: number,
     width: number,
     height: number,
-    face?: string
+    face?: ProfileFace | undefined
   ): THREE.BufferGeometry {
     const shape = new THREE.Shape();
     const x1 = bounds.minX - length / 2;
@@ -752,28 +766,6 @@ break;
     geometry.translate(0, 0, -width);
     
     return geometry;
-  }
-  
-  /**
-   * Obtient les limites d'un contour
-   */
-  private getContourBounds(points: Array<[number, number]>): {
-    minX: number;
-    maxX: number;
-    minY: number;
-    maxY: number;
-  } {
-    let minX = Infinity, maxX = -Infinity;
-    let minY = Infinity, maxY = -Infinity;
-    
-    for (const point of points) {
-      minX = Math.min(minX, point[0]);
-      maxX = Math.max(maxX, point[0]);
-      minY = Math.min(minY, point[1]);
-      maxY = Math.max(maxY, point[1]);
-    }
-    
-    return { minX, maxX, minY, maxY };
   }
   
   dispose(): void {

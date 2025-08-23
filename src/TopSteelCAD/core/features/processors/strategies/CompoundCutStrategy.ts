@@ -95,14 +95,14 @@ export class CompoundCutStrategy extends BaseCutStrategy {
     mainGeometry.dispose();
     
     // Orienter selon la face
-    this.orientGeometry(resultGeometry, params.face || feature.face || 'v', element);
+    this.orientGeometry(resultGeometry, params.face || feature.face || ProfileFace.WEB, element);
     
     return resultGeometry;
   }
   
   calculatePosition(feature: Feature, element: PivotElement): THREE.Vector3 {
     const params = feature.parameters || {};
-    const face = params.face || feature.face || 'v';
+    const face = params.face || feature.face || ProfileFace.WEB;
     const dims = element.dimensions;
     
     const position = new THREE.Vector3();
@@ -125,7 +125,7 @@ export class CompoundCutStrategy extends BaseCutStrategy {
         : face;
       
       switch (mappedFace) {
-        case 'v': // Face supérieure
+        case ProfileFace.WEB: // Face supérieure
         case ProfileFace.TOP_FLANGE:
           position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
           break;
@@ -172,24 +172,24 @@ export class CompoundCutStrategy extends BaseCutStrategy {
    */
   private orientGeometry(
     geometry: THREE.BufferGeometry, 
-    face: string, 
+    face: ProfileFace | undefined, 
     _element: PivotElement
   ): void {
     const rotationMatrix = new THREE.Matrix4();
     
     switch (face) {
-      case 'v': // Face supérieure
+      case ProfileFace.WEB: // Face supérieure
         rotationMatrix.makeRotationX(-Math.PI / 2);
         geometry.applyMatrix4(rotationMatrix);
         geometry.translate(0, -10, 0); // Ajuster pour la profondeur
         break;
         
-      case 'u': // Face inférieure
+      case ProfileFace.BOTTOM_FLANGE: // Face inférieure
         rotationMatrix.makeRotationX(Math.PI / 2);
         geometry.applyMatrix4(rotationMatrix);
         break;
         
-      case 'o': // Âme
+      case ProfileFace.TOP_FLANGE: // Âme
         // Pas de rotation nécessaire
         break;
     }

@@ -6,7 +6,7 @@ import { DSTVExporter } from '../DSTVExporter';
 import { PivotElement } from '../../../../types/viewer';
 
 // Accès aux méthodes privées pour les tests
-const DSTVExporterTest = DSTVExporter as unknown;
+const DSTVExporterTest = DSTVExporter as any;
 
 describe('DSTV Block Analysis', () => {
 

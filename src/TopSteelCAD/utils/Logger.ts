@@ -404,7 +404,7 @@ logger.configure({
 
 // Exposer globalement pour debug (seulement dans le navigateur)
 if (typeof window !== 'undefined') {
-  (window as unknown).topsteelLogger = {
+  (window as any).topsteelLogger = {
     logger,
     memory: memoryTransport,
     download: () => memoryTransport.download(),

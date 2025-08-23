@@ -15,11 +15,21 @@ export class GeometryConverter {
   }
   
   convertElement(element: PivotElement): THREE.Object3D {
-    let geometry = this.createGeometry(element);
+    let geometry: THREE.BufferGeometry;
     
-    // Appliquer les features si elles existent
-    if (element.metadata?.features && element.metadata.features.length > 0) {
-      geometry = this.featureApplicator.applyFeatures(geometry, element);
+    // IMPORTANT: Si l'élément a déjà une géométrie (par ex. depuis DSTV avec features appliquées),
+    // l'utiliser au lieu de recréer une nouvelle géométrie
+    if ((element as any).geometry) {
+      console.log(`✅ Using existing geometry for ${element.name} (vertices: ${(element as any).geometry.attributes.position?.count})`);
+      geometry = (element as any).geometry;
+    } else {
+      console.log(`📦 Creating new geometry for ${element.name}`);
+      geometry = this.createGeometry(element);
+      
+      // Appliquer les features si elles existent (seulement si on a créé une nouvelle géométrie)
+      if (element.metadata?.features && element.metadata.features.length > 0) {
+        geometry = this.featureApplicator.applyFeatures(geometry, element);
+      }
     }
     
     const material = this.createMaterial(element);

@@ -45,10 +45,10 @@ const MeasurementPanel: React.FC<{ context: PluginContext }> = ({ context }) => 
       setMeasurements(prev => [...prev, data]);
     };
     
-    context.events.on('measurement-added', handleNewMeasurement);
+    context.events.on('measurement-added', (...args: unknown[]) => handleNewMeasurement(args[0] as MeasurementData));
     
     return () => {
-      context.events.off('measurement-added', handleNewMeasurement);
+      context.events.off('measurement-added', (...args: unknown[]) => handleNewMeasurement(args[0] as MeasurementData));
     };
   }, [context]);
   
@@ -182,11 +182,13 @@ export const MeasurementPlugin: EnhancedViewerPlugin = {
     if (!config.settings) return true;
     
     const validUnits = ['mm', 'cm', 'm', 'in', 'ft'];
-    if (config.settings.defaultUnit && !validUnits.includes(config.settings.defaultUnit)) {
+    const defaultUnit = config.settings.defaultUnit as string;
+    if (defaultUnit && !validUnits.includes(defaultUnit)) {
       return false;
     }
     
-    if (config.settings.precision && (config.settings.precision < 0 || config.settings.precision > 10)) {
+    const precision = config.settings.precision as number;
+    if (precision !== undefined && (precision < 0 || precision > 10)) {
       return false;
     }
     
@@ -318,7 +320,8 @@ export const MeasurementPlugin: EnhancedViewerPlugin = {
       id: 'export-measurements',
       name: 'Exporter les mesures',
       description: 'Exporte toutes les mesures vers un fichier CSV',
-      handler: async (api: ViewerAPI, context: PluginContext) => {
+      handler: async (api: ViewerAPI, ...args: unknown[]) => {
+        const context = args[0] as PluginContext;
         const measurements = await context.storage.get<MeasurementData[]>('measurements');
         if (measurements && measurements.length > 0) {
           // Logique d'export CSV

@@ -69,39 +69,43 @@ const outline = this.createHoleOutline(hole, index, yOffset);
     // Créer DEUX cercles : un à l'entrée et un à la sortie du trou
     const colors = [0x00ff00, 0xff0000]; // Vert pour l'entrée, rouge pour la sortie
     
-    // Pour les cornières avec trous sur l'aile verticale (rotation [0, 0, -π/2])
-    // Les trous percent selon X (à travers l'épaisseur de l'aile)
+    // Déterminer l'orientation du trou selon la face
     let positions: THREE.Vector3[];
     
-    if (Math.abs(rotation[2] + Math.PI/2) < 0.01) {
-      // Trou orienté selon X (aile verticale de la cornière)
-      // IMPORTANT: Appliquer le yOffset pour aligner avec le mesh repositionné
+    if (face === 'web' || face === 'o') {
+      // Trou sur l'âme - traverse selon X
+      const halfThickness = depth / 2;
+      
+      positions = [
+        new THREE.Vector3(
+          position[0] - halfThickness, // X: entrée du trou
+          position[1] + yOffset, // Y: position verticale
+          position[2]  // Z: position le long du profil
+        ), // Entrée
+        new THREE.Vector3(
+          position[0] + halfThickness, // X: sortie du trou
+          position[1] + yOffset, // Y: position verticale
+          position[2]  // Z: position le long du profil
+        ) // Sortie
+      ];
+    } else if (face === 'vertical_leg' || Math.abs(rotation[2] + Math.PI/2) < 0.01) {
+      // Trou sur l'aile verticale d'une cornière
       const halfThickness = depth / 2;
       
       positions = [
         new THREE.Vector3(
           position[0] - halfThickness, // X: décalé pour l'entrée
           position[1] + yOffset, // Y: position du trou + offset du mesh
-          position[2]  // Z: EXACTEMENT la même que le trou
+          position[2]  // Z: position le long du profil
         ), // Entrée
         new THREE.Vector3(
           position[0] + halfThickness, // X: décalé pour la sortie
           position[1] + yOffset, // Y: position du trou + offset du mesh
-          position[2]  // Z: EXACTEMENT la même que le trou
-        ) // Sortie
-      ];
-    } else if (Math.abs(rotation[0] - Math.PI/2) < 0.01) {
-      // Trou orienté selon Z (âme de profil en I)
-      positions = [
-        new THREE.Vector3(position[0], position[1] + yOffset, position[2]), // Entrée
-        new THREE.Vector3(
-          position[0],
-          position[1] + yOffset, 
-          position[2] + depth
+          position[2]  // Z: position le long du profil
         ) // Sortie
       ];
     } else {
-      // Trou vertical par défaut (selon Y)
+      // Trou vertical par défaut (ailes supérieure/inférieure)
       positions = [
         new THREE.Vector3(position[0], position[1] + yOffset, position[2]), // Entrée
         new THREE.Vector3(
@@ -115,14 +119,25 @@ const outline = this.createHoleOutline(hole, index, yOffset);
     positions.forEach((pos, idx) => {
       const points = [];
       
-      // Créer les points du cercle dans le plan XZ (perpendiculaire à Y par défaut)
+      // Créer les points du cercle selon l'orientation du trou
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
-        points.push(new THREE.Vector3(
-          Math.cos(angle) * radius,    // X
-          0,                           // Y 
-          Math.sin(angle) * radius     // Z
-        ));
+        
+        if (face === 'web' || face === 'o' || face === 'vertical_leg') {
+          // Pour les trous traversant selon X, créer le cercle dans le plan YZ
+          points.push(new THREE.Vector3(
+            0,                           // X 
+            Math.cos(angle) * radius,    // Y
+            Math.sin(angle) * radius     // Z
+          ));
+        } else {
+          // Pour les trous verticaux (selon Y), créer le cercle dans le plan XZ
+          points.push(new THREE.Vector3(
+            Math.cos(angle) * radius,    // X
+            0,                           // Y 
+            Math.sin(angle) * radius     // Z
+          ));
+        }
       }
       
       // Créer la géométrie de ligne
@@ -142,10 +157,7 @@ const outline = this.createHoleOutline(hole, index, yOffset);
       // Positionner l'anneau à l'extrémité correspondante
       ringMesh.position.copy(pos);
       
-      // Appliquer la rotation du trou à l'outline
-      if (rotation && (rotation[0] !== 0 || rotation[1] !== 0 || rotation[2] !== 0)) {
-        ringMesh.rotation.set(rotation[0], rotation[1], rotation[2]);
-      }
+      // Pas besoin de rotation supplémentaire - le cercle est déjà orienté correctement
       
       console.log(`  -> Ring ${idx + 1} at: [${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}]`);
       
@@ -153,10 +165,20 @@ const outline = this.createHoleOutline(hole, index, yOffset);
     });
     
     // Ajouter une ligne reliant les deux cercles pour visualiser l'axe du trou
-    const axisPoints = [
-      new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(0, depth, 0)
-    ];
+    let axisPoints: THREE.Vector3[];
+    if (face === 'web' || face === 'o' || face === 'vertical_leg') {
+      // Axe selon X
+      axisPoints = [
+        new THREE.Vector3(-depth/2, 0, 0),
+        new THREE.Vector3(depth/2, 0, 0)
+      ];
+    } else {
+      // Axe selon Y
+      axisPoints = [
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, depth, 0)
+      ];
+    }
     const axisGeometry = new THREE.BufferGeometry().setFromPoints(axisPoints);
     const axisMaterial = new THREE.LineBasicMaterial({
       color: 0xffff00,  // Jaune pour l'axe
@@ -166,9 +188,7 @@ const outline = this.createHoleOutline(hole, index, yOffset);
     });
     const axisLine = new THREE.Line(axisGeometry, axisMaterial);
     axisLine.position.set(position[0], position[1] + yOffset, position[2]);
-    if (rotation && (rotation[0] !== 0 || rotation[1] !== 0 || rotation[2] !== 0)) {
-      axisLine.rotation.set(rotation[0], rotation[1], rotation[2]);
-    }
+    // Pas de rotation nécessaire - l'axe est déjà orienté correctement
     outlineGroup.add(axisLine);
     
     // Pour les trous oblongs, créer une forme oblongue au lieu d'un cercle

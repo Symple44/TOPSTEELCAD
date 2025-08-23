@@ -51,7 +51,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
    */
   withId(id: string): T {
     this.feature.id = id;
-    return this as unknown as T;
+    return this as any as T;
   }
   
   /**
@@ -59,7 +59,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
    */
   withPosition(x: number, y: number, z: number = 0): T {
     this.feature.position = new THREE.Vector3(x, y, z);
-    return this as unknown as T;
+    return this as any as T;
   }
   
   /**
@@ -67,7 +67,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
    */
   withRotation(x: number, y: number, z: number): T {
     this.feature.rotation = new THREE.Euler(x, y, z);
-    return this as unknown as T;
+    return this as any as T;
   }
   
   /**
@@ -75,7 +75,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
    */
   withFace(face: ProfileFace): T {
     this.feature.face = face;
-    return this as unknown as T;
+    return this as any as T;
   }
   
   /**
@@ -83,7 +83,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
    */
   withCoordinateSystem(system: CoordinateSystem): T {
     this.feature.coordinateSystem = system;
-    return this as unknown as T;
+    return this as any as T;
   }
   
   /**
@@ -94,7 +94,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
       this.feature.metadata = { createdAt: new Date() };
     }
     this.feature.metadata[key] = value;
-    return this as unknown as T;
+    return this as any as T;
   }
   
   /**
@@ -105,7 +105,7 @@ export abstract class BaseFeatureBuilder<T extends BaseFeatureBuilder<T>> {
       this.feature.metadata = { createdAt: new Date() };
     }
     this.feature.metadata.source = source;
-    return this as unknown as T;
+    return this as any as T;
   }
   
   /**

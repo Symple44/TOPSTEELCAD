@@ -98,7 +98,7 @@ export type * from './core/features/types';
 // ========================================
 // PARSERS - Parseurs de fichiers
 // ========================================
-export { DSTVParser } from './parsers/dstv/DSTVParser';
+export { DSTVPlugin } from './plugins/dstv/DSTVPlugin';
 // TODO: Parsers à implémenter
 // export { IFCParser } from './parsers/IFCParser';
 // export { STEPParser } from './parsers/STEPParser';

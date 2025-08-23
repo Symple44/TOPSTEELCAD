@@ -1,4 +1,4 @@
-import { PivotElement } from '../../types/viewer';
+import { PivotElement } from '@/types/viewer';
 import { JSONExporter, DSTVExporter, CSVExporter } from './exporters';
 
 /**

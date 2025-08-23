@@ -564,11 +564,11 @@ export class PluginManager implements IPluginManager {
    * Gestion des événements
    */
   on(event: PluginManagerEvent, handler: (data: PluginEventData) => void): void {
-    this.eventEmitter.on(event, handler);
+    this.eventEmitter.on(event, (data: unknown) => handler(data as PluginEventData));
   }
   
   off(event: PluginManagerEvent, handler: (data: PluginEventData) => void): void {
-    this.eventEmitter.off(event, handler);
+    this.eventEmitter.off(event, (data: unknown) => handler(data as PluginEventData));
   }
   
   /**
@@ -604,7 +604,7 @@ export class PluginManager implements IPluginManager {
     hookName: string,
     ...args: unknown[]
   ): Promise<void> {
-    const hook = (plugin as unknown)[hookName];
+    const hook = (plugin as any)[hookName];
     if (typeof hook === 'function') {
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error(`Plugin hook '${hookName}' timed out`)), this.options.maxLoadTime);

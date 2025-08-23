@@ -250,8 +250,8 @@ export class RenderingPipeline {
     const startTime = performance.now();
     
     // DEBUG: Vérifier les propriétés du renderer et de la scène
-    if ((RenderingPipeline as unknown).debugCount === undefined) {
-      (RenderingPipeline as unknown).debugCount = 0;
+    if ((RenderingPipeline as any).debugCount === undefined) {
+      (RenderingPipeline as any).debugCount = 0;
     }
     
     // Mettre à jour la caméra dans les passes
@@ -366,9 +366,9 @@ export class RenderingPipeline {
     }
     
     if (this.bloomPass) {
-      (this.bloomPass as unknown).intensity = this.config.bloomIntensity!;
-      (this.bloomPass as unknown).radius = this.config.bloomRadius!;
-      (this.bloomPass as unknown).threshold = this.config.bloomThreshold!;
+      (this.bloomPass as any).intensity = this.config.bloomIntensity!;
+      (this.bloomPass as any).radius = this.config.bloomRadius!;
+      (this.bloomPass as any).threshold = this.config.bloomThreshold!;
     }
   }
   

@@ -296,7 +296,7 @@ export class PerformanceMonitor {
   } {
     const memoryUsage = typeof performance !== 'undefined' && 
                        'memory' in performance
-      ? (performance as unknown).memory?.usedJSHeapSize || 0
+      ? (performance as any).memory?.usedJSHeapSize || 0
       : 0;
     
     return {

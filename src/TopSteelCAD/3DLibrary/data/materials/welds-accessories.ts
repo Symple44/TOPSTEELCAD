@@ -1,4 +1,4 @@
-import { UnifiedElement, MaterialCategory, MaterialType, WeldType, SteelGrade, SurfaceFinish } from '../../types/material-types';
+import { UnifiedElement, MaterialCategory, WeldType, FastenerType, SteelGrade, SurfaceFinish } from '../../types/material-types';
 import { SPECIALIZED_ACCESSORIES_DATABASE } from './specialized-accessories';
 
 /**
@@ -218,7 +218,7 @@ export const WELDS_ACCESSORIES_DATABASE: UnifiedElement[] = [
       name: `Plat ${width}x${thickness} L=500mm`,
       description: `Plat acier S235 ${width}x${thickness}mm longueur 500mm`,
       category: MaterialCategory.ACCESSORIES,
-      type: 'FLAT_BAR' as MaterialType, // Type personnalisé
+      type: 'FLAT_BAR' as FastenerType, // Type personnalisé
       dimensions: {
         length: 500,
         width: width,
@@ -253,7 +253,7 @@ export const WELDS_ACCESSORIES_DATABASE: UnifiedElement[] = [
     name: `Gousset triangulaire ${size}x${size}x10`,
     description: `Gousset triangulaire ${size}x${size}mm épaisseur 10mm`,
     category: MaterialCategory.ACCESSORIES,
-    type: 'GUSSET_PLATE' as MaterialType,
+    type: 'GUSSET_PLATE' as FastenerType,
     dimensions: {
       length: size,
       width: size,
@@ -287,7 +287,7 @@ export const WELDS_ACCESSORIES_DATABASE: UnifiedElement[] = [
       name: `Raidisseur ${height}x${thickness} L=200mm`,
       description: `Raidisseur vertical ${height}x${thickness}mm longueur 200mm`,
       category: MaterialCategory.ACCESSORIES,
-      type: 'STIFFENER' as MaterialType,
+      type: 'STIFFENER' as FastenerType,
       dimensions: {
         length: 200,
         width: thickness,
@@ -322,7 +322,7 @@ export const WELDS_ACCESSORIES_DATABASE: UnifiedElement[] = [
       name: `Platine circulaire Ø${diameter}x${thickness}`,
       description: `Platine d'assemblage circulaire Ø${diameter}mm épaisseur ${thickness}mm`,
       category: MaterialCategory.ACCESSORIES,
-      type: 'CIRCULAR_PLATE' as MaterialType,
+      type: 'CIRCULAR_PLATE' as FastenerType,
       dimensions: {
         diameter: diameter,
         thickness: thickness,
@@ -358,7 +358,7 @@ export const WELDS_ACCESSORIES_DATABASE: UnifiedElement[] = [
       name: `Cale ${length}x${width}x${thickness}`,
       description: `Cale d'ajustement ${length}x${width}x${thickness}mm acier`,
       category: MaterialCategory.ACCESSORIES,
-      type: 'SHIM' as MaterialType,
+      type: FastenerType.BEARING_PAD,
       dimensions: {
         length: length,
         width: width,

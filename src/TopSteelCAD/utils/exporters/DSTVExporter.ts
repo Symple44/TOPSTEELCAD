@@ -1,6 +1,7 @@
-import { PivotElement } from '../../../types/viewer';
+import { PivotElement } from '@/types/viewer';
 import { ExportOptions, ExportResult } from '../FileExporter';
 import { ProfileDatabase } from '../../3DLibrary/database/ProfileDatabase';
+import { ProfileFace } from '../../core/features/types';
 
 /**
  * DSTVExporter - Export au format DSTV/NC1 conforme à la norme officielle
@@ -28,7 +29,7 @@ interface ProfileDimensions {
  */
 interface DSTVFeature {
   type: string;
-  face?: string;
+  face?: ProfileFace | undefined;
   position?: { x: number; y: number; z?: number };
   diameter?: number;
   width?: number;
@@ -136,8 +137,8 @@ export class DSTVExporter {
     lines.push(...this.generateSTBlock(element, pieceNumber, options));
     
     // 2. Bloc BO (Bohrung/Holes) - Trous
-    if (options.includeFeatures && (element as unknown).features) {
-      const holes = (element as unknown).features.filter((f: any) => f.type === 'hole');
+    if (options.includeFeatures && (element as any).features) {
+      const holes = (element as any).features.filter((f: any) => f.type === 'hole');
       if (holes.length > 0) {
         lines.push(...this.generateBOBlock(holes));
       }
@@ -149,8 +150,8 @@ export class DSTVExporter {
     }
     
     // 4. Bloc IK (Innenkontur) - Contours internes/découpes
-    if (options.includeFeatures && (element as unknown).features) {
-      const notches = (element as unknown).features.filter((f: any) => 
+    if (options.includeFeatures && (element as any).features) {
+      const notches = (element as any).features.filter((f: any) => 
         f.type === 'notch' || f.type === 'cutout' || f.type === 'cope'
       );
       notches.forEach((notch: any) => {
@@ -159,46 +160,46 @@ export class DSTVExporter {
     }
     
     // 5. Bloc PU (Powder) - Marquage poudre
-    if (options.includeFeatures && (element as unknown).features) {
-      const powderMarks = (element as unknown).features.filter((f: any) => f.type === 'powder');
+    if (options.includeFeatures && (element as any).features) {
+      const powderMarks = (element as any).features.filter((f: any) => f.type === 'powder');
       if (powderMarks.length > 0) {
         lines.push(...this.generatePUBlock(powderMarks));
       }
     }
     
     // 6. Bloc KO (Mark/Punch) - Marquage poinçon
-    if (options.includeFeatures && (element as unknown).features) {
-      const punchMarks = (element as unknown).features.filter((f: any) => f.type === 'punch');
+    if (options.includeFeatures && (element as any).features) {
+      const punchMarks = (element as any).features.filter((f: any) => f.type === 'punch');
       if (punchMarks.length > 0) {
         lines.push(...this.generateKOBlock(punchMarks));
       }
     }
     
     // 7. Bloc SC (Cut) - Coupes spéciales
-    if (options.includeFeatures && (element as unknown).features) {
-      const cuts = (element as unknown).features.filter((f: any) => f.type === 'specialCut');
+    if (options.includeFeatures && (element as any).features) {
+      const cuts = (element as any).features.filter((f: any) => f.type === 'specialCut');
       if (cuts.length > 0) {
         lines.push(...this.generateSCBlock(cuts));
       }
     }
     
     // 8. Bloc TO (Tolerance) - Tolérances
-    if ((element as unknown).tolerances) {
+    if ((element as any).tolerances) {
       lines.push(...this.generateTOBlock(element));
     }
     
     // 9. Bloc UE (Camber) - Cambrure
-    if ((element as unknown).camber) {
+    if ((element as any).camber) {
       lines.push(...this.generateUEBlock(element));
     }
     
     // 10. Bloc PR (Profile) - Profils spéciaux
-    if ((element as unknown).specialProfile) {
+    if ((element as any).specialProfile) {
       lines.push(...this.generatePRBlock(element));
     }
     
     // 11. Bloc KA (Bending) - Pliage
-    if ((element as unknown).bendings && (element as unknown).bendings.length > 0) {
+    if ((element as any).bendings && (element as any).bendings.length > 0) {
       lines.push(...this.generateKABlock(element));
     }
     
@@ -556,8 +557,8 @@ export class DSTVExporter {
     const lines: string[] = ['TO'];
     
     // Tolérances min et max (en mm)
-    const minTolerance = (element as unknown).tolerances?.min || -1.0;
-    const maxTolerance = (element as unknown).tolerances?.max || 1.0;
+    const minTolerance = (element as any).tolerances?.min || -1.0;
+    const maxTolerance = (element as any).tolerances?.max || 1.0;
     
     lines.push(`  ${this.formatCoordinate(minTolerance)}${this.formatCoordinate(maxTolerance)}`);
     
@@ -571,10 +572,10 @@ export class DSTVExporter {
   private static generateUEBlock(element: PivotElement): string[] {
     const lines: string[] = ['UE'];
     
-    if ((element as unknown).camber) {
-      const face = FACE_CODES[(element as unknown).camber.face as keyof typeof FACE_CODES] || 'v';
-      const camberX = (element as unknown).camber.x || 0;
-      const camberY = (element as unknown).camber.y || 0;
+    if ((element as any).camber) {
+      const face = FACE_CODES[(element as any).camber.face as keyof typeof FACE_CODES] || 'v';
+      const camberX = (element as any).camber.x || 0;
+      const camberY = (element as any).camber.y || 0;
       
       lines.push(`  ${face}${this.formatCoordinate(camberX)}${this.formatCoordinate(camberY)}`);
     }
@@ -589,16 +590,16 @@ export class DSTVExporter {
   private static generatePRBlock(element: PivotElement): string[] {
     const lines: string[] = ['PR'];
     
-    if ((element as unknown).specialProfile) {
+    if ((element as any).specialProfile) {
       // Contours externes (+)
-      (element as unknown).specialProfile.externalContours?.forEach((contour: any) => {
+      (element as any).specialProfile.externalContours?.forEach((contour: any) => {
         contour.points.forEach((point: any) => {
           lines.push(`  +${this.formatCoordinate(point.y || 0)}${this.formatCoordinate(point.z || 0)}${this.formatCoordinate(point.radius || 0)}`);
         });
       });
       
       // Contours internes (-)
-      (element as unknown).specialProfile.internalContours?.forEach((contour: any) => {
+      (element as any).specialProfile.internalContours?.forEach((contour: any) => {
         contour.points.forEach((point: any) => {
           lines.push(`  -${this.formatCoordinate(point.y || 0)}${this.formatCoordinate(point.z || 0)}${this.formatCoordinate(point.radius || 0)}`);
         });
@@ -615,8 +616,8 @@ export class DSTVExporter {
   private static generateKABlock(element: PivotElement): string[] {
     const lines: string[] = ['KA'];
     
-    if ((element as unknown).bendings) {
-      (element as unknown).bendings.forEach((bend: any) => {
+    if ((element as any).bendings) {
+      (element as any).bendings.forEach((bend: any) => {
         const x1 = bend.axis?.start?.x || 0;
         const y1 = bend.axis?.start?.y || 0;
         const x2 = bend.axis?.end?.x || 0;
@@ -769,15 +770,15 @@ export class DSTVExporter {
         profile = db.findByDesignation(withSpace);
       }
       
-      if (profile && (profile as unknown).dimensions) {
+      if (profile && (profile as any).dimensions) {
         return {
-          height: (profile as unknown).dimensions.height,
-          width: (profile as unknown).dimensions.width,
-          flangeThickness: (profile as unknown).dimensions.flangeThickness,
-          webThickness: (profile as unknown).dimensions.webThickness,
-          rootRadius: (profile as unknown).dimensions.rootRadius,
-          weight: (profile as unknown).weight,
-          perimeter: (profile as unknown).perimeter
+          height: (profile as any).dimensions.height,
+          width: (profile as any).dimensions.width,
+          flangeThickness: (profile as any).dimensions.flangeThickness,
+          webThickness: (profile as any).dimensions.webThickness,
+          rootRadius: (profile as any).dimensions.rootRadius,
+          weight: (profile as any).weight,
+          perimeter: (profile as any).perimeter
         };
       }
     } catch (error) {
@@ -809,7 +810,7 @@ export class DSTVExporter {
         return true;
       }
       // Ou si des features spéciales
-      if ((element as unknown).features?.some((f: any) => 
+      if ((element as any).features?.some((f: any) => 
         f.type === 'cut' || f.type === 'miter' || f.type === 'cope'
       )) {
         return true;
@@ -844,7 +845,7 @@ export class DSTVExporter {
     
     // Autres profils I : peut nécessiter des faces selon les features
     if (profileCode === PROFILE_CODES.I) {
-      if ((element as unknown).features?.some((f: any) => f.type === 'cut' || f.type === 'cope')) {
+      if ((element as any).features?.some((f: any) => f.type === 'cut' || f.type === 'cope')) {
         return ['v', 'o', 'u'];
       }
     }

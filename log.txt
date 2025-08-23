@@ -1,1 +1,252 @@
-Tests...
+logger.ts:396 🔧 Initialisation du logger...
+logger.ts:422 ✅ Logger configuré. Utilisez window.topsteelLogger pour accéder aux logs.
+logger.ts:423   - .download() pour télécharger les logs
+logger.ts:424   - .show() pour afficher les logs
+logger.ts:425   - .clear() pour vider les logs
+logger.ts:426   - .enableConsole(true) pour activer la sortie console
+CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
+demo.tsx:160 Demo montée, pas de chargement asynchrone
+ControlsManager.ts:669 🔍 Limites zoom: 500mm ↔ 15000mm
+CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
+ControlsManager.ts:669 🔍 Limites zoom: 500mm ↔ 15000mm
+ProfessionalViewer.tsx:280 🎮 Contrôles de caméra activés
+ProfessionalViewer.tsx:799 📁 Import en cours: M1002.nc
+ [Pipeline] Processing context initialized {file: undefined, fileSize: undefined, options: Array(2)}
+ [Pipeline] Starting pipeline execution: dstv-import-pipeline {stageCount: 5, middlewareCount: 0}
+ [dstv-lexical-analysis] Starting stage: dstv-lexical-analysis {stageIndex: 1, totalStages: 5}
+ [dstv-lexical-analysis] Starting stage: dstv-lexical-analysis {description: 'DSTV Lexical Analysis - Tokenizes DSTV file according to official grammar', estimatedDuration: '100ms'}
+ [dstv-lexical-analysis] [dstv-lexical-analysis] Starting lexical analysis {fileSize: 971, contentLength: 971}
+ [dstv-lexical-analysis] [dstv-lexical-analysis] Lexical analysis completed {tokensGenerated: 177, duration: '1.20ms', blocksDetected: 7}
+ [dstv-lexical-analysis] Completed stage: dstv-lexical-analysis {duration: '2.00ms', outputType: 'Object'}
+ [dstv-lexical-analysis] Completed stage: dstv-lexical-analysis {duration: '3.00ms'}
+ [dstv-syntax-analysis] Starting stage: dstv-syntax-analysis {stageIndex: 2, totalStages: 5}
+ [dstv-syntax-analysis] Starting stage: dstv-syntax-analysis {description: 'DSTV Syntax Analysis - Builds AST from tokens according to DSTV grammar', estimatedDuration: '200ms'}
+ [dstv-syntax-analysis] [dstv-syntax-analysis] Starting syntax analysis {totalTokens: 177, blocksDetected: 7}
+ 🔍 parseAKBlock: Parsing 20 raw data elements: (20) ['o', '1842.10', '0.00', '0.00', 'o', '0.00', '0.00', '0.00', 'o', '0.00', '146.10', '0.00', 'o', '1842.10', '146.10', '0.00', 'o', '1842.10', '0.00', '0.00']
+   ✅ Added point: (1842.1, 0) on face web
+   ✅ Added point: (0, 0) on face web
+   ✅ Added point: (0, 146.1) on face web
+   ✅ Added point: (1842.1, 146.1) on face web
+   ✅ Added point: (1842.1, 0) on face web
+ 📊 parseAKBlock result: 5 points parsed
+   📍 Parsed 2 holes from BO block
+ 🔍 parseAKBlock: Parsing 36 raw data elements: (36) ['v', '1912.15', '18.60', '0.00', 'v', '1912.15', '232.80', '0.00', 'v', '1842.10', '232.80', '0.00', 'v', '1842.10', '251.40', '0.00', 'v', '0.00', '251.40', '0.00', 'v', '0.00', '0.00', '0.00', 'v', '1842.10', '0.00', '0.00', 'v', '1842.10', '18.60', '0.00', 'v', '1912.15', '18.60', '0.00']
+   ✅ Added point: (1912.15, 18.6) on face top
+   ✅ Added point: (1912.15, 232.8) on face top
+   ✅ Added point: (1842.1, 232.8) on face top
+   ✅ Added point: (1842.1, 251.4) on face top
+   ✅ Added point: (0, 251.4) on face top
+   ✅ Added point: (0, 0) on face top
+   ✅ Added point: (1842.1, 0) on face top
+   ✅ Added point: (1842.1, 18.6) on face top
+   ✅ Added point: (1912.15, 18.6) on face top
+ 📊 parseAKBlock result: 9 points parsed
+ 🔍 parseAKBlock: Parsing 20 raw data elements: (20) ['u', '1842.10', '146.10', '0.00', 'u', '0.00', '146.10', '0.00', 'u', '0.00', '0.00', '0.00', 'u', '1842.10', '0.00', '0.00', 'u', '1842.10', '146.10', '0.00']
+   ✅ Added point: (1842.1, 146.1) on face bottom
+   ✅ Added point: (0, 146.1) on face bottom
+   ✅ Added point: (0, 0) on face bottom
+   ✅ Added point: (1842.1, 0) on face bottom
+   ✅ Added point: (1842.1, 146.1) on face bottom
+ 📊 parseAKBlock result: 5 points parsed
+ [dstv-syntax-analysis] [dstv-syntax-analysis] Syntax analysis completed {blocksParsed: 7, duration: '3.40ms', profile: 'UB254x146x31'}
+ [dstv-syntax-analysis] Completed stage: dstv-syntax-analysis {duration: '3.50ms', outputType: 'Object'}
+ [dstv-syntax-analysis] Completed stage: dstv-syntax-analysis {duration: '4.10ms'}
+ [dstv-semantic-validation] Starting stage: dstv-semantic-validation {stageIndex: 3, totalStages: 5}
+ [dstv-semantic-validation] Starting stage: dstv-semantic-validation {description: 'DSTV Semantic Validation - Validates DSTV data against business rules and standards', estimatedDuration: '150ms'}
+ [dstv-semantic-validation] [dstv-semantic-validation] Starting semantic validation {totalBlocks: 7, profile: 'UB254x146x31'}
+ [dstv-semantic-validation] File contains both geometry and marking blocks - good practice 
+ [dstv-semantic-validation] [dstv-semantic-validation] Semantic validation completed {validBlocks: 7, totalErrors: 2, totalWarnings: 3, conformityScore: '97.9%', duration: '1.10ms'}
+ [dstv-semantic-validation] Completed stage: dstv-semantic-validation {duration: '1.30ms', outputType: 'Object'}
+ [dstv-semantic-validation] Completed stage: dstv-semantic-validation {duration: '1.60ms'}
+ [dstv-normalization] Starting stage: dstv-normalization {stageIndex: 4, totalStages: 5}
+ [dstv-normalization] Starting stage: dstv-normalization {description: 'DSTV Normalization - Converts DSTV data to normalized internal format', estimatedDuration: '100ms'}
+ [dstv-normalization] [dstv-normalization] Starting normalization {validBlocks: 7, conformityScore: '97.9%'}
+ Extracted dimensions from ST data: height=251.4, width=146.1, webThickness=8.6, flangeThickness=6
+ 📐 Profile dimensions set for coordinate conversion: {length: 1912.15, height: 251.4, width: 146.1}
+   📏 Notch detection: Contour length=1842.1mm, Profile length=1912.15mm
+   📏 Difference=70.05000000000018mm - Notches detected!
+   📏 Face: web
+   🔧 AK block detected as notches at extremities
+ 🔄 Converting DSTV coordinates to standard: {input: {…}, face: 'web', dimensions: {…}}
+   → Standard coordinates: {x: 0, y: 37.499999999999986, z: 901.075}
+ 🔄 Converting DSTV coordinates to standard: {input: {…}, face: 'web', dimensions: {…}}
+   → Standard coordinates: {x: 0, y: -37.5, z: 901.075}
+ 🔄 Converting DSTV coordinates to standard: {input: {…}, face: 'web', dimensions: {…}}
+   → Standard coordinates: {x: 0, y: -123.7, z: -954.075}
+   📏 Notch detection: Contour length=1842.1mm, Profile length=1912.15mm
+   📏 Difference=70.05000000000018mm - Notches detected!
+   📏 Face: bottom
+   🔧 AK block detected as notches at extremities
+ [dstv-normalization] [dstv-normalization] Normalization completed {featuresNormalized: 6, profileName: 'UB254x146x31', duration: '3.00ms'}
+ [dstv-normalization] Completed stage: dstv-normalization {duration: '3.20ms', outputType: 'Object'}
+ [dstv-normalization] Completed stage: dstv-normalization {duration: '3.40ms'}
+ [dstv-scene-building] Starting stage: dstv-scene-building {stageIndex: 5, totalStages: 5}
+ [dstv-scene-building] Starting stage: dstv-scene-building {description: 'DSTV Scene Building - Builds final 3D scene from normalized DSTV data', estimatedDuration: '200ms'}
+ [dstv-scene-building] [dstv-scene-building] Starting scene building {profiles: 1, totalFeatures: 6}
+ Calling IProfileGenerator with dimensions: {height: 251.4, width: 146.1, profileType: 'I_PROFILE', profileName: 'UB254x146x31', webThickness: 8.6, …} and length: 1912.15
+ Created I_PROFILE geometry using existing generator
+ 📦 Applying 6 features to profile -_001_M1002:
+   Feature 0: id=dstv_notch_1, type=notch, params: {points: Array(5), closed: true, contourType: 'outer', interpolation: 'linear', face: 'web', …}
+   Feature 1: id=dstv_contour_outer_5, type=contour, params: {points: Array(9), closed: true, contourType: 'outer', interpolation: 'linear', face: 'top'}
+   Feature 2: id=dstv_notch_6, type=notch, params: {points: Array(5), closed: true, contourType: 'outer', interpolation: 'linear', face: 'bottom', …}
+   Feature 3: id=dstv_hole_2, type=hole, params: {diameter: 22, depth: 0, angle: 0, tolerance: undefined, holeType: 'round', …}
+   Feature 4: id=dstv_hole_3, type=hole, params: {diameter: 22, depth: 0, angle: 0, tolerance: undefined, holeType: 'round', …}
+   Feature 5: id=dstv_marking_4, type=marking, params: {text: '0.00', height: 10, angle: 10, depth: 1002, font: 'standard', …}
+ 🔧 ProcessorBridge: Applying normalized feature dstv_notch_1 of type notch
+ 🔄 Converting 5 points for notch dstv_notch_1
+ 🔄 Input points type: object First point: (2) [1842.1, 0]
+ ✅ Converted points result: (5) [Array(2), Array(2), Array(2), Array(2), Array(2)]
+ ✅ Converted feature dstv_notch_1 type notch, using processor factory...
+ 📋 Feature details: {type: 'notch', id: 'dstv_notch_1', position: _Vector3, rotation: _Euler, parameters: {…}}
+ 🏭 FeatureProcessorFactory.process called for type: notch, id: dstv_notch_1
+ ✅ Found processor for notch, calling process...
+ 🔨 NotchProcessor.process called for feature dstv_notch_1
+   - Feature params: {points: Array(5), closed: true, contourType: 'outer', interpolation: 'linear', face: 'web', …}
+   - Element: -_001_M1002 {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+   📏 Profile length: 1912.15mm, Contour length: 1842.1mm
+   ✂️ Notch depth: 35.02500000000009mm at each extremity
+   ✂️ Creating end notch from 1842.1mm to 1912.15mm
+     📐 Creating notch geometry in Three.js space:
+       - X: 886.0249999999999 to 956.075 (width: 70.05000000000018)
+       - Y: 0 to 146.1 (height: 146.1)
+       - Depth: 25.799999999999997
+       - Face: web
+     ✅ Notch geometry created at (921.05, 73.05, 0)
+   ✅ End notch applied
+   ✅ Notches processing completed successfully
+ 📊 Processing result for dstv_notch_1: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ 🔧 ProcessorBridge: Applying normalized feature dstv_contour_outer_5 of type contour
+ 🔄 Converting 9 points for contour dstv_contour_outer_5
+ 🔄 Input points type: object First point: (2) [1912.15, 18.6]
+ ✅ Converted points result: (9) [Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2)]
+ ✅ Converted feature dstv_contour_outer_5 type contour, using processor factory...
+ 📋 Feature details: {type: 'contour', id: 'dstv_contour_outer_5', position: _Vector3, rotation: _Euler, parameters: {…}}
+ 🏭 FeatureProcessorFactory.process called for type: contour, id: dstv_contour_outer_5
+ ✅ Found processor for contour, calling process...
+ 🎯 ContourProcessor.process called for feature dstv_contour_outer_5
+   - Feature params: {points: Array(9), closed: true, contourType: 'outer', interpolation: 'linear', face: 'top'}
+   - Element: -_001_M1002 {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+   ⚠️ Skipping DSTV outer contour dstv_contour_outer_5 - matches full profile shape
+ 📊 Processing result for dstv_contour_outer_5: {success: true, hasGeometry: true, error: undefined, warning: 'DSTV outer contour matches the complete profile shape and is not applied as cut'}
+ 🔧 ProcessorBridge: Applying normalized feature dstv_notch_6 of type notch
+ 🔄 Converting 5 points for notch dstv_notch_6
+ 🔄 Input points type: object First point: (2) [1842.1, 146.1]
+ ✅ Converted points result: (5) [Array(2), Array(2), Array(2), Array(2), Array(2)]
+ ✅ Converted feature dstv_notch_6 type notch, using processor factory...
+ 📋 Feature details: {type: 'notch', id: 'dstv_notch_6', position: _Vector3, rotation: _Euler, parameters: {…}}
+ 🏭 FeatureProcessorFactory.process called for type: notch, id: dstv_notch_6
+ ✅ Found processor for notch, calling process...
+ 🔨 NotchProcessor.process called for feature dstv_notch_6
+   - Feature params: {points: Array(5), closed: true, contourType: 'outer', interpolation: 'linear', face: 'bottom', …}
+   - Element: -_001_M1002 {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+   📏 Profile length: 1912.15mm, Contour length: 1842.1mm
+   ✂️ Notch depth: 35.02500000000009mm at each extremity
+   ✂️ Creating end notch from 1842.1mm to 1912.15mm
+     📐 Creating notch geometry in Three.js space:
+       - X: 886.0249999999999 to 956.075 (width: 70.05000000000018)
+       - Y: 0 to 146.1 (height: 146.1)
+       - Depth: 25.799999999999997
+       - Face: bottom
+     ✅ Notch geometry created at (921.05, 73.05, -125.7)
+   ✅ End notch applied
+   ✅ Notches processing completed successfully
+ProcessorBridge.ts:59 📊 Processing result for dstv_notch_6: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ProcessorBridge.ts:37 🔧 ProcessorBridge: Applying normalized feature dstv_hole_2 of type hole
+ProcessorBridge.ts:47 ✅ Converted feature dstv_hole_2 type hole, using processor factory...
+ProcessorBridge.ts:48 📋 Feature details: {type: 'hole', id: 'dstv_hole_2', position: _Vector3, rotation: _Euler, parameters: {…}}
+FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_2
+FeatureProcessorFactory.ts:137 ✅ Found processor for hole, calling process...
+HoleProcessor.ts:33 🔨 HoleProcessor: Processing hole for element -_001_M1002
+HoleProcessor.ts:34   - Feature: {type: 'hole', id: 'dstv_hole_2', position: _Vector3, rotation: _Euler, coordinateSystem: 'DSTV', …}
+HoleProcessor.ts:35   - Element dimensions: {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+HoleProcessor.ts:54   - Using standard position: (0, 37.499999999999986, 901.075)
+HoleProcessor.ts:55   - Face: web
+HoleProcessor.ts:62   - Calculated 3D position: {position: Array(3), rotation: Array(3), face: 'web', depth: 8.6, normal: _Vector3}
+HoleProcessor.ts:237   🔩 Round hole geometry: diameter=22mm, segments=16, depth=10.319999999999999mm, face=web
+HoleProcessor.ts:247     Applied base rotation for web hole (90° around Z)
+HoleProcessor.ts:89   - Created round hole: diameter=22
+HoleProcessor.ts:110   - Hole brush position: _Vector3 {x: 0, y: 37.499999999999986, z: 901.075}
+HoleProcessor.ts:111   - Hole brush rotation: _Euler {isEuler: true, _x: 0, _y: 0, _z: 0, _order: 'XYZ', …}
+HoleProcessor.ts:118   - Performing CSG subtraction...
+HoleProcessor.ts:160   - Original vertex count: 132
+HoleProcessor.ts:161   - Result vertex count: 654
+HoleProcessor.ts:162   - Vertices ADDED: 522
+ProcessorBridge.ts:59 📊 Processing result for dstv_hole_2: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ProcessorBridge.ts:37 🔧 ProcessorBridge: Applying normalized feature dstv_hole_3 of type hole
+ProcessorBridge.ts:47 ✅ Converted feature dstv_hole_3 type hole, using processor factory...
+ProcessorBridge.ts:48 📋 Feature details: {type: 'hole', id: 'dstv_hole_3', position: _Vector3, rotation: _Euler, parameters: {…}}
+FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_3
+FeatureProcessorFactory.ts:137 ✅ Found processor for hole, calling process...
+HoleProcessor.ts:33 🔨 HoleProcessor: Processing hole for element -_001_M1002
+HoleProcessor.ts:34   - Feature: {type: 'hole', id: 'dstv_hole_3', position: _Vector3, rotation: _Euler, coordinateSystem: 'DSTV', …}
+HoleProcessor.ts:35   - Element dimensions: {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+HoleProcessor.ts:54   - Using standard position: (0, -37.5, 901.075)
+HoleProcessor.ts:55   - Face: web
+HoleProcessor.ts:62   - Calculated 3D position: {position: Array(3), rotation: Array(3), face: 'web', depth: 8.6, normal: _Vector3}
+HoleProcessor.ts:237   🔩 Round hole geometry: diameter=22mm, segments=16, depth=10.319999999999999mm, face=web
+HoleProcessor.ts:247     Applied base rotation for web hole (90° around Z)
+HoleProcessor.ts:89   - Created round hole: diameter=22
+HoleProcessor.ts:110   - Hole brush position: _Vector3 {x: 0, y: -37.5, z: 901.075}
+HoleProcessor.ts:111   - Hole brush rotation: _Euler {isEuler: true, _x: 0, _y: 0, _z: 0, _order: 'XYZ', …}
+HoleProcessor.ts:118   - Performing CSG subtraction...
+HoleProcessor.ts:160   - Original vertex count: 654
+HoleProcessor.ts:161   - Result vertex count: 1200
+HoleProcessor.ts:162   - Vertices ADDED: 546
+ProcessorBridge.ts:59 📊 Processing result for dstv_hole_3: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ProcessorBridge.ts:37 🔧 ProcessorBridge: Applying normalized feature dstv_marking_4 of type marking
+ProcessorBridge.ts:47 ✅ Converted feature dstv_marking_4 type marking, using processor factory...
+ProcessorBridge.ts:48 📋 Feature details: {type: 'marking', id: 'dstv_marking_4', position: _Vector3, rotation: _Euler, parameters: {…}}
+FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: marking, id: dstv_marking_4
+FeatureProcessorFactory.ts:137 ✅ Found processor for marking, calling process...
+MarkingProcessor.ts:72 📝 Processing marking/scribbing: "0" at position [0, -123.7, -954.075] with size 10mm
+MarkingProcessor.ts:102 ✅ Marking stored for visual display
+ProcessorBridge.ts:59 📊 Processing result for dstv_marking_4: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Features applied successfully {originalVertices: 132, finalVertices: 1200, verticesAdded: 1068, featuresApplied: 6}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Scene building completed {elementsCreated: 1, sceneId: 'dstv_scene_-_001_M1002_1755953169493', duration: '41.90ms'}
+ProcessingContext.ts:503 [dstv-scene-building] Completed stage: dstv-scene-building {duration: '42.00ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-scene-building] Completed stage: dstv-scene-building {duration: '42.20ms'}
+ProcessingContext.ts:503 [dstv-scene-building] Pipeline execution completed: dstv-import-pipeline {duration: '55.10ms', success: true}
+DSTVImportPipeline.ts:168 🎯 DSTV Import completed successfully {duration: '0.00ms', elements: 1, metadata: {…}}
+ProfessionalViewer.tsx:803 📊 État actuel avant import: []
+ProfessionalViewer.tsx:804 📊 Éléments à importer: [{…}]
+ProfessionalViewer.tsx:817 📊 Avant import: 0 éléments
+ProfessionalViewer.tsx:818 📊 Nouveaux éléments: 1
+ProfessionalViewer.tsx:819 📊 Total après import: 1 éléments
+ProfessionalViewer.tsx:820 📊 Nouveau tableau complet: [{…}]
+GeometryConverter.ts:23 ✅ Using existing geometry for UB254x146x31 (vertices: 1200)
+FeatureOutlineRenderer.ts:51 🔵 Creating hole outline 0: {position: Array(3), originalPosition: Array(3), rotation: Array(3), diameter: 22, depth: 8.6, …}
+FeatureOutlineRenderer.ts:162   -> Ring 1 at: [-4.3, 163.2, 901.1]
+FeatureOutlineRenderer.ts:162   -> Ring 2 at: [4.3, 163.2, 901.1]
+FeatureOutlineRenderer.ts:51 🔵 Creating hole outline 1: {position: Array(3), originalPosition: Array(3), rotation: Array(3), diameter: 22, depth: 8.6, …}
+FeatureOutlineRenderer.ts:162   -> Ring 1 at: [-4.3, 88.2, 901.1]
+FeatureOutlineRenderer.ts:162   -> Ring 2 at: [4.3, 88.2, 901.1]
+SceneManager.ts:314 ✨ Added 2 feature outlines for UB254x146x31
+SceneManager.ts:320 📝 Markings have been engraved into the geometry via CSG: [{…}]
+SceneManager.ts:402 🔍 Element materialType: "beam"
+SceneManager.ts:564    🏗️ I-Profile marking: position(0.0, -123.7, -954.1)
+SceneManager.ts:665 📍 Marking positioned at: [0.0, 130.1, -954.1]
+SceneManager.ts:666    From DSTV coords: [0, -123.7]
+SceneManager.ts:667    Face: web, Angle: 0°
+SceneManager.ts:668    Rotation applied: x=-90.0°, y=0.0°, z=0.0°
+SceneManager.ts:669    Plate dimensions: 1912.15x146.1x8.6mm
+SceneManager.ts:676 🎯 Created visible marking: "0" at position 0,-123.7,-954.075
+demo.tsx:165 Elements sélectionnés: ['-_001_M1002_1755953169536_0']
+ProfessionalViewer.tsx:863 ✅ Import réussi: 1 éléments ajoutés
+GeometryConverter.ts:23 ✅ Using existing geometry for UB254x146x31 (vertices: 1200)
+FeatureOutlineRenderer.ts:51 🔵 Creating hole outline 0: {position: Array(3), originalPosition: Array(3), rotation: Array(3), diameter: 22, depth: 8.6, …}
+FeatureOutlineRenderer.ts:162   -> Ring 1 at: [-4.3, 163.2, 901.1]
+FeatureOutlineRenderer.ts:162   -> Ring 2 at: [4.3, 163.2, 901.1]
+FeatureOutlineRenderer.ts:51 🔵 Creating hole outline 1: {position: Array(3), originalPosition: Array(3), rotation: Array(3), diameter: 22, depth: 8.6, …}
+FeatureOutlineRenderer.ts:162   -> Ring 1 at: [-4.3, 88.2, 901.1]
+FeatureOutlineRenderer.ts:162   -> Ring 2 at: [4.3, 88.2, 901.1]
+SceneManager.ts:314 ✨ Added 2 feature outlines for UB254x146x31
+SceneManager.ts:320 📝 Markings have been engraved into the geometry via CSG: [{…}]
+SceneManager.ts:402 🔍 Element materialType: "beam"
+SceneManager.ts:564    🏗️ I-Profile marking: position(0.0, -123.7, -954.1)
+SceneManager.ts:665 📍 Marking positioned at: [0.0, 130.1, -954.1]
+SceneManager.ts:666    From DSTV coords: [0, -123.7]
+SceneManager.ts:667    Face: web, Angle: 0°
+SceneManager.ts:668    Rotation applied: x=-90.0°, y=0.0°, z=0.0°
+SceneManager.ts:669    Plate dimensions: 1912.15x146.1x8.6mm
+SceneManager.ts:676 🎯 Created visible marking: "0" at position 0,-123.7,-954.075
+ControlsManager.ts:669 🔍 Limites zoom: 200mm ↔ 4500mm

@@ -337,7 +337,7 @@ export class FeatureSystem {
       
       // Traiter par batch si possible
       if (featuresOfType.length > 1 && this.canProcessBatch(processor)) {
-        const batchResult = (processor as unknown).processBatch?.(
+        const batchResult = (processor as any).processBatch?.(
           currentGeometry,
           featuresOfType,
           element
@@ -448,7 +448,25 @@ export class FeatureSystem {
       [FeatureType.TEXT]: 15,
       
       // Soudures en dernier
-      [FeatureType.WELD]: 16
+      [FeatureType.WELD]: 16,
+      [FeatureType.WELD_PREP]: 17,
+      
+      // DSTV avancés
+      [FeatureType.THREAD]: 18,
+      [FeatureType.UNRESTRICTED_CONTOUR]: 19,
+      [FeatureType.BEND]: 20,
+      [FeatureType.PROFILE]: 21,
+      [FeatureType.VOLUME]: 22,
+      [FeatureType.NUMERIC_CONTROL]: 23,
+      [FeatureType.FREE_PROGRAM]: 24,
+      [FeatureType.LINE_PROGRAM]: 25,
+      [FeatureType.ROTATION]: 26,
+      [FeatureType.WASHING]: 27,
+      [FeatureType.GROUP]: 28,
+      [FeatureType.VARIABLE]: 29,
+      [FeatureType.PUNCH]: 30,
+      [FeatureType.WORK_PLANE]: 31,
+      [FeatureType.INFORMATION]: 32
     };
     
     return types.sort((a, b) => (priority[a] || 99) - (priority[b] || 99));
@@ -458,7 +476,7 @@ export class FeatureSystem {
    * Vérifie si un processeur supporte le traitement par batch
    */
   private canProcessBatch(processor: IFeatureProcessor): boolean {
-    return typeof (processor as unknown).processBatch === 'function';
+    return typeof (processor as any).processBatch === 'function';
   }
   
   /**

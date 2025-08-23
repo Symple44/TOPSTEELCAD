@@ -45,7 +45,7 @@ export class ProfileCache {
       this.accessCount.set(key, count + 1);
       
       this.hits++;
-      return value;
+      return value === null ? undefined : value as T;
     }
 
     this.misses++;

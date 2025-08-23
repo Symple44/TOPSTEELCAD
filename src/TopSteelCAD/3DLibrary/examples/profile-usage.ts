@@ -165,8 +165,8 @@ const profileComparisonExample = {
           totalWeight: result.metadata?.weight || 0,
           momentInertiaY: profile.inertia?.Iyy || 0,
           momentInertiaZ: profile.inertia?.Izz || 0,
-          elasticModulusY: (profile as unknown).elasticity?.Wely || 0,
-          elasticModulusZ: (profile as unknown).elasticity?.Welz || 0
+          elasticModulusY: (profile as any).elasticity?.Wely || 0,
+          elasticModulusZ: (profile as any).elasticity?.Welz || 0
         });
       }
     }
@@ -225,8 +225,8 @@ const reactIntegrationExample = {
         mechanicalProperties: {
           momentInertiaY: result.profile.inertia?.Iyy,
           momentInertiaZ: result.profile.inertia?.Izz,
-          elasticModulusY: (result.profile as unknown).elasticity?.Wely,
-          elasticModulusZ: (result.profile as unknown).elasticity?.Welz
+          elasticModulusY: (result.profile as any).elasticity?.Wely,
+          elasticModulusZ: (result.profile as any).elasticity?.Welz
         }
       },
       metadata: result.metadata
@@ -263,7 +263,7 @@ const structuralCalculationsExample = {
     const db = ProfileDatabase.getInstance();
     const profile = await db.findByDesignation(designation);
     
-    if (!profile || !profile.inertia || !(profile as unknown).elasticity) {
+    if (!profile || !profile.inertia || !(profile as any).elasticity) {
       throw new Error(`Profil\u00e9 ${designation} introuvable ou propri\u00e9t\u00e9s manquantes`);
     }
     
@@ -279,8 +279,8 @@ const structuralCalculationsExample = {
       // R\u00e9sistance de calcul
       designResistance: {
         compression: (profile.area! * fy) / (gammaM0 * 1000), // kN
-        bendingY: ((profile as unknown).elasticity.Wely! * fy) / (gammaM0 * 1000), // kNm
-        bendingZ: ((profile as unknown).elasticity.Welz! * fy) / (gammaM0 * 1000)  // kNm
+        bendingY: ((profile as any).elasticity.Wely! * fy) / (gammaM0 * 1000), // kNm
+        bendingZ: ((profile as any).elasticity.Welz! * fy) / (gammaM0 * 1000)  // kNm
       },
       
       // V\u00e9rifications

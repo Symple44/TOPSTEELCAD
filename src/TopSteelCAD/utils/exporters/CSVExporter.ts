@@ -1,4 +1,4 @@
-import { PivotElement } from '../../../types/viewer';
+import { PivotElement } from '@/types/viewer';
 import { ExportOptions, ExportResult } from '../FileExporter';
 
 /**

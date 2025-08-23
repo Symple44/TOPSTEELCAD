@@ -231,7 +231,7 @@ export const AssemblyRenderer: React.FC<AssemblyRendererProps> = ({
 }) => {
   // Rendu des trous avec représentation de boulons
   const holes = useMemo(() => {
-    const features = element.metadata?.cuttingFeatures as unknown[] || [];
+    const features = element.metadata?.cuttingFeatures as any[] || [];
     return features.filter(f => f.type === 'hole').map((hole, idx) => {
       const position = hole.position as [number, number, number];
       
@@ -313,7 +313,7 @@ export const AssemblyRenderer: React.FC<AssemblyRendererProps> = ({
 
   // Rendu des découpes laser (slots)
   const laserCuts = useMemo(() => {
-    const features = element.metadata?.cuttingFeatures as unknown[] || [];
+    const features = element.metadata?.cuttingFeatures as any[] || [];
     return features.filter(f => f.type === 'slot').map((slot, idx) => {
       const position = slot.position as [number, number, number];
       

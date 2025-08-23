@@ -16,7 +16,7 @@ import { Feature, FeatureType, ProfileFace, CoordinateSystem } from '@/TopSteelC
  */
 function convertDSTVToFeatures(element: PivotElement): Feature[] {
   const features: Feature[] = [];
-  const cuttingFeatures = element.metadata?.cuttingFeatures as unknown[] || [];
+  const cuttingFeatures = element.metadata?.cuttingFeatures as any[] || [];
   
   cuttingFeatures.forEach((dstvFeature, index) => {
     let featureType = FeatureType.HOLE;

@@ -52,6 +52,41 @@ export enum AssemblyType {
 }
 
 /**
+ * Types d'éléments dans la scène 3D
+ * Utilisé pour catégoriser les différents types d'objets
+ */
+export enum ElementType {
+  // Éléments structurels principaux
+  BEAM = 'beam',              // Poutre
+  COLUMN = 'column',          // Colonne
+  PLATE = 'plate',            // Plaque
+  PROFILE = 'profile',        // Profilé générique
+  
+  // Features et modifications
+  HOLE = 'hole',              // Trou
+  CUT = 'cut',                // Découpe
+  CUTOUT = 'cutout',          // Découpe complexe
+  NOTCH = 'notch',            // Encoche
+  SLOT = 'slot',              // Fente
+  
+  // Marquages et annotations
+  MARKING = 'marking',        // Marquage
+  TEXT = 'text',              // Texte
+  ANNOTATION = 'annotation',  // Annotation générale
+  
+  // Assemblages et connexions
+  WELD = 'weld',              // Soudure
+  BOLT = 'bolt',              // Boulon
+  CONNECTION = 'connection',  // Connexion générique
+  
+  // Autres
+  FEATURE = 'feature',        // Feature générique
+  ACCESSORY = 'accessory',    // Accessoire
+  GROUP = 'group',            // Groupe d'éléments
+  ASSEMBLY = 'assembly'       // Assemblage complet
+}
+
+/**
  * Dimensions d'un élément métallique
  */
 export interface MetalDimensions {

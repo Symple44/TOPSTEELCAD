@@ -252,7 +252,7 @@ export function useViewer(config?: Partial<ViewerConfig>) {
               'export.json',
               options || {}
             );
-            blob = (result as unknown).blob || new Blob([result.data || ''], { type: 'application/json' });
+            blob = (result as any).blob || new Blob([result.data || ''], { type: 'application/json' });
             break;
           }
           
@@ -263,7 +263,7 @@ export function useViewer(config?: Partial<ViewerConfig>) {
               'export.zip',
               options || {}
             );
-            blob = (result as unknown).blob || new Blob([result.data || ''], { type: 'application/json' });
+            blob = (result as any).blob || new Blob([result.data || ''], { type: 'application/json' });
             break;
           }
           
@@ -274,11 +274,11 @@ export function useViewer(config?: Partial<ViewerConfig>) {
               el.id,
               el.name,
               el.materialType,
-              (el.material as unknown)?.designation || '',
+              (el.material as any)?.designation || '',
               el.dimensions?.length || 0,
               el.dimensions?.width || 0,
               el.dimensions?.height || 0,
-              (el.material as unknown)?.weight || 0
+              (el.material as any)?.weight || 0
             ]);
             
             const csvContent = [

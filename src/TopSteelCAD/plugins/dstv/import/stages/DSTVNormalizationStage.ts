@@ -9,6 +9,7 @@ import { BaseStage } from '../../../../core/pipeline/BaseStage';
 import { ProcessingContext } from '../../../../core/pipeline/ProcessingContext';
 import { DSTVValidatedData, DSTVNormalizedData } from '../DSTVImportPipeline';
 import { DSTVParsedBlock, DSTVBlockType } from './DSTVSyntaxStage';
+import { ProfileFace } from '../../../../core/features/types';
 
 /**
  * Types de features normalisées
@@ -17,11 +18,23 @@ export enum NormalizedFeatureType {
   HOLE = 'hole',
   CUT = 'cut',
   CONTOUR = 'contour',
+  NOTCH = 'notch',
   MARKING = 'marking',
   PUNCH = 'punch',
   WELD_PREP = 'weld_preparation',
   THREAD = 'thread',
-  BEND = 'bend'
+  BEND = 'bend',
+  PROFILE = 'profile',
+  UNRESTRICTED_CONTOUR = 'unrestricted_contour',
+  BEVEL = 'bevel',
+  VOLUME = 'volume',
+  NUMERIC_CONTROL = 'numeric_control',
+  FREE_PROGRAM = 'free_program',
+  LINE_PROGRAM = 'line_program',
+  ROTATION = 'rotation',
+  WASHING = 'washing',
+  GROUP = 'group',
+  VARIABLE = 'variable'
 }
 
 /**
@@ -40,6 +53,10 @@ export interface NormalizedFeature {
     originalBlock: DSTVBlockType;
     workPlane: string;
     processingOrder?: number;
+    applyOnly?: boolean;  // Si true, la feature est appliquée à la géométrie mais pas créée comme élément séparé
+    originalDSTVCoords?: { x: number; y: number; z?: number };  // Coordonnées DSTV originales pour débogage
+    face?: ProfileFace | undefined;  // Face sur laquelle la feature est appliquée
+    [key: string]: any;  // Permettre d'autres propriétés metadata
   };
   geometry?: {
     bounds?: { min: { x: number; y: number; z: number }; max: { x: number; y: number; z: number } };
@@ -96,6 +113,8 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
 
   private normalizationConfig: DSTVNormalizationConfig;
   private featureCounter = 0;
+  private currentProfileDimensions: { length: number; height: number; width: number } | null = null;
+  private profileDimensions: { length?: number; height?: number; width?: number } | null = null;
 
   constructor(config: any = {}) {
     super(config);
@@ -125,10 +144,10 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       });
 
       // Extraire le profil principal du bloc ST
-      const profile = await this.extractProfile(input.validBlocks, context);
+      const profile = await this.extractProfile(input.validBlocks as any, context);
       
       // Normaliser toutes les features
-      const features = await this.normalizeAllFeatures(input.validBlocks, context);
+      const features = await this.normalizeAllFeatures(input.validBlocks as any, context);
       
       // Assigner les features au profil
       profile.features = features;
@@ -147,7 +166,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       });
 
       return {
-        profiles: [profile], // DSTV = une pièce par fichier
+        profiles: [profile as any], // DSTV = une pièce par fichier
         metadata
       };
 
@@ -173,6 +192,18 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
 
     const data = stBlock.data;
     
+    // Extraire les dimensions de la section
+    const crossSection = this.extractCrossSectionFromSTData(data);
+    
+    // Stocker les dimensions pour la conversion des coordonnées
+    this.currentProfileDimensions = {
+      length: data.profileLength || 0,
+      height: crossSection.height || 0,
+      width: crossSection.width || 0
+    };
+    
+    console.log(`📐 Profile dimensions set for coordinate conversion:`, this.currentProfileDimensions);
+    
     const profile: NormalizedProfile = {
       id: this.generateProfileId(data),
       name: data.profileName || 'Unknown Profile',
@@ -183,7 +214,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       },
       dimensions: {
         length: data.profileLength || 0,
-        crossSection: this.extractCrossSectionFromSTData(data)
+        crossSection
       },
       features: [], // Sera rempli plus tard
       metadata: {
@@ -200,7 +231,8 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     this.log(context, 'debug', `Extracted profile`, {
       name: profile.name,
       type: profile.type,
-      material: profile.material.grade
+      material: profile.material.grade,
+      dimensions: this.currentProfileDimensions
     });
 
     return profile;
@@ -237,7 +269,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   private async normalizeBlockToFeatures(block: DSTVParsedBlock, context: ProcessingContext): Promise<NormalizedFeature[]> {
     switch (block.type) {
       case DSTVBlockType.BO:
-        return [await this.normalizeBOBlock(block)];
+        return await this.normalizeBOBlock(block);  // Retourne maintenant un tableau
       case DSTVBlockType.AK:
         return [await this.normalizeAKBlock(block)];
       case DSTVBlockType.IK:
@@ -250,7 +282,38 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
         return [await this.normalizePUBlock(block)];
       case DSTVBlockType.KO:
         return [await this.normalizeKOBlock(block)];
-      // TODO: Ajouter autres types de blocs
+      case DSTVBlockType.TO:
+        return [await this.normalizeTOBlock(block)];
+      case DSTVBlockType.KA:
+        return [await this.normalizeKABlock(block)];
+      case DSTVBlockType.PR:
+        return [await this.normalizePRBlock(block)];
+      case DSTVBlockType.UE:
+        return [await this.normalizeUEBlock(block)];
+      case DSTVBlockType.BR:
+        return [await this.normalizeBRBlock(block)];
+      case DSTVBlockType.VO:
+        return [await this.normalizeVOBlock(block)];
+      case DSTVBlockType.NU:
+        return [await this.normalizeNUBlock(block)];
+      case DSTVBlockType.FP:
+        return [await this.normalizeFPBlock(block)];
+      case DSTVBlockType.LP:
+        return [await this.normalizeLPBlock(block)];
+      case DSTVBlockType.RT:
+        return [await this.normalizeRTBlock(block)];
+      case DSTVBlockType.WA:
+        return [await this.normalizeWABlock(block)];
+      // Blocs moins courants - traitement générique
+      case DSTVBlockType.EB:
+      case DSTVBlockType.VB:
+      case DSTVBlockType.GR:
+      case DSTVBlockType.FB:
+      case DSTVBlockType.BF:
+      case DSTVBlockType.KL:
+      case DSTVBlockType.KN:
+      case DSTVBlockType.RO:
+        return [await this.normalizeGenericBlock(block)];
       default:
         this.log(context, 'debug', `Skipping unsupported block type: ${block.type}`);
         return [];
@@ -262,30 +325,235 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   // ================================
 
   /**
-   * Normalise un bloc BO (Hole)
+   * Normalise un bloc TO (Threading)
    */
-  private async normalizeBOBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+  private async normalizeTOBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
     const data = block.data;
     
-    const feature: NormalizedFeature = {
-      id: this.generateFeatureId('hole'),
-      type: NormalizedFeatureType.HOLE,
-      coordinates: {
-        x: data.x,
-        y: data.y,
-        z: 0 // DSTV 2D, Z sera calculé selon le plan de travail
-      },
+    // Utiliser les dimensions stockées ou des valeurs par défaut
+    const dims = this.currentProfileDimensions || {
+      length: 1912.15,
+      height: 251.4,
+      width: 146.1
+    };
+    
+    // Convertir les coordonnées DSTV vers standard
+    const standardCoords = this.convertDSTVToStandardCoordinates(
+      { x: data.x, y: data.y, z: data.z || 0 },
+      data.face || 'web',
+      dims
+    );
+    
+    return {
+      id: this.generateFeatureId('thread'),
+      type: NormalizedFeatureType.THREAD,
+      coordinates: standardCoords,
       parameters: {
         diameter: data.diameter,
-        depth: data.depth,
-        angle: data.angle || 0,
-        tolerance: data.tolerance,
-        holeType: 'round'
+        depth: data.depth || (dims as any).thickness || 10,
+        pitch: data.pitch || 2.5,
+        threadType: data.threadType || 'metric',
+        threadClass: data.threadClass
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: data.plane || 'E0',
+        face: data.face || 'web',
+        originalDSTVCoords: { x: data.x, y: data.y, z: data.z || 0 },
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc KA (Bending)
+   */
+  private async normalizeKABlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId('bend'),
+      type: NormalizedFeatureType.BEND,
+      coordinates: {
+        x: data.x || 0,
+        y: data.y || 0,
+        z: data.z || 0
+      },
+      parameters: {
+        angle: data.angle || 90,
+        radius: data.radius || 5,
+        position: data.position || 0,
+        axis: data.axis || 'x',
+        direction: data.direction || 'up'
       },
       metadata: {
         originalBlock: block.type,
         workPlane: data.plane || 'E0',
         processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc PR (Profile)
+   */
+  private async normalizePRBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId('profile'),
+      type: NormalizedFeatureType.PROFILE,
+      coordinates: {
+        x: 0,
+        y: 0,
+        z: 0
+      },
+      parameters: {
+        profileType: data.profileType || this.mapProfileTypeToStandard(data.profileName),
+        profileName: data.profileName,
+        dimensions: {
+          length: data.length,
+          width: data.width,
+          height: data.height,
+          thickness: data.thickness,
+          webThickness: data.webThickness,
+          flangeThickness: data.flangeThickness
+        },
+        material: data.material || 'S235'
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: 'E0',
+        processingOrder: 0, // Le profil est toujours traité en premier
+        applyOnly: true // Le profil définit la géométrie de base
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc UE (Unrestricted Contour)
+   */
+  private async normalizeUEBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    // Utiliser les dimensions stockées ou des valeurs par défaut
+    const dims = this.currentProfileDimensions || {
+      length: 1912.15,
+      height: 251.4,
+      width: 146.1
+    };
+    
+    return {
+      id: this.generateFeatureId('unrestricted_contour'),
+      type: NormalizedFeatureType.UNRESTRICTED_CONTOUR,
+      coordinates: this.calculateContourCenter(data.points),
+      parameters: {
+        points: data.points,
+        closed: data.closed !== false,
+        bulge: data.bulge || [],
+        depth: data.depth || (dims as any).thickness || 10,
+        operation: data.operation || 'subtract',
+        subContours: data.subContours
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: data.plane || 'E0',
+        face: data.face || 'web',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc BO (Hole)
+   */
+  private async normalizeBOBlock(block: DSTVParsedBlock): Promise<NormalizedFeature[]> {
+    const data = block.data;
+    
+    // Utiliser les dimensions stockées ou des valeurs par défaut
+    const dims = this.currentProfileDimensions || {
+      length: 1912.15,
+      height: 251.4,
+      width: 146.1
+    };
+    
+    // Si le bloc contient un tableau de trous
+    if (data.holes && Array.isArray(data.holes)) {
+      const features: NormalizedFeature[] = [];
+      
+      for (const hole of data.holes) {
+        // Convertir les coordonnées DSTV vers standard
+        const standardCoords = this.convertDSTVToStandardCoordinates(
+          { x: hole.x, y: hole.y, z: hole.z || 0 },
+          hole.face || 'web',
+          dims
+        );
+        
+        const feature: NormalizedFeature = {
+          id: this.generateFeatureId('hole'),
+          type: NormalizedFeatureType.HOLE,
+          coordinates: standardCoords,
+          parameters: {
+            diameter: hole.diameter,
+            depth: hole.depth || 0,  // 0 = through hole
+            angle: hole.angle || 0,
+            tolerance: hole.tolerance,
+            holeType: 'round',
+            face: hole.face || 'web'
+          },
+          metadata: {
+            originalBlock: block.type,
+            workPlane: hole.plane || 'E0',
+            processingOrder: this.getBlockProcessingPriority(block.type),
+            originalDSTVCoords: { x: hole.x, y: hole.y, z: hole.z || 0 },
+            applyOnly: true  // Les features DSTV sont appliquées à la géométrie, pas créées comme éléments séparés
+          }
+        };
+
+        // Calculer les informations géométriques
+        if (this.normalizationConfig.generateGeometryInfo) {
+          const radius = hole.diameter / 2;
+          feature.geometry = {
+            bounds: {
+              min: { x: hole.x - radius, y: hole.y - radius, z: 0 },
+              max: { x: hole.x + radius, y: hole.y + radius, z: hole.depth || 0 }
+            },
+            area: Math.PI * radius * radius,
+            perimeter: 2 * Math.PI * radius
+          };
+        }
+        
+        features.push(feature);
+      }
+      
+      return features;
+    } 
+    
+    // Ancien format avec un seul trou (pour compatibilité)
+    const standardCoords = this.convertDSTVToStandardCoordinates(
+      { x: data.x, y: data.y, z: data.z || 0 },
+      data.face || 'web',
+      dims
+    );
+    
+    const feature: NormalizedFeature = {
+      id: this.generateFeatureId('hole'),
+      type: NormalizedFeatureType.HOLE,
+      coordinates: standardCoords,
+      parameters: {
+        diameter: data.diameter,
+        depth: data.depth || 0,  // 0 = through hole
+        angle: data.angle || 0,
+        tolerance: data.tolerance,
+        holeType: 'round',
+        face: data.face || 'web'
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: data.plane || 'E0',
+        processingOrder: this.getBlockProcessingPriority(block.type),
+        originalDSTVCoords: { x: data.x, y: data.y, z: data.z || 0 },
+        applyOnly: true  // Les features DSTV sont appliquées à la géométrie, pas créées comme éléments séparés
       }
     };
 
@@ -302,22 +570,65 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       };
     }
 
-    return feature;
+    return [feature];
   }
 
   /**
    * Normalise un bloc AK (Outer contour)
+   * Détecte automatiquement si le contour représente des notches aux extrémités
    */
   private async normalizeAKBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
     const data = block.data;
     
+    // Analyser si ce sont des notches aux extrémités
+    const isNotch = this.detectNotchesFromContour(data.points, data.face);
+    
+    if (isNotch) {
+      console.log(`  🔧 AK block detected as notches at extremities`);
+      
+      // Créer une feature de type NOTCH au lieu de CONTOUR
+      const feature: NormalizedFeature = {
+        id: this.generateFeatureId('notch'),
+        type: NormalizedFeatureType.NOTCH,
+        coordinates: this.calculateContourCenter(data.points),
+        parameters: {
+          // Convertir les points pour le NotchProcessor
+          points: data.points ? data.points.map((p: { x: number; y: number }) => {
+            console.debug(`🔄 Converting Point2D {x: ${p.x}, y: ${p.y}} → [${p.x}, ${p.y}]`);
+            return [p.x, p.y] as [number, number];
+          }) : [],
+          closed: data.closed !== false,
+          contourType: 'outer',
+          interpolation: 'linear',
+          face: data.face || 'web',
+          // Informations spécifiques aux notches
+          notchType: 'extremity',
+          source: 'contour_detection'
+        },
+        metadata: {
+          originalBlock: block.type,
+          workPlane: data.plane || 'E0',
+          processingOrder: this.getBlockProcessingPriority(block.type),
+          applyOnly: true,
+          face: data.face || 'web',
+          detectedAsNotch: true
+        }
+      };
+      
+      return feature;
+    }
+    
+    // Sinon, traiter comme un contour normal
     const feature: NormalizedFeature = {
       id: this.generateFeatureId('contour_outer'),
       type: NormalizedFeatureType.CONTOUR,
       coordinates: this.calculateContourCenter(data.points),
       parameters: {
         // Convertir Point2D[] vers Array<[number, number]> pour le ContourProcessor
-        points: data.points ? data.points.map(p => [p.x, p.y] as [number, number]) : [],
+        points: data.points ? data.points.map((p: { x: number; y: number }) => {
+          console.debug(`🔄 Converting Point2D {x: ${p.x}, y: ${p.y}} → [${p.x}, ${p.y}]`);
+          return [p.x, p.y] as [number, number];
+        }) : [],
         closed: data.closed !== false,
         contourType: 'outer',
         interpolation: 'linear', // Par défaut, peut être 'spline' ou 'arc'
@@ -364,26 +675,39 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   private async normalizeSIBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
     const data = block.data;
     
+    // Utiliser les dimensions stockées ou des valeurs par défaut
+    const dims = this.currentProfileDimensions || {
+      length: 1912.15,
+      height: 251.4,
+      width: 146.1
+    };
+    
+    // Convertir les coordonnées DSTV vers standard
+    const standardCoords = this.convertDSTVToStandardCoordinates(
+      { x: data.x, y: data.y, z: data.z || 0 },
+      data.face || 'web',
+      dims
+    );
+    
     return {
       id: this.generateFeatureId('marking'),
       type: NormalizedFeatureType.MARKING,
-      coordinates: {
-        x: data.x,
-        y: data.y,
-        z: 0
-      },
+      coordinates: standardCoords,
       parameters: {
         text: data.text,
         height: data.height || 10,
         angle: data.angle || 0,
         depth: data.depth || 0.1,
         font: 'standard',
-        markingMethod: 'engrave'
+        markingMethod: 'engrave',
+        face: data.face || 'web'
       },
       metadata: {
         originalBlock: block.type,
+        originalDSTVCoords: { x: data.x, y: data.y, z: data.z || 0 },
         workPlane: data.plane || 'E0',
-        processingOrder: this.getBlockProcessingPriority(block.type)
+        processingOrder: this.getBlockProcessingPriority(block.type),
+        applyOnly: true  // Les features DSTV sont appliquées à la géométrie, pas créées comme éléments séparés
       }
     };
   }
@@ -457,6 +781,219 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       metadata: {
         originalBlock: block.type,
         workPlane: data.plane || 'E0',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc BR (Bevel/Radius)
+   */
+  private async normalizeBRBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    const dims = this.currentProfileDimensions || {
+      length: 1912.15,
+      height: 251.4,
+      width: 146.1
+    };
+    
+    const standardCoords = this.convertDSTVToStandardCoordinates(
+      { x: data.x, y: data.y, z: data.z || 0 },
+      data.face || 'web',
+      dims
+    );
+    
+    return {
+      id: this.generateFeatureId('bevel'),
+      type: NormalizedFeatureType.BEVEL,
+      coordinates: standardCoords,
+      parameters: {
+        angle: data.angle || 45,
+        size: data.size || 5,
+        bevelType: data.type || 'chamfer',
+        edge: data.edge || 'all'
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: data.plane || 'E0',
+        face: data.face || 'web',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc VO (Volume)
+   */
+  private async normalizeVOBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId('volume'),
+      type: NormalizedFeatureType.VOLUME,
+      coordinates: data.position || { x: 0, y: 0, z: 0 },
+      parameters: {
+        operation: data.operation || 'check',
+        volume: data.volume,
+        dimensions: data.dimensions,
+        material: data.material,
+        density: data.density || 7850
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: 'E0',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc NU (Numerically Controlled)
+   */
+  private async normalizeNUBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId('numeric_control'),
+      type: NormalizedFeatureType.NUMERIC_CONTROL,
+      coordinates: data.position || { x: 0, y: 0, z: 0 },
+      parameters: {
+        machineType: data.machineType,
+        toolNumber: data.toolNumber,
+        operation: data.operation,
+        feedRate: data.feedRate,
+        spindleSpeed: data.spindleSpeed,
+        parameters: data.parameters,
+        gCode: data.gCode
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: data.plane || 'E0',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc FP (Free Program)
+   */
+  private async normalizeFPBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId('free_program'),
+      type: NormalizedFeatureType.FREE_PROGRAM,
+      coordinates: { x: 0, y: 0, z: 0 },
+      parameters: {
+        programType: data.programType,
+        programCode: data.programCode,
+        language: data.language,
+        parameters: data.parameters
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: 'E0',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc LP (Line Program)
+   */
+  private async normalizeLPBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId('line_program'),
+      type: NormalizedFeatureType.LINE_PROGRAM,
+      coordinates: data.startPoint || { x: 0, y: 0, z: 0 },
+      parameters: {
+        startPoint: data.startPoint,
+        endPoint: data.endPoint,
+        operation: data.operation,
+        speed: data.speed,
+        toolDiameter: data.toolDiameter,
+        depth: data.depth,
+        interpolation: data.interpolation
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: data.plane || 'E0',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc RT (Rotation)
+   */
+  private async normalizeRTBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId('rotation'),
+      type: NormalizedFeatureType.ROTATION,
+      coordinates: data.center || { x: 0, y: 0, z: 0 },
+      parameters: {
+        axis: data.axis,
+        angle: data.angle,
+        speed: data.speed,
+        direction: data.direction
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: 'E0',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc WA (Washing)
+   */
+  private async normalizeWABlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId('washing'),
+      type: NormalizedFeatureType.WASHING,
+      coordinates: { x: 0, y: 0, z: 0 },
+      parameters: {
+        method: data.method,
+        intensity: data.intensity,
+        duration: data.duration,
+        temperature: data.temperature,
+        pressure: data.pressure,
+        chemical: data.chemical
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: 'E0',
+        processingOrder: this.getBlockProcessingPriority(block.type)
+      }
+    };
+  }
+
+  /**
+   * Normalise un bloc générique
+   */
+  private async normalizeGenericBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
+    const data = block.data;
+    
+    return {
+      id: this.generateFeatureId(block.type.toLowerCase()),
+      type: NormalizedFeatureType.VARIABLE,
+      coordinates: { x: 0, y: 0, z: 0 },
+      parameters: {
+        blockType: block.type,
+        values: data.values || [],
+        strings: data.strings || [],
+        metadata: data.metadata || {}
+      },
+      metadata: {
+        originalBlock: block.type,
+        workPlane: 'E0',
         processingOrder: this.getBlockProcessingPriority(block.type)
       }
     };
@@ -540,6 +1077,99 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     };
     
     return materialProperties[steelGrade.toUpperCase()];
+  }
+
+  /**
+   * Convertit les coordonnées DSTV vers le système standard THREE.js
+   * DSTV: Origine (0,0) au coin inférieur gauche
+   * THREE.js: Origine au centre de la géométrie
+   */
+  private convertDSTVToStandardCoordinates(
+    dstvCoords: { x: number; y: number; z?: number },
+    face: ProfileFace | undefined,
+    profileDimensions: { length: number; height: number; width: number }
+  ): { x: number; y: number; z: number } {
+    console.log(`🔄 Converting DSTV coordinates to standard:`, {
+      input: dstvCoords,
+      face,
+      dimensions: profileDimensions
+    });
+
+    // IMPORTANT: Correction du mapping des axes
+    // Dans IProfileGenerator, le profil est créé dans le plan XY et extrudé le long de Z
+    // - Profil 2D: plan XY (X=largeur, Y=hauteur) 
+    // - Extrusion: axe Z (longueur du profil)
+    // - Après centerGeometry: Z va de -length/2 à +length/2
+    
+    // DSTV utilise:
+    // - X: position le long du profil (0 à length)
+    // - Y: position sur la face (hauteur ou largeur selon la face)
+    // - Z: profondeur/décalage (rarement utilisé)
+
+    const { length, height, width } = profileDimensions;
+    
+    // DSTV X devient THREE.js Z (position le long du profil)
+    let standardZ = dstvCoords.x - length / 2;  // Centrer sur l'axe Z
+    let standardX = 0;
+    let standardY = 0;
+
+    // Conversion selon la face
+    switch (face?.toLowerCase()) {
+      case 'v':  // Top (semelle supérieure)
+      case 'top':
+        // Sur la semelle supérieure
+        standardY = height / 2;  // Hauteur maximale (haut du profil)
+        if (dstvCoords.y !== undefined) {
+          // Y DSTV représente la position latérale sur la semelle
+          standardX = dstvCoords.y - width / 2;
+        }
+        break;
+
+      case 'u':  // Bottom (semelle inférieure)
+      case 'bottom':
+        // Sur la semelle inférieure
+        standardY = -height / 2;  // Hauteur minimale (bas du profil)
+        if (dstvCoords.y !== undefined) {
+          // Y DSTV représente la position latérale sur la semelle
+          standardX = dstvCoords.y - width / 2;
+        }
+        break;
+
+      case 'o':  // Web (âme)
+      case 'web':
+        // Sur l'âme centrale
+        standardX = 0;  // L'âme est au centre en X
+        if (dstvCoords.y !== undefined) {
+          // Y DSTV représente la hauteur sur l'âme
+          standardY = dstvCoords.y - height / 2;
+        }
+        break;
+
+      case 'h':  // Front (face avant)
+      case 'front':
+        // Face avant (début du profil)
+        standardZ = -length / 2;  // Position au début du profil
+        if (dstvCoords.y !== undefined) {
+          standardY = dstvCoords.y - height / 2;
+        }
+        if (dstvCoords.z !== undefined) {
+          standardX = dstvCoords.z - width / 2;
+        }
+        break;
+
+      default:
+        console.warn(`⚠️ Unknown face indicator: ${face}, using default conversion`);
+        if (dstvCoords.y !== undefined) {
+          standardY = dstvCoords.y - height / 2;
+        }
+        if (dstvCoords.z !== undefined) {
+          standardX = dstvCoords.z - width / 2;
+        }
+    }
+
+    const result = { x: standardX, y: standardY, z: standardZ };
+    console.log(`  → Standard coordinates:`, result);
+    return result;
   }
 
   /**
@@ -751,14 +1381,18 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       return { x: 0, y: 0, z: 0 };
     }
     
+    console.debug(`📐 Calculating center for ${points.length} points:`, points);
     const sumX = points.reduce((sum, p) => sum + p.x, 0);
     const sumY = points.reduce((sum, p) => sum + p.y, 0);
     
-    return {
+    const center = {
       x: sumX / points.length,
       y: sumY / points.length,
       z: 0
     };
+    
+    console.debug(`📐 Contour center: (${center.x}, ${center.y})`);
+    return center;
   }
 
   private calculatePointsBounds(points: Array<{ x: number; y: number }>): { min: { x: number; y: number; z: number }; max: { x: number; y: number; z: number } } {
@@ -846,5 +1480,45 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     }
     
     return distribution;
+  }
+
+  /**
+   * Détecte si un contour représente des notches aux extrémités
+   * Analyse la différence entre la longueur du contour et la longueur du profil
+   */
+  private detectNotchesFromContour(points: any[], face?: ProfileFace | undefined): boolean {
+    if (!points || points.length < 3) {
+      return false;
+    }
+    
+    // Utiliser les dimensions du profil courant
+    const profileLength = this.currentProfileDimensions?.length || this.profileDimensions?.length || 0;
+    if (profileLength === 0) {
+      return false;
+    }
+    
+    // Trouver les coordonnées X min et max du contour
+    let minX = Infinity;
+    let maxX = -Infinity;
+    
+    for (const point of points) {
+      const x = point.x !== undefined ? point.x : point[0];
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+    }
+    
+    // Si le contour est plus court que le profil, c'est probablement des notches
+    const contourLength = maxX - minX;
+    const lengthDifference = profileLength - contourLength;
+    
+    // Tolérance de 1mm pour les erreurs d'arrondi
+    if (lengthDifference > 1) {
+      console.log(`  📏 Notch detection: Contour length=${contourLength}mm, Profile length=${profileLength}mm`);
+      console.log(`  📏 Difference=${lengthDifference}mm - Notches detected!`);
+      console.log(`  📏 Face: ${face || 'unknown'}`);
+      return true;
+    }
+    
+    return false;
   }
 }

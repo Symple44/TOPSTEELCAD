@@ -14,7 +14,7 @@ const MachiningFeatures: React.FC<{
   element: PivotElement;
   isSelected: boolean;
 }> = ({ element, isSelected: _isSelected }) => {
-  const features = element.metadata?.cuttingFeatures as unknown[] || [];
+  const features = element.metadata?.cuttingFeatures as any[] || [];
   const assemblies = element.assemblies || [];
   
   return (

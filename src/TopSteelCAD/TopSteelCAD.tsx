@@ -196,9 +196,9 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
           
           // Expose references for tools (ProfessionalViewer)
           if (canvasRef.current) {
-            (canvasRef.current as unknown).__renderer = engineRef.current.getRenderer();
-            (canvasRef.current as unknown).__scene = engineRef.current.getScene();
-            (canvasRef.current as unknown).__camera = engineRef.current.getCamera();
+            (canvasRef.current as any).__renderer = engineRef.current.getRenderer();
+            (canvasRef.current as any).__scene = engineRef.current.getScene();
+            (canvasRef.current as any).__camera = engineRef.current.getCamera();
           }
         
         
@@ -256,7 +256,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
           
           // Axes plus visibles mais discrets
           const axesHelper = new THREE.AxesHelper(1500);
-          const axesMaterials = (axesHelper as unknown).material as THREE.LineBasicMaterial[];
+          const axesMaterials = (axesHelper as any).material as THREE.LineBasicMaterial[];
           if (axesMaterials && axesMaterials.length >= 3) {
             axesMaterials[0].color = new THREE.Color('#dc2626'); // X - Rouge CAD
             axesMaterials[1].color = new THREE.Color('#16a34a'); // Y - Vert CAD  

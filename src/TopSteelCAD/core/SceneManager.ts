@@ -6,6 +6,21 @@ import { VisualFeatureRenderer } from '../viewer/VisualFeatureRenderer';
 import { FeatureOutlineRenderer } from '../viewer/FeatureOutlineRenderer';
 
 /**
+ * Interface pour les marquages
+ */
+interface MarkingData {
+  text: string;
+  position: [number, number, number];
+  size: number;
+  face?: string;
+  rotation?: [number, number, number];
+  type: string;
+  centerOffset?: [number, number, number];
+  isMirrored?: boolean;
+  angle?: number;
+}
+
+/**
  * Configuration de la scène
  */
 export interface SceneConfig {
@@ -339,10 +354,10 @@ export class SceneManager {
   /**
    * Crée des markings visibles sur la surface (en complément du CSG)
    */
-  private createVisibleMarkings(markings: unknown[], element: PivotElement, mesh: THREE.Mesh): THREE.Group {
+  private createVisibleMarkings(markings: MarkingData[], element: PivotElement, mesh: THREE.Mesh): THREE.Group {
     const group = new THREE.Group();
     
-    markings.forEach((marking, index) => {
+    markings.forEach((marking: MarkingData, index) => {
       const text = marking.text || 'X';
       const size = marking.size || 20;
       
@@ -418,7 +433,7 @@ export class SceneManager {
         // Three.js utilise le centre comme origine
         
         // Pour les formes complexes avec contour, appliquer le même système de coordonnées
-        let x, z;
+        let x, y, z;
         
         // Récupérer les metadata de la géométrie
         const centerOffset = marking.centerOffset || mesh.geometry?.userData?.centerOffset;
@@ -527,7 +542,7 @@ export class SceneManager {
             
             console.log(`   📏 DSTV position: x=${dstvX}mm (along tube), y=${dstvY}mm (across tube)`);
             console.log(`   📍 Three.js position: x=${x.toFixed(1)}mm, z=${z.toFixed(1)}mm`);
-          } else if (element.materialType === 'angle' || element.materialType === MaterialType.ANGLE) {
+          } else if (element.materialType === MaterialType.ANGLE) {
             // Pour les cornières (L-profiles)
             // Les markings sont généralement sur l'aile verticale (face web)
             // Dans DSTV: x=position le long de la pièce, y=position sur l'aile
@@ -541,12 +556,33 @@ export class SceneManager {
             x = -width / 2 - 0.1;  // Face extérieure de l'aile verticale
             
             console.log(`   🔺 L-Profile marking: DSTV(${dstvX}, ${dstvY}) -> Three.js(${x.toFixed(1)}, ?, ${z.toFixed(1)})`);
+          } else if (element.materialType === MaterialType.BEAM) {
+            // Pour les profils en I/H (poutres)
+            // Le marking a déjà des coordonnées converties depuis DSTV
+            // marking.position contient [x, y, z] en coordonnées Three.js
+            if (Array.isArray(marking.position) && marking.position.length >= 3) {
+              x = marking.position[0];
+              y = marking.position[1]; 
+              z = marking.position[2];
+            } else {
+              // Fallback si les coordonnées ne sont pas déjà converties
+              const dstvX = marking.position[0];  // Position le long du profil
+              const dstvY = marking.position[1];  // Position sur la face
+              
+              // Conversion basique
+              z = dstvX - length / 2;
+              x = 0; // Centré sur l'âme par défaut
+              y = dstvY; // Utiliser directement la coordonnée Y
+            }
+            
+            console.log(`   🏗️ I-Profile marking: position(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`);
           } else {
-            // Pour les plaques et autres
-            const offsetX = marking.position[0] + 15;
-            const offsetY = marking.position[1] + 15;
-            x = offsetX - length / 2;
-            z = offsetY - width / 2;
+            // Pour les plaques et autres (fallback)
+            const dstvX = marking.position[0];
+            const dstvY = marking.position[1];
+            x = 0; // Centré
+            z = dstvX - length / 2;
+            y = dstvY;
           }
         }
         
@@ -554,7 +590,7 @@ export class SceneManager {
         // Le marking est ajouté à elementGroup, et le mesh a sa propre position dans ce groupe
         // Donc les coordonnées du marking doivent être dans l'espace du groupe, pas du mesh
         
-        let y;
+        // Note: y is already declared above, reuse it for other material types
         if (element.materialType === 'tube') {
           // Pour les tubes:
           // - Le mesh est positionné à mesh.position.y = element.position[1] + yOffset
@@ -564,19 +600,19 @@ export class SceneManager {
           
           // Le haut du tube dans l'espace du mesh est à height/2
           // Mais dans l'espace du groupe, c'est à meshY + height/2
-          y = meshY + element.dimensions.height / 2 + 0.1;  // Surface supérieure du tube dans l'espace du groupe
+          y = meshY + (element.dimensions.height || 0) / 2 + 0.1;  // Surface supérieure du tube dans l'espace du groupe
           
           console.log(`📐 Marking Y position for tube:`);
           console.log(`   Tube height: ${element.dimensions.height}`);
           console.log(`   Mesh position in group: y=${meshY}`);
           console.log(`   Marking Y in group space: ${y}`);
           console.log(`   This should place marking ${0.1}mm above tube surface`);
-        } else if (element.materialType === 'angle' || element.materialType === MaterialType.ANGLE) {
+        } else if (element.materialType === MaterialType.ANGLE) {
           // Pour les cornières - position Y basée sur la position DSTV
           const meshY = mesh.position.y;
           const dstvY = marking.position[1];  // Position Y dans DSTV (sur l'aile)
           // Convertir la position DSTV Y vers Three.js
-          y = meshY + dstvY - element.dimensions.height / 2;  // Position sur l'aile verticale
+          y = meshY + dstvY - (element.dimensions.height || 0) / 2;  // Position sur l'aile verticale
           console.log(`   📐 L-Profile Y: DSTV=${dstvY} -> Three.js=${y.toFixed(1)} (meshY=${meshY})`);
         } else {
           // Pour les plaques
@@ -595,7 +631,7 @@ export class SceneManager {
         
         // Déterminer la rotation selon la face
         // Pour les cornières, le texte est sur l'aile verticale
-        if (element.materialType === 'angle' || element.materialType === MaterialType.ANGLE) {
+        if (element.materialType === MaterialType.ANGLE) {
           // Le texte est sur l'aile verticale qui fait face à X négatif
           // Rotation de 90° autour de Y pour faire face à l'extérieur
           textMesh.rotation.y = Math.PI / 2;
@@ -660,10 +696,10 @@ export class SceneManager {
   /**
    * Crée des gravures réalistes sur la surface pour les markings/scribbings (ancienne méthode)
    */
-  private createMarkingSprites(markings: unknown[], element: PivotElement): THREE.Group {
+  private createMarkingSprites(markings: MarkingData[], element: PivotElement): THREE.Group {
     const group = new THREE.Group();
     
-    markings.forEach((marking, index) => {
+    markings.forEach((marking: MarkingData, index) => {
       const text = marking.text || 'X';
       
       // Créer un plan pour la gravure (decal) - taille plus grande pour être visible

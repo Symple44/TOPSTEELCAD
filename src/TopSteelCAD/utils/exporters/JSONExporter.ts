@@ -1,4 +1,4 @@
-import { PivotElement } from '../../../types/viewer';
+import { PivotElement } from '@/types/viewer';
 import { ExportOptions, ExportResult } from '../FileExporter';
 
 /**
@@ -32,7 +32,7 @@ export class JSONExporter {
         position: el.position,
         rotation: el.rotation,
         material: el.material,
-        ...(options.includeFeatures && { features: (el as unknown).features }),
+        ...(options.includeFeatures && { features: (el as any).features }),
         ...(options.includeMetadata && {
           metadata: el.metadata,
           sourceFormat: el.sourceFormat,

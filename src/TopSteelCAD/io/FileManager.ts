@@ -5,7 +5,7 @@
  */
 
 import { PivotElement, PivotScene, FileParser } from '@/types/viewer';
-import { DSTVParser } from '../parsers/dstv/DSTVParser';
+import { DSTVPlugin } from '../plugins/dstv/DSTVPlugin';
 import { EventBus } from '../core/EventBus';
 
 /**
@@ -104,8 +104,9 @@ export class FileManager {
    * Enregistre les parseurs par défaut
    */
   private registerDefaultParsers(): void {
-    // DSTV Parser avec support des contours et architecture modulaire
-    this.parsers.set(FileFormat.DSTV, new DSTVParser());
+    // DSTV Plugin avec support des contours et architecture modulaire
+    // TODO: DSTVPlugin needs to implement FileParser interface
+    // this.parsers.set(FileFormat.DSTV, new DSTVPlugin());
     
     // TODO: Ajouter les autres parseurs
     // this.parsers.set(FileFormat.IFC, new IFCParser());
@@ -511,16 +512,16 @@ export class FileManager {
   private getElementSignature(element: PivotElement): string {
     const parts = [
       element.materialType,
-      (element.material as unknown)?.designation || 'unknown',
+      (element.material as any)?.designation || 'unknown',
       Math.round(element.dimensions.length),
       Math.round(element.dimensions.width || 0),
       Math.round(element.dimensions.height || 0),
-      (element as unknown).profile || 'none'
+      (element as any).profile || 'none'
     ];
     
     // Ajouter les features si présentes
-    if ((element as unknown).features && Array.isArray((element as unknown).features)) {
-      const features = (element as unknown).features;
+    if ((element as any).features && Array.isArray((element as any).features)) {
+      const features = (element as any).features;
       const featureSignature = features
         .map((f: any) => `${f.type}-${Math.round(f.position?.x || 0)}-${Math.round(f.position?.y || 0)}`)
         .sort()

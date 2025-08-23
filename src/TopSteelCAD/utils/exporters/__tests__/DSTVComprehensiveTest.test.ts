@@ -137,7 +137,7 @@ describe('DSTV Comprehensive Tests', () => {
    */
   const createElementWithFeatures = (): PivotElement => {
     const element = createIPEElement();
-    (element as unknown).features = [
+    (element as any).features = [
       {
         type: 'hole',
         face: 'v',

@@ -355,7 +355,7 @@ export class ViewerEngine {
       // Émettre les stats de performance
       this.eventBus.emit('performance:stats', {
         fps: this.state.fps,
-        memory: (performance as unknown).memory ? (performance as unknown).memory.usedJSHeapSize / 1048576 : 0
+        memory: (performance as any).memory ? (performance as any).memory.usedJSHeapSize / 1048576 : 0
       });
     }
   }

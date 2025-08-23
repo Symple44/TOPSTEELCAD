@@ -54,7 +54,7 @@ export class SimpleCutStrategy extends BaseCutStrategy {
     const params = feature.parameters || {};
     const contourPoints = params.contourPoints || [];
     const depth = params.depth || 10;
-    const face = params.face || feature.face || 'v';
+    const face = params.face || feature.face || ProfileFace.WEB;
     
     // Convertir et centrer les points
     const arrayPoints = pointsToArray(contourPoints as Point2D[]);
@@ -83,7 +83,7 @@ export class SimpleCutStrategy extends BaseCutStrategy {
   
   calculatePosition(feature: Feature, element: PivotElement): THREE.Vector3 {
     const params = feature.parameters || {};
-    const face = params.face || feature.face || 'v';
+    const face = params.face || feature.face || ProfileFace.WEB;
     const dims = element.dimensions;
     
     const position = new THREE.Vector3();
@@ -94,7 +94,7 @@ export class SimpleCutStrategy extends BaseCutStrategy {
       : face;
     
     switch (mappedFace) {
-      case 'v': // Face supérieure
+      case ProfileFace.WEB: // v mapped to WEB
       case ProfileFace.TOP_FLANGE:
         position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
         break;
@@ -118,23 +118,23 @@ export class SimpleCutStrategy extends BaseCutStrategy {
    */
   private orientGeometry(
     geometry: THREE.BufferGeometry, 
-    face: string, 
+    face: ProfileFace | undefined, 
     _element: PivotElement
   ): void {
     const rotationMatrix = new THREE.Matrix4();
     
     switch (face) {
-      case 'v': // Face supérieure - rotation pour découpe verticale
+      case ProfileFace.WEB: // Face supérieure - rotation pour découpe verticale
         rotationMatrix.makeRotationX(-Math.PI / 2);
         geometry.applyMatrix4(rotationMatrix);
         break;
         
-      case 'u': // Face inférieure
+      case ProfileFace.BOTTOM_FLANGE: // Face inférieure
         rotationMatrix.makeRotationX(Math.PI / 2);
         geometry.applyMatrix4(rotationMatrix);
         break;
         
-      case 'o': // Âme - pas de rotation nécessaire
+      case ProfileFace.TOP_FLANGE: // Âme - pas de rotation nécessaire
         break;
     }
   }

@@ -379,7 +379,7 @@ export function createMetalMaterial(options: {
 /**
  * Calcule la boîte englobante d'un groupe d'objets
  */
-export function computeBoundingBox(objects: unknown[]): any {
+export function computeBoundingBox(objects: THREE.Object3D[]): THREE.Box3 {
   // THREE is already imported at the top of the file
   const box = new THREE.Box3();
   objects.forEach(obj => {

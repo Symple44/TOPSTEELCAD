@@ -112,7 +112,7 @@ export async function createIndustrialStructure() {
   const bridge = new DatabaseGeometryBridge();
   const structure = {
     name: 'Bâtiment Industriel Type',
-    elements: [] as unknown[],
+    elements: [] as any[],
     totalWeight: 0,
     bom: new Map<string, any>()
   };

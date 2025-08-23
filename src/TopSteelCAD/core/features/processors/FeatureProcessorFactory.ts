@@ -23,6 +23,20 @@ import { DrillPatternProcessor } from './DrillPatternProcessor';
 import { CounterSinkProcessor } from './CounterSinkProcessor';
 import { TappedHoleProcessor } from './TappedHoleProcessor';
 import { TextProcessor } from './TextProcessor';
+import { ThreadingProcessor } from './ThreadingProcessor';
+import { BendingProcessor } from './BendingProcessor';
+import { ProfileProcessor } from './ProfileProcessor';
+import { UnrestrictedContourProcessor } from './UnrestrictedContourProcessor';
+import {
+  VolumeProcessor,
+  NumericControlProcessor,
+  FreeProgramProcessor,
+  LineProgramProcessor,
+  RotationProcessor,
+  WashingProcessor,
+  GroupProcessor,
+  VariableProcessor
+} from './GenericProcessor';
 
 /**
  * Singleton Factory pour les processors de features
@@ -108,18 +122,24 @@ export class FeatureProcessorFactory {
     feature: Feature,
     element: PivotElement
   ): ProcessorResult {
+    console.log(`🏭 FeatureProcessorFactory.process called for type: ${feature.type}, id: ${feature.id}`);
+    
     const processor = this.getProcessor(feature.type);
     
     if (!processor) {
+      console.error(`❌ No processor registered for feature type: ${feature.type}`);
       return {
         success: false,
         error: `No processor registered for feature type: ${feature.type}`
       };
     }
     
+    console.log(`✅ Found processor for ${feature.type}, calling process...`);
+    
     try {
       return processor.process(geometry, feature, element);
     } catch (error) {
+      console.error(`❌ Processor threw error:`, error);
       return {
         success: false,
         error: `Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -193,6 +213,22 @@ export class FeatureProcessorFactory {
     this.register(FeatureType.COUNTERSINK, new CounterSinkProcessor());
     this.register(FeatureType.TAPPED_HOLE, new TappedHoleProcessor());
     this.register(FeatureType.TEXT, new TextProcessor());
+    
+    // Nouveaux processors DSTV
+    this.register(FeatureType.THREAD, new ThreadingProcessor());
+    this.register(FeatureType.BEND, new BendingProcessor());
+    this.register(FeatureType.PROFILE, new ProfileProcessor());
+    this.register(FeatureType.UNRESTRICTED_CONTOUR, new UnrestrictedContourProcessor());
+    
+    // Processors DSTV avancés pour 100% de conformité
+    this.register(FeatureType.VOLUME, new VolumeProcessor());
+    this.register(FeatureType.NUMERIC_CONTROL, new NumericControlProcessor());
+    this.register(FeatureType.FREE_PROGRAM, new FreeProgramProcessor());
+    this.register(FeatureType.LINE_PROGRAM, new LineProgramProcessor());
+    this.register(FeatureType.ROTATION, new RotationProcessor());
+    this.register(FeatureType.WASHING, new WashingProcessor());
+    this.register(FeatureType.GROUP, new GroupProcessor());
+    this.register(FeatureType.VARIABLE, new VariableProcessor());
     
     // Note: CutProcessor est maintenant mappé sur CUTOUT
     // Car "cut" n'est pas dans l'enum FeatureType

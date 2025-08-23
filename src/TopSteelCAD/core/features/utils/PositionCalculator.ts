@@ -41,7 +41,7 @@ export class PositionCalculator {
     // Convertir la face string en ProfileFace si nécessaire
     let actualFace: ProfileFace;
     if (typeof face === 'string') {
-      actualFace = this.convertFaceString(face, profileType);
+      actualFace = this.convertFaceString(face as ProfileFace, profileType);
     } else {
       actualFace = face || this.determineFace(element, featurePos, profileType);
     }
@@ -127,7 +127,7 @@ export class PositionCalculator {
   /**
    * Convertit une face string en ProfileFace
    */
-  private convertFaceString(face: string, profileType: ProfileGeometryType): ProfileFace {
+  private convertFaceString(face: ProfileFace, profileType: ProfileGeometryType): ProfileFace {
     const faceLower = face.toLowerCase();
     
     // Pour les profils en I (IPE, HEB, etc.)
@@ -316,38 +316,33 @@ export class PositionCalculator {
     
     switch (face) {
       case ProfileFace.WEB: {
-        // Trou dans l'âme - perpendiculaire à l'âme (horizontal)
-        // L'âme est verticale (dans le plan XY), les trous la traversent selon Z
-        // DSTV : x = position le long de la poutre (0 à length)
-        // DSTV : y = dépend de la face originale DSTV :
-        //   - face 'o' : y = hauteur sur l'âme (0 = bas, height = haut)
-        //   - face 'v' : y = position latérale (0 = gauche, width = droite)
-        // Three.js : X=length, Y=height, Z=width
-        const webX = x - length / 2;  // Position le long de la poutre (centrée)
+        // IMPORTANT: Nouveau système de coordonnées après conversion DSTV
+        // Le profil I est créé dans le plan XY et extrudé le long de Z
+        // - X = largeur du profil (âme au centre)
+        // - Y = hauteur du profil
+        // - Z = longueur du profil (extrusion)
         
-        // Pour face 'v', Y dans DSTV représente la position latérale (width)
-        // Il faut la convertir en hauteur sur l'âme
-        // Les valeurs Y=88.20 et Y=163.20 sur une largeur de 251.40
-        // doivent être mappées sur la hauteur de l'âme 146.10
-        const webY = (y / width) * height - height / 2;  // Conversion proportionnelle
-        const webZ = 0;               // Centré sur l'âme
+        // Les coordonnées sont DÉJÀ converties depuis DSTVNormalizationStage
+        // x, y, z sont déjà dans le système standard THREE.js
         
-        position = [webX, webY, webZ];
-        // Le cylindre par défaut est orienté selon Y (vertical)
-        // Pour traverser l'âme selon Z, on doit le tourner de 90° autour de X
-        rotation = [Math.PI / 2, 0, 0]; // Rotation de 90° autour de X pour orienter selon Z
+        // Pour un trou dans l'âme :
+        // - Position : directement x, y, z (déjà converties)
+        // - Rotation : le cylindre doit traverser l'âme selon X
+        
+        position = [x, y, z];
+        
+        // La géométrie du trou est déjà orientée correctement dans HoleProcessor
+        // pour les trous sur l'âme (rotation de base appliquée)
+        rotation = [0, 0, 0]; // Pas de rotation supplémentaire nécessaire
         depth = webThickness;
-        normal = new THREE.Vector3(0, 0, 1);
+        normal = new THREE.Vector3(1, 0, 0); // Normal selon X
         break;
       }
         
       case ProfileFace.TOP_FLANGE:
         // Trou dans l'aile supérieure - vertical
-        position = [
-          x - length / 2,                    // Position le long de la poutre
-          height / 2 - flangeThickness / 2,  // Hauteur de l'aile supérieure
-          y - width / 2                      // Position latérale sur l'aile (centrée)
-        ];
+        // Les coordonnées sont déjà converties
+        position = [x, y, z];
         rotation = [0, 0, 0]; // Pas de rotation - cylindre déjà vertical (selon Y)
         depth = flangeThickness;
         normal = new THREE.Vector3(0, 1, 0);

@@ -8,7 +8,8 @@ import { Evaluator, Brush, SUBTRACTION } from 'three-bvh-csg';
 import { 
   Feature, 
   IFeatureProcessor, 
-  ProcessorResult 
+  ProcessorResult,
+  ProfileFace
 } from '../types';
 import { PivotElement, MaterialType } from '@/types/viewer';
 import { PositionCalculator } from '../utils/PositionCalculator';
@@ -151,9 +152,9 @@ export class MarkingProcessor implements IFeatureProcessor {
         );
         
         // Orienter selon la face
-        if (feature.face === 'web') {
+        if (feature.face === ProfileFace.WEB) {
           engravingBrush.rotation.y = Math.PI / 2;
-        } else if (feature.face === 'bottom') {
+        } else if (feature.face === ProfileFace.BOTTOM) {
           engravingBrush.rotation.x = Math.PI;
         }
       }

@@ -15,25 +15,47 @@ export enum FeatureType {
   COUNTERSINK = 'countersink',
   COUNTERBORE = 'counterbore',
   DRILL_PATTERN = 'drill_pattern',
+  THREAD = 'thread',
   
   // Découpes et contours
   CUT = 'cut',
   SLOT = 'slot',
   CUTOUT = 'cutout',
   CONTOUR = 'contour',
+  UNRESTRICTED_CONTOUR = 'unrestricted_contour',
   NOTCH = 'notch',
   COPING = 'coping',
   
-  // Finitions
+  // Finitions et déformations
   CHAMFER = 'chamfer',
   BEVEL = 'bevel',
+  BEND = 'bend',
+  
+  // Profils
+  PROFILE = 'profile',
   
   // Marquages et textes
   MARKING = 'marking',
   TEXT = 'text',
   
   // Soudures
-  WELD = 'weld'
+  WELD = 'weld',
+  WELD_PREP = 'weld_preparation',
+  
+  // Autres
+  PUNCH = 'punch',
+  WORK_PLANE = 'work_plane',
+  INFORMATION = 'information',
+  
+  // Blocs DSTV avancés pour 100% conformité
+  VOLUME = 'volume',
+  NUMERIC_CONTROL = 'numeric_control',
+  FREE_PROGRAM = 'free_program',
+  LINE_PROGRAM = 'line_program',
+  ROTATION = 'rotation',
+  WASHING = 'washing',
+  GROUP = 'group',
+  VARIABLE = 'variable'
 }
 
 /**
@@ -42,7 +64,8 @@ export enum FeatureType {
 export enum CoordinateSystem {
   LOCAL = 'local',    // Relatif à l'élément
   GLOBAL = 'global',  // Relatif à la scène
-  FACE = 'face'       // Relatif à une face spécifique
+  FACE = 'face',      // Relatif à une face spécifique
+  DSTV = 'DSTV'       // Système de coordonnées DSTV
 }
 
 /**
@@ -119,10 +142,10 @@ export interface FeatureParameters {
   length?: number;
   width?: number;
   
-  // Pour contours
-  points?: Array<[number, number]>;
+  // Pour contours (unify both point formats)
+  points?: Array<[number, number] | {x: number, y: number}>;
   closed?: boolean;
-  bulge?: number[];  // Pour les arcs dans les contours
+  bulge?: number | number[];  // Pour les arcs dans les contours
   
   // Pour entailles
   notchType?: string;
@@ -140,6 +163,7 @@ export interface FeatureParameters {
   
   // Pour marquages
   markingType?: string;
+  markingMethod?: string;
   
   // Pour texte
   text?: string;
@@ -158,6 +182,22 @@ export interface FeatureParameters {
   
   // Pour les découpes
   isTransverse?: boolean;
+  cutType?: string;
+  
+  // Pour bending (pliage)
+  position?: number | number[];
+  axis?: string;
+  direction?: string;
+  
+  // Pour profils
+  profileType?: string;
+  profileName?: string;
+  dimensions?: any;
+  material?: string;
+  
+  // Pour filetage
+  pitch?: number;
+  tolerance?: number;
   
   // Propriétés manquantes identifiées dans les erreurs de compilation
   contourPoints?: Array<{x: number, y: number}>;
@@ -168,6 +208,9 @@ export interface FeatureParameters {
   operation?: 'union' | 'subtract' | 'intersect';
   isBeveled?: boolean;
   isCompound?: boolean;
+  
+  // Pour contours (additional properties)
+  contourType?: string;
 }
 
 /**

@@ -7,8 +7,8 @@ import { Evaluator, Brush, SUBTRACTION } from 'three-bvh-csg';
 import { 
   Feature, 
   IFeatureProcessor, 
-  ProcessorResult
-  // ProfileFace 
+  ProcessorResult,
+  ProfileFace 
 } from '../types';
 import { PivotElement, MaterialType } from '@/types/viewer';
 import { PositionCalculator } from '../utils/PositionCalculator';
@@ -49,6 +49,11 @@ export class HoleProcessor implements IFeatureProcessor {
         ? new THREE.Vector3(feature.position[0], feature.position[1], feature.position[2])
         : feature.position;
       
+      // Les coordonnées sont déjà converties au format standard dans DSTVNormalizationStage
+      // Plus besoin d'ajustement spécifique DSTV ici
+      console.log(`  - Using standard position: (${featurePos.x}, ${featurePos.y}, ${featurePos.z})`);
+      console.log(`  - Face: ${feature.face || feature.parameters?.face || 'default'}`)
+      
       const position3D = this.positionCalculator.calculateFeaturePosition(
         element,
         featurePos,
@@ -78,7 +83,8 @@ export class HoleProcessor implements IFeatureProcessor {
       } else {
         holeGeometry = this.createHoleGeometry(
           feature.parameters.diameter!,
-          position3D.depth
+          position3D.depth,
+          feature.face
         );
         console.log(`  - Created round hole: diameter=${feature.parameters.diameter}`);
       }
@@ -153,6 +159,7 @@ export class HoleProcessor implements IFeatureProcessor {
       const resultVertexCount = resultGeometry.attributes.position?.count || 0;
       console.log(`  - Original vertex count: ${originalVertexCount}`);
       console.log(`  - Result vertex count: ${resultVertexCount}`);
+      console.log(`  - Vertices ${resultVertexCount > originalVertexCount ? 'ADDED' : resultVertexCount < originalVertexCount ? 'REMOVED' : 'UNCHANGED'}: ${Math.abs(resultVertexCount - originalVertexCount)}`);
       
       // Nettoyer le brush résultant
       resultBrush.geometry.dispose();
@@ -180,8 +187,9 @@ export class HoleProcessor implements IFeatureProcessor {
     }
     
     // Vérifier la profondeur si spécifiée
-    if (params.depth !== undefined && params.depth <= 0) {
-      errors.push(`Invalid hole depth: ${params.depth}`);
+    // Note: depth = 0 ou undefined signifie un trou traversant (valide)
+    if (params.depth !== undefined && params.depth < 0) {
+      errors.push(`Invalid hole depth: ${params.depth} (negative value)`);
     }
     
     // Vérifier que le diamètre n'est pas plus grand que l'élément
@@ -207,7 +215,7 @@ export class HoleProcessor implements IFeatureProcessor {
     return errors;
   }
   
-  private createHoleGeometry(diameter: number, depth: number): THREE.BufferGeometry {
+  private createHoleGeometry(diameter: number, depth: number, face?: ProfileFace | undefined): THREE.BufferGeometry {
     // Créer un cylindre pour le trou
     // Ajouter 20% de longueur pour s'assurer de traverser complètement
     const actualDepth = depth * 1.2;
@@ -226,10 +234,19 @@ export class HoleProcessor implements IFeatureProcessor {
       false  // open ended
     );
     
-    console.log(`  🔩 Round hole geometry: diameter=${diameter}mm, segments=${segments}, depth=${actualDepth}mm`);
+    console.log(`  🔩 Round hole geometry: diameter=${diameter}mm, segments=${segments}, depth=${actualDepth}mm, face=${face}`);
     
-    // Rotation par défaut: cylindre orienté selon Y
-    // Sera réorienté selon la face lors du positionnement
+    // Rotation de base selon la face
+    // Le cylindre THREE.js est créé vertical (selon Y) par défaut
+    if (face === ProfileFace.WEB || face === ProfileFace.TOP) {
+      // Pour l'âme, le trou doit traverser selon X
+      // Rotation de 90° autour de Z pour orienter le cylindre selon X
+      const rotMatrix = new THREE.Matrix4();
+      rotMatrix.makeRotationZ(Math.PI / 2);
+      geometry.applyMatrix4(rotMatrix);
+      console.log(`    Applied base rotation for web hole (90° around Z)`);
+    }
+    // Pour les autres faces, le cylindre reste orienté selon Y par défaut
     
     return geometry;
   }
@@ -345,7 +362,7 @@ export class HoleProcessor implements IFeatureProcessor {
     return geometry;
   }
   
-  private isPositionValid(position: THREE.Vector3, element: PivotElement, face?: string): boolean {
+  private isPositionValid(position: THREE.Vector3, element: PivotElement, face?: ProfileFace | undefined): boolean {
     const dims = element.dimensions;
     const materialType = element.materialType;
     
@@ -358,32 +375,40 @@ export class HoleProcessor implements IFeatureProcessor {
     // Permettre une petite marge pour les trous sur les bords
     const margin = 10;
     
+    // IMPORTANT: Nouveau système de coordonnées pour DSTV
+    // Le profil I est créé dans le plan XY et extrudé le long de Z
+    // - X = largeur du profil
+    // - Y = hauteur du profil  
+    // - Z = longueur du profil (extrusion)
+    
     // Pour les profils en I (BEAM) avec trous dans l'âme
-    if (materialType === MaterialType.BEAM && (face === 'o' || face === 'web')) {
-      // Pour l'âme avec face 'o' : 
-      // X = position le long de la poutre, Y = hauteur sur l'âme
+    if (materialType === MaterialType.BEAM && (face === ProfileFace.TOP || face === ProfileFace.WEB)) {
+      // Pour l'âme : 
+      // Z = position le long de la poutre
+      // Y = hauteur sur l'âme
+      // X = doit être proche de 0 (centre de l'âme)
       return (
-        position.x >= -margin && position.x <= length + margin &&
-        position.y >= -margin && position.y <= height + margin &&
-        Math.abs(position.z) <= width/2 + margin
+        Math.abs(position.x) <= thickness/2 + margin &&  // Au centre de l'âme
+        position.y >= -height/2 - margin && position.y <= height/2 + margin &&  // Dans la hauteur
+        position.z >= -length/2 - margin && position.z <= length/2 + margin   // Le long du profil
       );
     }
     
-    // Pour les profils en I (BEAM) - face 'v' indique des trous dans l'âme vue du dessus
-    // Dans DSTV, 'v' avec Y représentant la position latérale indique un trou dans l'âme
-    if (materialType === MaterialType.BEAM && face === 'v') {
-      // Face 'v' = vue du dessus, trous dans l'âme
-      // X = position le long de la poutre
-      // Y = position latérale sur la largeur totale du profil
+    // Pour les profils en I (BEAM) - face 'v' = semelle supérieure
+    if (materialType === MaterialType.BEAM && (face === ProfileFace.WEB || face === ProfileFace.TOP)) {
+      // Semelle supérieure
+      // Z = position le long de la poutre
+      // X = position latérale sur la semelle
+      // Y = doit être proche de height/2
       return (
-        position.x >= -margin && position.x <= length + margin &&
-        position.y >= -margin && position.y <= width + margin &&  // Y comparé à la largeur
-        Math.abs(position.z) <= height/2 + margin
+        position.x >= -width/2 - margin && position.x <= width/2 + margin &&  // Dans la largeur de la semelle
+        Math.abs(position.y - height/2) <= thickness + margin &&  // Proche du haut
+        position.z >= -length/2 - margin && position.z <= length/2 + margin   // Le long du profil
       );
     }
     
     // Pour les profils en I (BEAM) avec trous dans les ailes
-    if (materialType === MaterialType.BEAM && (face === 'u' || face === 'top_flange' || face === 'bottom_flange')) {
+    if (materialType === MaterialType.BEAM && (face === ProfileFace.BOTTOM || face === ProfileFace.TOP)) {
       // Pour les ailes : X = position le long de la poutre, Y = position latérale sur l'aile
       return (
         position.x >= -margin && position.x <= length + margin &&
@@ -401,11 +426,12 @@ export class HoleProcessor implements IFeatureProcessor {
       );
     }
     
-    // Validation par défaut pour les autres types
+    // Validation par défaut avec le nouveau système de coordonnées
+    // Z = longueur, Y = hauteur, X = largeur
     return (
-      position.x >= -margin && position.x <= length + margin &&
-      position.y >= -margin && position.y <= Math.max(width, height) + margin &&
-      Math.abs(position.z) <= Math.max(thickness, width, height) + margin
+      position.x >= -width/2 - margin && position.x <= width/2 + margin &&
+      position.y >= -height/2 - margin && position.y <= height/2 + margin &&
+      position.z >= -length/2 - margin && position.z <= length/2 + margin
     );
   }
   
@@ -518,7 +544,8 @@ export class HoleProcessor implements IFeatureProcessor {
         
         const holeGeometry = this.createHoleGeometry(
           hole.parameters.diameter!,
-          position3D.depth
+          position3D.depth,
+          hole.face
         );
         
         const holeBrush = new Brush(holeGeometry);

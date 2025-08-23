@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Visibilité des Notches</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        #viewer { width: 100vw; height: 100vh; }
+        #info { 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            background: white; 
+            padding: 10px; 
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #logs {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            height: 200px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer"></div>
+    <div id="info">
+        <h3>Test Notches DSTV</h3>
+        <p>Fichier: M1002.nc</p>
+        <button onclick="loadFile()">Charger le fichier</button>
+        <button onclick="toggleWireframe()">Toggle Wireframe</button>
+        <button onclick="resetCamera()">Reset Camera</button>
+    </div>
+    <div id="logs"></div>
+
+    <script type="module">
+        import * as THREE from './node_modules/three/build/three.module.js';
+        import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
+        
+        let scene, camera, renderer, controls;
+        let mesh = null;
+        let wireframe = false;
+        
+        // Logger simple
+        const log = (msg) => {
+            const logs = document.getElementById('logs');
+            logs.innerHTML += msg + '<br>';
+            logs.scrollTop = logs.scrollHeight;
+            console.log(msg);
+        };
+        
+        // Initialisation de la scène
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+            camera.position.set(1000, 1000, 1000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('viewer').appendChild(renderer.domElement);
+            
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            
+            // Lumières
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            // Grille
+            const gridHelper = new THREE.GridHelper(2000, 20);
+            scene.add(gridHelper);
+            
+            // Axes
+            const axesHelper = new THREE.AxesHelper(500);
+            scene.add(axesHelper);
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // Créer une géométrie de test avec notches
+        window.loadFile = async function() {
+            log('🎯 Création d\'un profil I avec notches de test...');
+            
+            // Dimensions du profil UB254x146x31
+            const length = 1912.15;
+            const height = 251.4;
+            const width = 146.1;
+            const webThickness = 8.6;
+            const flangeThickness = 13.7;
+            
+            // Créer le profil I de base
+            const shape = new THREE.Shape();
+            
+            // Dessiner le profil I (vue de face)
+            const hw = width / 2;
+            const hh = height / 2;
+            const wt = webThickness / 2;
+            
+            // Semelle inférieure
+            shape.moveTo(-hw, -hh);
+            shape.lineTo(hw, -hh);
+            shape.lineTo(hw, -hh + flangeThickness);
+            shape.lineTo(wt, -hh + flangeThickness);
+            
+            // Âme
+            shape.lineTo(wt, hh - flangeThickness);
+            
+            // Semelle supérieure  
+            shape.lineTo(hw, hh - flangeThickness);
+            shape.lineTo(hw, hh);
+            shape.lineTo(-hw, hh);
+            shape.lineTo(-hw, hh - flangeThickness);
+            shape.lineTo(-wt, hh - flangeThickness);
+            
+            // Fermer l'âme
+            shape.lineTo(-wt, -hh + flangeThickness);
+            shape.lineTo(-hw, -hh + flangeThickness);
+            shape.closePath();
+            
+            // Extruder pour créer le volume
+            const extrudeSettings = {
+                steps: 1,
+                depth: length,
+                bevelEnabled: false
+            };
+            
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            
+            // Centrer la géométrie
+            geometry.translate(0, 0, -length/2);
+            
+            log(`✅ Profil créé: ${length}mm x ${height}mm x ${width}mm`);
+            
+            // Créer les notches manuellement
+            const notchDepth = 70.05;
+            const notchHeight = height;
+            const notchWidth = width;
+            
+            // Notch à la fin (semelle supérieure)
+            const notchGeometry1 = new THREE.BoxGeometry(notchDepth, flangeThickness * 1.5, notchWidth * 1.2);
+            const notchMesh1 = new THREE.Mesh(notchGeometry1);
+            notchMesh1.position.set(length/2 - notchDepth/2, hh - flangeThickness/2, 0);
+            notchMesh1.updateMatrix();
+            
+            // Notch à la fin (semelle inférieure)
+            const notchGeometry2 = new THREE.BoxGeometry(notchDepth, flangeThickness * 1.5, notchWidth * 1.2);
+            const notchMesh2 = new THREE.Mesh(notchGeometry2);
+            notchMesh2.position.set(length/2 - notchDepth/2, -hh + flangeThickness/2, 0);
+            notchMesh2.updateMatrix();
+            
+            log(`📐 Notch 1 position: (${notchMesh1.position.x}, ${notchMesh1.position.y}, ${notchMesh1.position.z})`);
+            log(`📐 Notch 2 position: (${notchMesh2.position.x}, ${notchMesh2.position.y}, ${notchMesh2.position.z})`);
+            
+            // Appliquer les notches avec CSG (si disponible)
+            try {
+                const { Brush, Evaluator, SUBTRACTION } = await import('./node_modules/three-bvh-csg/build/index.module.js');
+                
+                const evaluator = new Evaluator();
+                const baseBrush = new Brush(geometry);
+                const notchBrush1 = new Brush(notchGeometry1);
+                const notchBrush2 = new Brush(notchGeometry2);
+                
+                notchBrush1.position.copy(notchMesh1.position);
+                notchBrush2.position.copy(notchMesh2.position);
+                
+                notchBrush1.updateMatrixWorld();
+                notchBrush2.updateMatrixWorld();
+                
+                let result = evaluator.evaluate(baseBrush, notchBrush1, SUBTRACTION);
+                result = evaluator.evaluate(result, notchBrush2, SUBTRACTION);
+                
+                geometry.copy(result.geometry);
+                log('✅ Notches appliquées avec CSG');
+            } catch (error) {
+                log(`⚠️ CSG non disponible, affichage sans notches: ${error.message}`);
+            }
+            
+            // Supprimer l'ancien mesh
+            if (mesh) {
+                scene.remove(mesh);
+                mesh.geometry.dispose();
+                mesh.material.dispose();
+            }
+            
+            // Créer le nouveau mesh
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0x4080ff,
+                wireframe: wireframe
+            });
+            
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+            
+            // Ajouter les contours des notches en rouge pour visualisation
+            const edges1 = new THREE.EdgesGeometry(notchGeometry1);
+            const line1 = new THREE.LineSegments(edges1, new THREE.LineBasicMaterial({ color: 0xff0000 }));
+            line1.position.copy(notchMesh1.position);
+            scene.add(line1);
+            
+            const edges2 = new THREE.EdgesGeometry(notchGeometry2);
+            const line2 = new THREE.LineSegments(edges2, new THREE.LineBasicMaterial({ color: 0xff0000 }));
+            line2.position.copy(notchMesh2.position);
+            scene.add(line2);
+            
+            log('🎯 Contours des notches ajoutés en rouge');
+            
+            // Ajuster la caméra
+            camera.position.set(1500, 500, 1500);
+            camera.lookAt(0, 0, 0);
+            controls.target.set(0, 0, 0);
+            controls.update();
+        };
+        
+        window.toggleWireframe = function() {
+            wireframe = !wireframe;
+            if (mesh) {
+                mesh.material.wireframe = wireframe;
+            }
+            log(`Wireframe: ${wireframe ? 'ON' : 'OFF'}`);
+        };
+        
+        window.resetCamera = function() {
+            camera.position.set(1000, 1000, 1000);
+            camera.lookAt(0, 0, 0);
+            controls.target.set(0, 0, 0);
+            controls.update();
+            log('Camera reset');
+        };
+        
+        // Initialiser
+        init();
+        log('🚀 Viewer initialisé. Cliquez sur "Charger le fichier" pour voir le test.');
+    </script>
+</body>
+</html>

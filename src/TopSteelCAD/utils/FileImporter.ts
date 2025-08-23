@@ -1,4 +1,4 @@
-import { PivotElement, MaterialType } from '../../types/viewer';
+import { PivotElement, MaterialType } from '@/types/viewer';
 
 /**
  * Types de fichiers supportés pour l'import
@@ -170,61 +170,20 @@ export class FileImporter {
 
   /**
    * Import DSTV (format acier allemand)
-   * Utilise le DSTVParser professionnel pour parser les fichiers NC
+   * Utilise le nouveau système DSTV modulaire via DSTVImportAdapter
    */
   private static async importDSTV(file: File): Promise<ImportResult> {
     try {
-      // Importer dynamiquement le DSTVParser
-      const module = await import('../parsers/dstv/DSTVParser');
-      const DSTVParser = module.DSTVParser || module.default;
+      // Utiliser le nouveau système modulaire
+      const { DSTVImportAdapter } = await import('../plugins/dstv/DSTVImportAdapter');
+      const result = await DSTVImportAdapter.importFile(file);
       
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        
-        reader.onload = async (e) => {
-          try {
-            const content = e.target?.result as string;
-            
-            // Utiliser le DSTVParser professionnel
-            const parser = new DSTVParser();
-            const scene = await parser.parse(content);
-            
-            // Convertir les éléments de la scène en array
-            const elements = Array.from(scene.elements.values());
-            
-            resolve({
-              success: true,
-              elements: elements as PivotElement[],
-              warnings: elements.length === 0 ? ['Aucun élément trouvé dans le fichier DSTV'] : undefined,
-              metadata: {
-                fileName: file.name,
-                fileSize: file.size,
-                format: 'dstv',
-                elementsCount: elements.length,
-                importDate: new Date()
-              }
-            });
-          } catch (error) {
-            resolve({
-              success: false,
-              error: `Erreur de parsing DSTV: ${error instanceof Error ? error.message : 'Format invalide'}`
-            });
-          }
-        };
-        
-        reader.onerror = () => {
-          resolve({
-            success: false,
-            error: 'Erreur de lecture du fichier DSTV'
-          });
-        };
-        
-        reader.readAsText(file);
-      });
+      return result;
     } catch (error) {
+      console.error('Erreur lors de l\'import DSTV:', error);
       return {
         success: false,
-        error: `Erreur lors du chargement du parser DSTV: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+        error: `Erreur lors de l'import DSTV: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
       };
     }
   }

@@ -186,7 +186,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             {Object.entries(formatConfigs).map(([format, config]) => {
               const Icon = config.icon;
               const isSelected = selectedFormat === format;
-              const isDisabled = (config as unknown).disabled;
+              const isDisabled = (config as any).disabled;
               
               return (
                 <button

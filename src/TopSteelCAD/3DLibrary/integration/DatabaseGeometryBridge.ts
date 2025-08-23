@@ -246,11 +246,11 @@ export class DatabaseGeometryBridge {
     
     let material: Material;
     
-    if ((element.material as unknown)?.treatment === 'GALVANIZED') {
+    if ((element.material as any)?.treatment === 'GALVANIZED') {
       material = SteelMaterials.galvanized();
-    } else if ((element.material as unknown)?.treatment === 'PAINTED') {
-      material = SteelMaterials.painted((element.material as unknown).color);
-    } else if ((element.material as unknown)?.treatment === 'STAINLESS') {
+    } else if ((element.material as any)?.treatment === 'PAINTED') {
+      material = SteelMaterials.painted((element.material as any).color);
+    } else if ((element.material as any)?.treatment === 'STAINLESS') {
       material = SteelMaterials.stainless();
     } else {
       material = SteelMaterials.raw();
@@ -273,9 +273,9 @@ export class DatabaseGeometryBridge {
    */
   private createMaterialFromElement(element: UnifiedElement): Material {
     const options = {
-      color: (element.material as unknown)?.color,
-      roughness: (element.material as unknown)?.roughness,
-      metalness: (element.material as unknown)?.metalness
+      color: (element.material as any)?.color,
+      roughness: (element.material as any)?.roughness,
+      metalness: (element.material as any)?.metalness
     };
     
     return createMetalMaterial(options);

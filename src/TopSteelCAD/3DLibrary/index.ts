@@ -16,7 +16,7 @@ export type { GeometryGenerationResult } from './integration/DatabaseGeometryBri
 // Import des générateurs pour ShapeFactory
 import { FastenerGenerator } from './geometry-generators/generators/FastenerGenerator';
 import { WeldGenerator } from './geometry-generators/generators/WeldGenerator';
-import { ProfileType } from './types/profile.types';
+import { ProfileType, ProfileDimensions } from './types/profile.types';
 import * as THREE from 'three';
 import { GeometryGeneratorFactory } from './geometry-generators/GeometryGeneratorFactory';
 
@@ -153,7 +153,7 @@ export class ShapeFactory {
       designation: `M${diameter}`,
       type: ProfileType.FASTENER,
       dimensions: { diameter, length }
-    } as unknown, length);
+    } as ProfileDimensions, length);
   }
   
   /**
@@ -165,7 +165,7 @@ export class ShapeFactory {
       designation: type.toUpperCase(),
       type: ProfileType.WELD,
       dimensions: { thickness: size, length }
-    } as unknown, length);
+    } as ProfileDimensions, length);
   }
 }
 

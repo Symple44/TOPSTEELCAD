@@ -91,11 +91,16 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
     const bounds = new THREE.Box3();
     
     allElements.forEach(element => {
+      // Vérifier que l'élément a des dimensions et une position
+      if (!element.dimensions || !element.position) {
+        return;
+      }
+      
       const pos = new THREE.Vector3(element.position[0], element.position[1], element.position[2]);
       const size = new THREE.Vector3(
-        element.dimensions.length || element.dimensions.width, 
-        element.dimensions.height || element.dimensions.thickness,
-        element.dimensions.width || element.dimensions.length
+        element.dimensions.length || element.dimensions.width || 100, 
+        element.dimensions.height || element.dimensions.thickness || 100,
+        element.dimensions.width || element.dimensions.length || 100
       );
       
       bounds.expandByPoint(pos.clone().sub(size.clone().multiplyScalar(0.5)));
@@ -187,9 +192,9 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           });
           
           if (canvasRef.current) {
-            (canvasRef.current as unknown).__renderer = engineRef.current.getRenderer();
-            (canvasRef.current as unknown).__scene = engineRef.current.getScene();
-            (canvasRef.current as unknown).__camera = engineRef.current.getCamera();
+            (canvasRef.current as any).__renderer = engineRef.current.getRenderer();
+            (canvasRef.current as any).__scene = engineRef.current.getScene();
+            (canvasRef.current as any).__camera = engineRef.current.getCamera();
           }
           
           if (containerRef.current && canvasRef.current) {
@@ -231,7 +236,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             
             // Axes
             const axesHelper = new THREE.AxesHelper(1500);
-            const axesMaterials = (axesHelper as unknown).material as THREE.LineBasicMaterial[];
+            const axesMaterials = (axesHelper as any).material as THREE.LineBasicMaterial[];
             if (axesMaterials && axesMaterials.length >= 3) {
               axesMaterials[0].color = new THREE.Color('#dc2626');
               axesMaterials[1].color = new THREE.Color('#16a34a');
