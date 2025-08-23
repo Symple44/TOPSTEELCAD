@@ -6,7 +6,9 @@ import * as THREE from 'three';
 import { Evaluator, Brush, SUBTRACTION, INTERSECTION } from 'three-bvh-csg';
 import {Feature, 
   IFeatureProcessor, 
-  ProcessorResult, ProfileFace} from '../types';
+  ProcessorResult, 
+  ProfileFace,
+  CoordinateSystem} from '../types';
 import { PivotElement } from '@/types/viewer';
 
 export class ContourProcessor implements IFeatureProcessor {
@@ -29,7 +31,7 @@ export class ContourProcessor implements IFeatureProcessor {
     
     try {
       // Pour les contours DSTV de type "outer", vérifier s'ils doivent être appliqués
-      if (feature.coordinateSystem === 'DSTV' && feature.parameters.contourType === 'outer') {
+      if (feature.coordinateSystem === CoordinateSystem.DSTV && feature.parameters.contourType === 'outer') {
         // Vérifier si le contour représente une découpe
         const isActuallyCut = this.isContourACut(feature, element);
         
@@ -65,8 +67,42 @@ export class ContourProcessor implements IFeatureProcessor {
       console.log(`  - Effective depth: ${effectiveDepth}mm`);
       console.log(`  - Creating contour geometry with ${feature.parameters.points!.length} points...`);
       
+      // Pour les contours DSTV, normaliser les points autour de l'origine
+      let normalizedPoints = feature.parameters.points! as Array<[number, number]>;
+      let contourCenterOffset = { x: 0, y: 0 };
+      
+      if (feature.coordinateSystem === CoordinateSystem.DSTV) {
+        // Pour les contours DSTV, les points sont en coordonnées absolues le long du profil
+        // Il faut les transformer en coordonnées relatives centrées pour le CSG
+        
+        // Trouver les dimensions du contour
+        const minX = Math.min(...normalizedPoints.map(p => p[0]));
+        const maxX = Math.max(...normalizedPoints.map(p => p[0]));
+        const minY = Math.min(...normalizedPoints.map(p => p[1]));
+        const maxY = Math.max(...normalizedPoints.map(p => p[1]));
+        
+        console.log(`  - DSTV contour bounds: X[${minX} to ${maxX}], Y[${minY} to ${maxY}]`);
+        console.log(`  - Contour size: ${maxX - minX} x ${maxY - minY}`);
+        
+        // CORRECTION MAJEURE: Ne pas centrer automatiquement les contours DSTV
+        // Les coordonnées sont déjà converties correctement dans DSTVNormalizationStage
+        // Centrer peut créer des décalages incorrects
+        
+        // Garder les points normalisés tels qu'ils sont
+        // normalizedPoints reste inchangé
+        
+        // Stocker les dimensions du contour pour le debug
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        contourCenterOffset = { x: centerX, y: centerY };
+        
+        console.log(`  - Contour center: [${centerX}, ${centerY}]`);
+        console.log(`  - First normalized point: [${normalizedPoints[0][0]}, ${normalizedPoints[0][1]}]`);
+        console.log(`  - Feature position for CSG:`, feature.position);
+      }
+      
       const contourGeometry = this.createContourGeometry(
-        feature.parameters.points! as Array<[number, number]>,
+        normalizedPoints,
         feature.parameters.closed ?? true,
         Array.isArray(feature.parameters.bulge) ? feature.parameters.bulge : undefined,
         effectiveDepth
@@ -85,34 +121,34 @@ export class ContourProcessor implements IFeatureProcessor {
       // Positionner le contour normalement
       const contourBrush = new Brush(contourGeometry);
       
-      // Pour les contours DSTV, aligner selon la face
-      if (feature.coordinateSystem === 'DSTV' && feature.parameters.contourType === 'outer') {
-        const face = feature.parameters.face || 'front';
+      // CORRECTION CRITIQUE: Vérifier la validité de feature.position
+      // Si la position semble incorrecte (distance > 500mm du centre), recalculer
+      const distanceFromCenter = feature.position.length();
+      
+      if (distanceFromCenter > 500) {
+        console.warn(`⚠️ feature.position seems incorrect (distance: ${distanceFromCenter.toFixed(2)}mm), attempting correction`);
         
-        // Le profil I est centré sur Y=0, Z=0 et s'étend de X=-longueur/2 à X=+longueur/2
-        // Les contours DSTV commencent à X=0, donc on doit les décaler
-        const profileLength = element.dimensions.length || 1912.15;
+        // Recalculer une position plus logique pour le contour
+        const face = feature.parameters.face;
+        const correctedPosition = new THREE.Vector3(0, 0, 0);
         
-        // Décaler le contour pour aligner avec le profil
-        // Les contours DSTV commencent à X=0, le profil est centré
-        contourBrush.position.set(-profileLength/2, 0, 0);
-        
-        // Ajuster selon la face
-        if (face === ProfileFace.TOP || face === ProfileFace.BOTTOM) {
-          // Pour les faces top/bottom, ajuster en Z
-          const zOffset = face === ProfileFace.TOP 
-            ? (element.dimensions.height || 251.4) / 2 
-            : -(element.dimensions.height || 251.4) / 2;
-          contourBrush.position.z = zOffset;
-        } else if (face === ProfileFace.WEB) {
-          // L'âme est déjà centrée
-          contourBrush.position.y = 0;
+        // Positionner selon la face
+        const faceStr = face?.toString()?.toLowerCase();
+        if (face === ProfileFace.TOP || faceStr === 'top' || faceStr === 'v') {
+          correctedPosition.y = (element.dimensions.height || 0) / 2;
+        } else if (face === ProfileFace.BOTTOM || faceStr === 'bottom' || faceStr === 'u') {
+          correctedPosition.y = -(element.dimensions.height || 0) / 2;
+        } else if (face === ProfileFace.WEB || faceStr === 'web' || faceStr === 'o') {
+          correctedPosition.x = 0; // Au centre de l'âme
         }
         
-        console.log(`  - DSTV outer contour positioned for face ${face} at`, contourBrush.position);
+        contourBrush.position.copy(correctedPosition);
+        console.log(`  - Using corrected position:`, contourBrush.position);
       } else {
         contourBrush.position.copy(feature.position);
+        console.log(`  - Using original feature.position:`, contourBrush.position);
       }
+      console.log(`  - Contour positioned using feature.position:`, contourBrush.position);
       
       contourBrush.rotation.copy(feature.rotation);
       contourBrush.updateMatrixWorld();
@@ -126,16 +162,78 @@ export class ContourProcessor implements IFeatureProcessor {
       // Pour les contours DSTV qui représentent des découpes, utiliser SUBTRACTION
       // Les contours qui ont été détectés comme des découpes (isContourACut = true) 
       // doivent être soustraits de la géométrie de base
-      const isActuallyCut = feature.coordinateSystem === 'DSTV' && 
+      const isActuallyCut = feature.coordinateSystem === CoordinateSystem.DSTV && 
                             feature.parameters.contourType === 'outer' && 
                             this.isContourACut(feature, element);
       
       const operation = isActuallyCut ? 'SUBTRACTION' : 
-                       (feature.coordinateSystem === 'DSTV' && feature.parameters.contourType === 'outer') 
+                       (feature.coordinateSystem === CoordinateSystem.DSTV && feature.parameters.contourType === 'outer') 
                        ? 'INTERSECTION' 
                        : 'SUBTRACTION';
       
       console.log(`  - Performing CSG ${operation}...`);
+      
+      // Debug CSG - logs détaillés pour comprendre le problème
+      console.log(`🔍 CSG Debug before operation:`);
+      console.log(`  - Base geometry vertices: ${geometry.attributes.position.count}`);
+      console.log(`  - Base geometry boundingBox:`, geometry.boundingBox);
+      console.log(`  - Contour geometry vertices: ${contourGeometry.attributes.position.count}`);
+      console.log(`  - Contour geometry boundingBox:`, contourGeometry.boundingBox);
+      console.log(`  - Base brush position:`, baseBrush.position);
+      console.log(`  - Contour brush position:`, contourBrush.position);
+      console.log(`  - Distance between brushes:`, baseBrush.position.distanceTo(contourBrush.position));
+      
+      // Vérifier si les géométries se chevauchent
+      // CORRECTION: Forcer le calcul des bounding boxes si nécessaires
+      if (!geometry.boundingBox) {
+        geometry.computeBoundingBox();
+      }
+      if (!contourGeometry.boundingBox) {
+        contourGeometry.computeBoundingBox();
+      }
+      
+      const baseBox = geometry.boundingBox?.clone();
+      const contourBox = contourGeometry.boundingBox?.clone();
+      if (baseBox && contourBox) {
+        // Translater les boundingBoxes selon les positions des brushes
+        baseBox.translate(baseBrush.position);
+        contourBox.translate(contourBrush.position);
+        console.log(`  - Base box after translation:`, baseBox);
+        console.log(`  - Contour box after translation:`, contourBox);
+        const intersects = baseBox.intersectsBox(contourBox);
+        console.log(`  - Boxes intersect:`, intersects);
+        
+        // CORRECTION CRITIQUE: Si pas d'intersection, ajuster la position du contour
+        if (!intersects) {
+          console.warn(`⚠️ No intersection detected between base and contour geometries!`);
+          console.log(`  - Attempting position correction...`);
+          
+          // Repositionner le contour au centre de la géométrie de base
+          const baseCenter = baseBox.getCenter(new THREE.Vector3());
+          contourBrush.position.copy(baseCenter);
+          
+          // Ajuster uniquement la position Z selon la face
+          const face = feature.parameters.face;
+          const faceStr = face?.toString()?.toLowerCase();
+          if (face === ProfileFace.TOP || faceStr === 'top' || faceStr === 'v') {
+            contourBrush.position.y = (element.dimensions.height || 0) / 2;
+          } else if (face === ProfileFace.BOTTOM || faceStr === 'bottom' || faceStr === 'u') {
+            contourBrush.position.y = -(element.dimensions.height || 0) / 2;
+          }
+          
+          contourBrush.updateMatrixWorld();
+          console.log(`  - Corrected contour position:`, contourBrush.position);
+          
+          // Vérifier à nouveau l'intersection
+          const correctedBox = contourGeometry.boundingBox?.clone();
+          if (correctedBox) {
+            correctedBox.translate(contourBrush.position);
+            const newIntersects = baseBox.intersectsBox(correctedBox);
+            console.log(`  - After correction, boxes intersect:`, newIntersects);
+          }
+        }
+      }
+      
       const resultBrush = this.evaluator.evaluate(
         baseBrush, 
         contourBrush, 
@@ -366,31 +464,55 @@ export class ContourProcessor implements IFeatureProcessor {
     const profileWidth = element.dimensions.width || 146.1;
     const profileHeight = element.dimensions.height || 251.4;
     
+    console.log(`🔍 isContourACut analysis:`);
+    console.log(`  - Contour bounds: X[${minX} to ${maxX}], Y[${minY} to ${maxY}]`);
+    console.log(`  - Contour size: ${contourWidth} x ${contourHeight}`);
+    console.log(`  - Profile dimensions: ${profileLength} x ${profileWidth} x ${profileHeight}`);
+    
     // Tolérance de 1mm pour les comparaisons
     const tolerance = 1;
     
-    // Si le contour est significativement plus petit que le profil, c'est une découpe
+    // Tests plus précis pour détecter les contours partiels
     const face = feature.parameters.face || ProfileFace.WEB;
     
     if (face === ProfileFace.WEB) {
-      // Pour l'âme, comparer avec longueur x hauteur
+      // Pour l'âme, vérifier si le contour couvre la totalité
       const isFullLength = Math.abs(contourWidth - profileLength) < tolerance;
       const isFullHeight = Math.abs(contourHeight - profileHeight) < tolerance;
-      return !(isFullLength && isFullHeight);
-    } else if (face === ProfileFace.TOP || face === ProfileFace.BOTTOM || face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE) {
-      // Pour les ailes, comparer avec longueur x largeur
+      const startsAtZero = Math.abs(minX) < tolerance;
+      const endsAtLength = Math.abs(maxX - profileLength) < tolerance;
+      
+      console.log(`  - Web analysis: fullLength=${isFullLength}, fullHeight=${isFullHeight}, startsAtZero=${startsAtZero}, endsAtLength=${endsAtLength}`);
+      
+      // Si le contour ne commence pas à 0 OU ne finit pas à la longueur totale OU n'a pas les bonnes dimensions, c'est une découpe
+      const isCut = !startsAtZero || !endsAtLength || !isFullLength || !isFullHeight;
+      console.log(`  - Web result: ${isCut ? 'CUT' : 'FULL PROFILE'}`);
+      return isCut;
+      
+    } else if (face === ProfileFace.TOP || face === ProfileFace.BOTTOM || 
+               face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE) {
+      // Pour les semelles, vérifier position et dimensions
       const isFullLength = Math.abs(contourWidth - profileLength) < tolerance;
       const isFullWidth = Math.abs(contourHeight - profileWidth) < tolerance;
-      return !(isFullLength && isFullWidth);
+      const startsAtZero = Math.abs(minX) < tolerance;
+      const endsAtLength = Math.abs(maxX - profileLength) < tolerance;
+      
+      console.log(`  - Flange analysis: fullLength=${isFullLength}, fullWidth=${isFullWidth}, startsAtZero=${startsAtZero}, endsAtLength=${endsAtLength}`);
+      
+      // Si le contour ne commence pas à 0 OU ne finit pas à la longueur totale OU n'a pas les bonnes dimensions, c'est une découpe
+      const isCut = !startsAtZero || !endsAtLength || !isFullLength || !isFullWidth;
+      console.log(`  - Flange result: ${isCut ? 'CUT' : 'FULL PROFILE'}`);
+      return isCut;
     }
     
     // Par défaut, considérer comme une découpe si différent des dimensions complètes
+    console.log(`  - Default result: CUT`);
     return true;
   }
 
   private calculateEffectiveDepth(feature: Feature, element: PivotElement): number {
     // Si c'est un contour DSTV avec une profondeur spécifiée, l'utiliser
-    if (feature.coordinateSystem === 'DSTV' && feature.parameters.depth) {
+    if (feature.coordinateSystem === CoordinateSystem.DSTV && feature.parameters.depth) {
       const specifiedDepth = feature.parameters.depth;
       
       // Limiter la profondeur à des valeurs raisonnables (max 50mm pour les contours DSTV)
@@ -399,27 +521,28 @@ export class ContourProcessor implements IFeatureProcessor {
         return 50;
       }
       
-      return specifiedDepth;
+      return Math.max(specifiedDepth, 5); // Minimum 5mm pour assurer la coupe
     }
     
     // Pour les autres contours, utiliser l'épaisseur de l'élément
     const face = feature.parameters.face || 'front';
     const elementDims = element.dimensions;
     
+    // CORRECTION: Utiliser des profondeurs plus importantes pour assurer la coupe CSG
     // Calculer la profondeur selon la face et le type d'élément
-    switch (face) {
-      case 'top':
-      case 'bottom':
-        // Pour les semelles d'une poutre I, utiliser l'épaisseur de semelle si disponible
-        return Math.min(elementDims.flangeThickness || elementDims.thickness || 10, 15);
-        
-      case 'web':
-        // Pour l'âme d'une poutre I, utiliser l'épaisseur d'âme si disponible
-        return Math.min(elementDims.webThickness || elementDims.thickness || 8, 12);
-        
-      default:
-        // Face avant/arrière : profondeur minimale
-        return Math.min(elementDims.thickness || 10, 10);
+    const faceStr = face?.toString()?.toLowerCase();
+    
+    if (face === ProfileFace.TOP || face === ProfileFace.BOTTOM || faceStr === 'top' || faceStr === 'bottom' || faceStr === 'v' || faceStr === 'u') {
+      // Pour les semelles, utiliser l'épaisseur de semelle + marge de sécurité
+      const flangeThickness = elementDims.flangeThickness || elementDims.thickness || 10;
+      return Math.max(flangeThickness * 1.5, 15); // Minimum 15mm
+    } else if (face === ProfileFace.WEB || faceStr === 'web' || faceStr === 'o') {
+      // Pour l'âme, utiliser l'épaisseur d'âme + marge de sécurité  
+      const webThickness = elementDims.webThickness || elementDims.thickness || 8;
+      return Math.max(webThickness * 1.5, 12); // Minimum 12mm
+    } else {
+      // Face avant/arrière : profondeur suffisante pour traverser
+      return Math.max(elementDims.thickness || 10, 20); // Minimum 20mm
     }
   }
 
