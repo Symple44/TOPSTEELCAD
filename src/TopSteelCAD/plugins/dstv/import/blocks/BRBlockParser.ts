@@ -5,10 +5,10 @@
 
 import { BaseBlockParser } from './BaseBlockParser';
 import { DSTVToken } from '../stages/DSTVLexicalStage';
-import { ProfileFace } from '../../../../core/features/types';
+import { StandardFace } from '../../../../core/coordinates/types';
 
 export interface BRBlockData {
-  face?: ProfileFace | undefined;
+  face?: StandardFace | undefined;
   x: number;
   y: number;
   z?: number;
@@ -28,7 +28,7 @@ export class BRBlockParser extends BaseBlockParser<BRBlockData> {
     const numbers = this.getNextNumbers(5);
     
     return {
-      face: this.mapFaceIndicator(faceStr) || ProfileFace.WEB,
+      face: this.mapFaceIndicator(faceStr) || StandardFace.WEB,
       x: numbers[0] || 0,
       y: numbers[1] || 0,
       z: numbers[2],
@@ -63,14 +63,14 @@ export class BRBlockParser extends BaseBlockParser<BRBlockData> {
   /**
    * Mappe un indicateur de face
    */
-  private mapFaceIndicator(indicator: string | null): ProfileFace | undefined {
+  private mapFaceIndicator(indicator: string | null): StandardFace | undefined {
     if (!indicator) return undefined;
     
-    const mapping: Record<string, ProfileFace> = {
-      'v': ProfileFace.WEB,              // Vertical = Âme/web
-      'o': ProfileFace.TOP_FLANGE,       // Over = Face supérieure/dessus
-      'u': ProfileFace.BOTTOM_FLANGE,    // Under = Face inférieure/dessous
-      'h': ProfileFace.WEB               // Face avant -> Web par défaut
+    const mapping: Record<string, StandardFace> = {
+      'v': StandardFace.WEB,              // Vertical = Âme/web
+      'o': StandardFace.TOP_FLANGE,       // Over = Face supérieure/dessus
+      'u': StandardFace.BOTTOM_FLANGE,    // Under = Face inférieure/dessous
+      'h': StandardFace.WEB               // Face avant -> Web par défaut
     };
     return mapping[indicator.toLowerCase()] || undefined;
   }

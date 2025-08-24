@@ -6,7 +6,7 @@
  */
 
 import { BaseStage } from '../../../../core/pipeline/BaseStage';
-import { ProfileFace } from '../../../../core/features/types';
+import { StandardFace } from '../../../../core/coordinates/types';
 
 /**
  * Types de découpes SC
@@ -25,7 +25,7 @@ export interface SCBlockData {
   radius?: number;           // Rayon des coins arrondis (optionnel)
   cutType?: CutType;         // Type de découpe
   depth?: number;            // Profondeur de découpe (optionnel)
-  face?: ProfileFace | undefined;             // Face d'application (optionnel)
+  face?: StandardFace | undefined;             // Face d'application (optionnel)
   workPlane?: string;        // Plan de travail (E0-E9, optionnel)
   toolNumber?: number;       // Numéro d'outil (optionnel)
   feedRate?: number;         // Vitesse d'avance (optionnel)

@@ -6,7 +6,7 @@
  */
 
 import { BaseStage } from '../../../../core/pipeline/BaseStage';
-import { ProfileFace } from '../../../../core/features/types';
+import { StandardFace } from '../../../../core/coordinates/types';
 
 /**
  * Point 2D pour contours internes
@@ -27,7 +27,7 @@ export type InternalContourType = 'rectangular' | 'circular' | 'oval' | 'irregul
 export interface IKBlockData {
   points: Point2D[];                    // Points du contour intérieur
   contourType: InternalContourType;     // Type de contour détecté
-  face?: ProfileFace | undefined;                        // Face d'application
+  face?: StandardFace | undefined;                        // Face d'application
   depth?: number;                       // Profondeur de la découpe
   isTransverse?: boolean;               // Découpe traversante
   closed?: boolean;                     // Contour fermé
@@ -52,7 +52,7 @@ export class IKBlockParser extends BaseStage<string[], IKBlockData> {
     this.log(undefined as any, 'debug', `Parsing IK block with ${input.length} fields`);
 
     const points: Point2D[] = [];
-    let face: ProfileFace | undefined = undefined;
+    let face: StandardFace | undefined = undefined;
     let depth = 10; // Profondeur par défaut pour contours internes
 
     // Détecter le format et parser
@@ -107,9 +107,9 @@ export class IKBlockParser extends BaseStage<string[], IKBlockData> {
   /**
    * Parse le format legacy avec indicateurs de face
    */
-  private parseLegacyFormat(input: string[]): { points: Point2D[]; face: ProfileFace | undefined; depth: number } {
+  private parseLegacyFormat(input: string[]): { points: Point2D[]; face: StandardFace | undefined; depth: number } {
     const points: Point2D[] = [];
-    let face: ProfileFace | undefined = undefined;
+    let face: StandardFace | undefined = undefined;
     let depth = 10;
 
     for (const field of input) {
@@ -165,12 +165,12 @@ export class IKBlockParser extends BaseStage<string[], IKBlockData> {
   /**
    * Mappe un indicateur de face
    */
-  private mapFaceIndicator(indicator: string): ProfileFace | undefined {
-    const mapping: Record<string, ProfileFace> = {
-      'v': ProfileFace.TOP_FLANGE,
-      'u': ProfileFace.BOTTOM_FLANGE,
-      'o': ProfileFace.WEB,
-      'h': ProfileFace.WEB
+  private mapFaceIndicator(indicator: string): StandardFace | undefined {
+    const mapping: Record<string, StandardFace> = {
+      'v': StandardFace.TOP_FLANGE,
+      'u': StandardFace.BOTTOM_FLANGE,
+      'o': StandardFace.WEB,
+      'h': StandardFace.WEB
     };
     return mapping[indicator] || undefined;
   }

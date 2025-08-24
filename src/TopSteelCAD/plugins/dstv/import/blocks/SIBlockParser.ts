@@ -6,7 +6,7 @@
  */
 
 import { BaseStage } from '../../../../core/pipeline/BaseStage';
-import { ProfileFace } from '../../../../core/features/types';
+import { StandardFace } from '../../../../core/coordinates/types';
 
 /**
  * Structure des données d'un marquage SI
@@ -18,7 +18,7 @@ export interface SIBlockData {
   height?: number;           // Hauteur du texte (optionnel)
   angle?: number;            // Angle de rotation (optionnel)
   depth?: number;            // Profondeur de marquage (optionnel)
-  face?: ProfileFace | undefined;             // Face d'application (optionnel)
+  face?: StandardFace | undefined;             // Face d'application (optionnel)
   workPlane?: string;        // Plan de travail (E0-E9, optionnel)
   font?: string;             // Police de caractères (optionnel)
   markingMethod?: 'engrave' | 'stamp' | 'laser' | 'paint'; // Méthode de marquage

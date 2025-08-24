@@ -9,7 +9,8 @@ import { BaseStage } from '../../../../core/pipeline/BaseStage';
 import { ProcessingContext } from '../../../../core/pipeline/ProcessingContext';
 import { DSTVValidatedData, DSTVNormalizedData } from '../DSTVImportPipeline';
 import { DSTVParsedBlock, DSTVBlockType } from './DSTVSyntaxStage';
-import { ProfileFace } from '../../../../core/features/types';
+import { StandardFace } from '../../../../core/coordinates/types';
+import { PositionService } from '../../../../core/services/PositionService';
 
 /**
  * Types de features normalisées
@@ -55,7 +56,7 @@ export interface NormalizedFeature {
     processingOrder?: number;
     applyOnly?: boolean;  // Si true, la feature est appliquée à la géométrie mais pas créée comme élément séparé
     originalDSTVCoords?: { x: number; y: number; z?: number };  // Coordonnées DSTV originales pour débogage
-    face?: ProfileFace | undefined;  // Face sur laquelle la feature est appliquée
+    face?: StandardFace | undefined;  // Face sur laquelle la feature est appliquée
     [key: string]: any;  // Permettre d'autres propriétés metadata
   };
   geometry?: {
@@ -115,6 +116,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   private featureCounter = 0;
   private currentProfileDimensions: { length: number; height: number; width: number } | null = null;
   private profileDimensions: { length?: number; height?: number; width?: number } | null = null;
+  private positionService: PositionService;
 
   constructor(config: any = {}) {
     super(config);
@@ -127,6 +129,8 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       generateGeometryInfo: config.generateGeometryInfo !== false,
       ...config.normalization
     };
+    
+    this.positionService = PositionService.getInstance();
   }
 
   /**
@@ -337,12 +341,24 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       width: 146.1
     };
     
-    // Convertir les coordonnées DSTV vers standard
-    const standardCoords = this.convertDSTVToStandardCoordinates(
+    // Utiliser le nouveau système de coordonnées
+    const positionContext = {
+      profileType: 'I_PROFILE',
+      dimensions: dims,
+      face: data.face || 'web'
+    };
+    
+    const standardPosition = this.positionService.convertPosition(
       { x: data.x, y: data.y, z: data.z || 0 },
-      data.face || 'web',
-      dims
+      'dstv',
+      positionContext
     );
+    
+    const standardCoords = {
+      x: standardPosition.position.x,
+      y: standardPosition.position.y,
+      z: standardPosition.position.z
+    };
     
     return {
       id: this.generateFeatureId('thread'),
@@ -358,7 +374,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       metadata: {
         originalBlock: block.type,
         workPlane: data.plane || 'E0',
-        face: data.face || 'web',
+        face: this.positionService.convertFace(data.face || 'web', 'dstv', positionContext),
         originalDSTVCoords: { x: data.x, y: data.y, z: data.z || 0 },
         processingOrder: this.getBlockProcessingPriority(block.type)
       }
@@ -443,6 +459,13 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       width: 146.1
     };
     
+    // Créer le contexte pour la conversion de face
+    const positionContext = {
+      profileType: 'I_PROFILE',
+      dimensions: dims,
+      face: data.face || 'web'
+    };
+    
     return {
       id: this.generateFeatureId('unrestricted_contour'),
       type: NormalizedFeatureType.UNRESTRICTED_CONTOUR,
@@ -458,7 +481,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       metadata: {
         originalBlock: block.type,
         workPlane: data.plane || 'E0',
-        face: data.face || 'web',
+        face: this.positionService.convertFace(data.face || 'web', 'dstv', positionContext),
         processingOrder: this.getBlockProcessingPriority(block.type)
       }
     };
@@ -482,12 +505,24 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       const features: NormalizedFeature[] = [];
       
       for (const hole of data.holes) {
-        // Convertir les coordonnées DSTV vers standard
-        const standardCoords = this.convertDSTVToStandardCoordinates(
+        // Utiliser le nouveau système de coordonnées
+        const positionContext = {
+          profileType: 'I_PROFILE',
+          dimensions: dims,
+          face: hole.face || 'web'
+        };
+        
+        const standardPosition = this.positionService.convertPosition(
           { x: hole.x, y: hole.y, z: hole.z || 0 },
-          hole.face || 'web',
-          dims
+          'dstv',
+          positionContext
         );
+        
+        const standardCoords = {
+          x: standardPosition.position.x,
+          y: standardPosition.position.y,
+          z: standardPosition.position.z
+        };
         
         const feature: NormalizedFeature = {
           id: this.generateFeatureId('hole'),
@@ -530,11 +565,23 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     } 
     
     // Ancien format avec un seul trou (pour compatibilité)
-    const standardCoords = this.convertDSTVToStandardCoordinates(
+    const positionContext = {
+      profileType: 'I_PROFILE',
+      dimensions: dims,
+      face: data.face || 'web'
+    };
+    
+    const standardPosition = this.positionService.convertPosition(
       { x: data.x, y: data.y, z: data.z || 0 },
-      data.face || 'web',
-      dims
+      'dstv',
+      positionContext
     );
+    
+    const standardCoords = {
+      x: standardPosition.position.x,
+      y: standardPosition.position.y,
+      z: standardPosition.position.z
+    };
     
     const feature: NormalizedFeature = {
       id: this.generateFeatureId('hole'),
@@ -587,10 +634,37 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       console.log(`  🔧 AK block detected as notches at extremities`);
       
       // Créer une feature de type NOTCH au lieu de CONTOUR
+      // Calculer les dimensions pour la conversion de coordonnées
+      const dims = this.currentProfileDimensions || {
+        length: 1912.15,
+        height: 251.4,
+        width: 146.1
+      };
+      
+      // Convertir le centre du contour vers le nouveau système
+      const contourCenter = this.calculateContourCenter(data.points);
+      const positionContext = {
+        profileType: 'I_PROFILE',
+        dimensions: dims,
+        face: data.face || 'web'
+      };
+      
+      const standardPosition = this.positionService.convertPosition(
+        contourCenter,
+        'dstv',
+        positionContext
+      );
+      
+      const standardCoords = {
+        x: standardPosition.position.x,
+        y: standardPosition.position.y,
+        z: standardPosition.position.z
+      };
+      
       const feature: NormalizedFeature = {
         id: this.generateFeatureId('notch'),
         type: NormalizedFeatureType.NOTCH,
-        coordinates: this.calculateContourCenter(data.points),
+        coordinates: standardCoords,
         parameters: {
           // Convertir les points pour le NotchProcessor
           points: data.points ? data.points.map((p: { x: number; y: number }) => {
@@ -600,7 +674,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
           closed: data.closed !== false,
           contourType: 'outer',
           interpolation: 'linear',
-          face: data.face || 'web',
+          face: this.positionService.convertFace(data.face || 'web', 'dstv', positionContext),
           // Informations spécifiques aux notches
           notchType: 'extremity',
           source: 'contour_detection'
@@ -610,7 +684,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
           workPlane: data.plane || 'E0',
           processingOrder: this.getBlockProcessingPriority(block.type),
           applyOnly: true,
-          face: data.face || 'web',
+          face: this.positionService.convertFace(data.face || 'web', 'dstv', positionContext),
           detectedAsNotch: true
         }
       };
@@ -619,10 +693,38 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     }
     
     // Sinon, traiter comme un contour normal
+    // Calculer les dimensions pour la conversion de coordonnées
+    const dims = this.currentProfileDimensions || {
+      length: 1912.15,
+      height: 251.4,
+      width: 146.1
+    };
+    
+    // Pour les contours, utiliser la position X minimale (début du contour)
+    // car le contour doit être positionné à son point de départ, pas au centre
+    const contourPosition = this.getContourPosition(data.points, data.face || 'front');
+    const positionContext = {
+      profileType: 'I_PROFILE',
+      dimensions: dims,
+      face: data.face || 'front'
+    };
+    
+    const standardPosition = this.positionService.convertPosition(
+      contourPosition,
+      'dstv',
+      positionContext
+    );
+    
+    const standardCoords = {
+      x: standardPosition.position.x,
+      y: standardPosition.position.y,
+      z: standardPosition.position.z
+    };
+    
     const feature: NormalizedFeature = {
       id: this.generateFeatureId('contour_outer'),
       type: NormalizedFeatureType.CONTOUR,
-      coordinates: this.calculateContourCenter(data.points),
+      coordinates: standardCoords,
       parameters: {
         // Convertir Point2D[] vers Array<[number, number]> pour le ContourProcessor
         points: data.points ? data.points.map((p: { x: number; y: number }) => {
@@ -682,12 +784,24 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       width: 146.1
     };
     
-    // Convertir les coordonnées DSTV vers standard
-    const standardCoords = this.convertDSTVToStandardCoordinates(
+    // Utiliser le nouveau système de coordonnées
+    const positionContext = {
+      profileType: 'I_PROFILE',
+      dimensions: dims,
+      face: data.face || 'web'
+    };
+    
+    const standardPosition = this.positionService.convertPosition(
       { x: data.x, y: data.y, z: data.z || 0 },
-      data.face || 'web',
-      dims
+      'dstv',
+      positionContext
     );
+    
+    const standardCoords = {
+      x: standardPosition.position.x,
+      y: standardPosition.position.y,
+      z: standardPosition.position.z
+    };
     
     return {
       id: this.generateFeatureId('marking'),
@@ -797,11 +911,23 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       width: 146.1
     };
     
-    const standardCoords = this.convertDSTVToStandardCoordinates(
+    const positionContext = {
+      profileType: 'I_PROFILE',
+      dimensions: dims,
+      face: data.face || 'web'
+    };
+    
+    const standardPosition = this.positionService.convertPosition(
       { x: data.x, y: data.y, z: data.z || 0 },
-      data.face || 'web',
-      dims
+      'dstv',
+      positionContext
     );
+    
+    const standardCoords = {
+      x: standardPosition.position.x,
+      y: standardPosition.position.y,
+      z: standardPosition.position.z
+    };
     
     return {
       id: this.generateFeatureId('bevel'),
@@ -816,7 +942,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       metadata: {
         originalBlock: block.type,
         workPlane: data.plane || 'E0',
-        face: data.face || 'web',
+        face: this.positionService.convertFace(data.face || 'web', 'dstv', positionContext),
         processingOrder: this.getBlockProcessingPriority(block.type)
       }
     };
@@ -1079,98 +1205,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     return materialProperties[steelGrade.toUpperCase()];
   }
 
-  /**
-   * Convertit les coordonnées DSTV vers le système standard THREE.js
-   * DSTV: Origine (0,0) au coin inférieur gauche
-   * THREE.js: Origine au centre de la géométrie
-   */
-  private convertDSTVToStandardCoordinates(
-    dstvCoords: { x: number; y: number; z?: number },
-    face: ProfileFace | undefined,
-    profileDimensions: { length: number; height: number; width: number }
-  ): { x: number; y: number; z: number } {
-    console.log(`🔄 Converting DSTV coordinates to standard:`, {
-      input: dstvCoords,
-      face,
-      dimensions: profileDimensions
-    });
-
-    // IMPORTANT: Correction du mapping des axes
-    // Dans IProfileGenerator, le profil est créé dans le plan XY et extrudé le long de Z
-    // - Profil 2D: plan XY (X=largeur, Y=hauteur) 
-    // - Extrusion: axe Z (longueur du profil)
-    // - Après centerGeometry: Z va de -length/2 à +length/2
-    
-    // DSTV utilise:
-    // - X: position le long du profil (0 à length)
-    // - Y: position sur la face (hauteur ou largeur selon la face)
-    // - Z: profondeur/décalage (rarement utilisé)
-
-    const { length, height, width } = profileDimensions;
-    
-    // DSTV X devient THREE.js Z (position le long du profil)
-    let standardZ = dstvCoords.x - length / 2;  // Centrer sur l'axe Z
-    let standardX = 0;
-    let standardY = 0;
-
-    // Conversion selon la face
-    switch (face?.toLowerCase()) {
-      case 'v':  // Top (semelle supérieure)
-      case 'top':
-        // Sur la semelle supérieure
-        standardY = height / 2;  // Hauteur maximale (haut du profil)
-        if (dstvCoords.y !== undefined) {
-          // Y DSTV représente la position latérale sur la semelle
-          standardX = dstvCoords.y - width / 2;
-        }
-        break;
-
-      case 'u':  // Bottom (semelle inférieure)
-      case 'bottom':
-        // Sur la semelle inférieure
-        standardY = -height / 2;  // Hauteur minimale (bas du profil)
-        if (dstvCoords.y !== undefined) {
-          // Y DSTV représente la position latérale sur la semelle
-          standardX = dstvCoords.y - width / 2;
-        }
-        break;
-
-      case 'o':  // Web (âme)
-      case 'web':
-        // Sur l'âme centrale
-        standardX = 0;  // L'âme est au centre en X
-        if (dstvCoords.y !== undefined) {
-          // Y DSTV représente la hauteur sur l'âme
-          standardY = dstvCoords.y - height / 2;
-        }
-        break;
-
-      case 'h':  // Front (face avant)
-      case 'front':
-        // Face avant (début du profil)
-        standardZ = -length / 2;  // Position au début du profil
-        if (dstvCoords.y !== undefined) {
-          standardY = dstvCoords.y - height / 2;
-        }
-        if (dstvCoords.z !== undefined) {
-          standardX = dstvCoords.z - width / 2;
-        }
-        break;
-
-      default:
-        console.warn(`⚠️ Unknown face indicator: ${face}, using default conversion`);
-        if (dstvCoords.y !== undefined) {
-          standardY = dstvCoords.y - height / 2;
-        }
-        if (dstvCoords.z !== undefined) {
-          standardX = dstvCoords.z - width / 2;
-        }
-    }
-
-    const result = { x: standardX, y: standardY, z: standardZ };
-    console.log(`  → Standard coordinates:`, result);
-    return result;
-  }
+  // Fonction convertDSTVToStandardCoordinates supprimée - utilise maintenant PositionService.convertPosition()
 
   /**
    * Mappe le type de profil vers un type standard
@@ -1395,6 +1430,73 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     return center;
   }
 
+  /**
+   * Obtient la position de référence d'un contour
+   * CORRECTION MAJEURE: Meilleure détection des contours partiels (notches)
+   */
+  private getContourPosition(points: Array<{ x: number; y: number }>, face: string): { x: number; y: number; z: number } {
+    if (points.length === 0) {
+      return { x: 0, y: 0, z: 0 };
+    }
+    
+    // Calculer les dimensions du contour
+    const minX = Math.min(...points.map(p => p.x));
+    const maxX = Math.max(...points.map(p => p.x));
+    const minY = Math.min(...points.map(p => p.y));
+    const maxY = Math.max(...points.map(p => p.y));
+    
+    const profileLength = this.currentProfileDimensions?.length || 1912.15;
+    const contourLength = maxX - minX;
+    
+    // CORRECTION: Meilleure détection des contours partiels
+    // Un contour est partiel (découpe/notch) si :
+    // 1. Il ne commence pas près de 0 ET ne finit pas près de la longueur totale
+    // 2. OU sa longueur est significativement plus courte que le profil
+    const tolerance = 2.0;  // Tolérance augmentée à 2mm
+    const startsNearZero = Math.abs(minX) < tolerance;
+    const endsNearLength = Math.abs(maxX - profileLength) < tolerance;
+    const isFullLength = Math.abs(contourLength - profileLength) < tolerance;
+    
+    const isPartialContour = !isFullLength || (!startsNearZero || !endsNearLength);
+    
+    console.debug(`📐 Contour analysis for face ${face}:`, {
+      bounds: `X[${minX} to ${maxX}], Y[${minY} to ${maxY}]`,
+      contourLength: contourLength,
+      profileLength: profileLength,
+      startsNearZero,
+      endsNearLength,
+      isFullLength,
+      isPartialContour
+    });
+    
+    let position: { x: number; y: number; z: number };
+    
+    if (isPartialContour) {
+      // DÉCOUPE PARTIELLE : Utiliser le centre de la zone découpée
+      position = {
+        x: (minX + maxX) / 2,  // Centre X de la découpe
+        y: (minY + maxY) / 2,  // Centre Y de la découpe  
+        z: 0
+      };
+      console.debug(`  → PARTIAL CONTOUR (cut/notch) position: (${position.x.toFixed(1)}, ${position.y.toFixed(1)})`);
+    } else {
+      // CONTOUR COMPLET : Utiliser le point de départ (bord gauche)
+      const pointsAtMinX = points.filter(p => Math.abs(p.x - minX) < 0.01);
+      const avgY = pointsAtMinX.length > 0 
+        ? pointsAtMinX.reduce((sum, p) => sum + p.y, 0) / pointsAtMinX.length
+        : points[0].y;
+      
+      position = {
+        x: minX,
+        y: avgY,
+        z: 0
+      };
+      console.debug(`  → FULL CONTOUR position: (${position.x.toFixed(1)}, ${position.y.toFixed(1)})`);
+    }
+    
+    return position;
+  }
+
   private calculatePointsBounds(points: Array<{ x: number; y: number }>): { min: { x: number; y: number; z: number }; max: { x: number; y: number; z: number } } {
     if (points.length === 0) {
       return {
@@ -1486,7 +1588,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
    * Détecte si un contour représente des notches aux extrémités
    * Analyse la différence entre la longueur du contour et la longueur du profil
    */
-  private detectNotchesFromContour(points: any[], face?: ProfileFace | undefined): boolean {
+  private detectNotchesFromContour(points: any[], face?: StandardFace | undefined): boolean {
     if (!points || points.length < 3) {
       return false;
     }

@@ -11,17 +11,18 @@ import {
   ProfileFace 
 } from '../types';
 import { PivotElement, MaterialType } from '@/types/viewer';
-import { PositionCalculator } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
+import { StandardFace } from '../../coordinates/types';
 
 export class HoleProcessor implements IFeatureProcessor {
   private evaluator: Evaluator;
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   
   constructor() {
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
   }
   
   process(
@@ -54,7 +55,7 @@ export class HoleProcessor implements IFeatureProcessor {
       console.log(`  - Using standard position: (${featurePos.x}, ${featurePos.y}, ${featurePos.z})`);
       console.log(`  - Face: ${feature.face || feature.parameters?.face || 'default'}`)
       
-      const position3D = this.positionCalculator.calculateFeaturePosition(
+      const position3D = this.positionService.calculateFeaturePosition(
         element,
         featurePos,
         feature.face
@@ -94,16 +95,16 @@ export class HoleProcessor implements IFeatureProcessor {
       
       // Appliquer la position
       holeBrush.position.set(
-        position3D.position[0],
-        position3D.position[1],
-        position3D.position[2]
+        position3D.position.x,
+        position3D.position.y,
+        position3D.position.z
       );
       
       // Appliquer la rotation pour que le trou soit perpendiculaire à la surface
       holeBrush.rotation.set(
-        position3D.rotation[0],
-        position3D.rotation[1],
-        position3D.rotation[2]
+        position3D.rotation.x,
+        position3D.rotation.y,
+        position3D.rotation.z
       );
       
       holeBrush.updateMatrixWorld();
@@ -143,8 +144,9 @@ export class HoleProcessor implements IFeatureProcessor {
         ? feature.position 
         : [feature.position.x, feature.position.y, feature.position.z || 0];
       
+      // Utiliser la position du brush qui est la position réelle du trou dans la géométrie centrée
       resultGeometry.userData.holes.push({
-        position: position3D.position,  // Position 3D transformée pour Three.js
+        position: [holeBrush.position.x, holeBrush.position.y, holeBrush.position.z],  // Position réelle du trou
         originalPosition: originalPosition,  // Position DSTV originale
         diameter: feature.parameters.diameter,
         type: feature.parameters.holeType || 'round',
@@ -217,8 +219,9 @@ export class HoleProcessor implements IFeatureProcessor {
   
   private createHoleGeometry(diameter: number, depth: number, face?: ProfileFace | undefined): THREE.BufferGeometry {
     // Créer un cylindre pour le trou
-    // Ajouter 20% de longueur pour s'assurer de traverser complètement
-    const actualDepth = depth * 1.2;
+    // Ajouter 50% de longueur pour s'assurer de traverser complètement
+    // CORRECTION: Augmenter la profondeur pour assurer la visibilité des trous
+    const actualDepth = depth * 1.5;
     const radius = diameter / 2;
     
     // Augmenter le nombre de segments pour des trous plus ronds
@@ -536,7 +539,7 @@ export class HoleProcessor implements IFeatureProcessor {
       
       // Appliquer tous les trous
       for (const hole of holes) {
-        const position3D = this.positionCalculator.calculateFeaturePosition(
+        const position3D = this.positionService.calculateFeaturePosition(
           element,
           hole.position,
           hole.face
@@ -550,14 +553,14 @@ export class HoleProcessor implements IFeatureProcessor {
         
         const holeBrush = new Brush(holeGeometry);
         holeBrush.position.set(
-          position3D.position[0],
-          position3D.position[1],
-          position3D.position[2]
+          position3D.position.x,
+          position3D.position.y,
+          position3D.position.z
         );
         holeBrush.rotation.set(
-          position3D.rotation[0],
-          position3D.rotation[1],
-          position3D.rotation[2]
+          position3D.rotation.x,
+          position3D.rotation.y,
+          position3D.rotation.z
         );
         holeBrush.updateMatrixWorld();
         

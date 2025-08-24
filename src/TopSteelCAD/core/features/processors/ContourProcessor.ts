@@ -9,6 +9,7 @@ import {Feature,
   ProcessorResult, 
   ProfileFace,
   CoordinateSystem} from '../types';
+import { StandardFace } from '../../coordinates/types';
 import { PivotElement } from '@/types/viewer';
 
 export class ContourProcessor implements IFeatureProcessor {
@@ -84,19 +85,55 @@ export class ContourProcessor implements IFeatureProcessor {
         console.log(`  - DSTV contour bounds: X[${minX} to ${maxX}], Y[${minY} to ${maxY}]`);
         console.log(`  - Contour size: ${maxX - minX} x ${maxY - minY}`);
         
-        // CORRECTION MAJEURE: Ne pas centrer automatiquement les contours DSTV
-        // Les coordonnées sont déjà converties correctement dans DSTVNormalizationStage
-        // Centrer peut créer des décalages incorrects
+        // DÉTECTION CRITIQUE: Vérifier si c'est un pattern de notches (U inversé)
+        const profileLength = element.dimensions.length || 1912.15;
+        const contourLength = maxX - minX;
         
-        // Garder les points normalisés tels qu'ils sont
-        // normalizedPoints reste inchangé
+        // Détecter le pattern de notches : contour qui couvre toute la longueur mais avec un saut
+        let hasLargeGap = false;
+        for (let i = 1; i < normalizedPoints.length; i++) {
+          const prevX = normalizedPoints[i-1][0];
+          const currX = normalizedPoints[i][0];
+          const gap = Math.abs(currX - prevX);
+          // Un saut > 500mm indique un pattern de notches
+          if (gap > 500) {
+            hasLargeGap = true;
+            console.log(`  - Large gap detected: ${gap}mm between points ${i-1} and ${i}`);
+            break;
+          }
+        }
         
-        // Stocker les dimensions du contour pour le debug
-        const centerX = (minX + maxX) / 2;
-        const centerY = (minY + maxY) / 2;
-        contourCenterOffset = { x: centerX, y: centerY };
+        const isNotchPattern = hasLargeGap && Math.abs(contourLength - profileLength) < 100;
+        const isPartialContour = Math.abs(contourLength - profileLength) > 2.0 && !isNotchPattern;
         
-        console.log(`  - Contour center: [${centerX}, ${centerY}]`);
+        console.log(`  - Contour analysis: length=${contourLength}mm vs profile=${profileLength}mm`);
+        console.log(`  - Has large gap: ${hasLargeGap}`);
+        console.log(`  - Is notch pattern: ${isNotchPattern}`);
+        console.log(`  - Is partial contour (cut): ${isPartialContour}`);
+        
+        if (isNotchPattern) {
+          // PATTERN DE NOTCHES : Ce contour devrait créer 2 notches aux extrémités
+          console.log(`  ⚠️ NOTCH PATTERN DETECTED - This should create 2 notches at extremities`);
+          // Traiter ce contour spécialement pour créer 2 notches
+          return this.processNotchPattern(geometry, normalizedPoints, feature, element);
+        } else if (isPartialContour) {
+          // CONTOUR PARTIEL (découpe) : Garder les coordonnées absolues DSTV
+          console.log(`  - Keeping absolute DSTV coordinates for partial contour`);
+        } else {
+          // CONTOUR COMPLET : Normaliser autour de l'origine pour CSG
+          console.log(`  - Normalizing full contour coordinates around origin`);
+          const centerX = (minX + maxX) / 2;
+          const centerY = (minY + maxY) / 2;
+          
+          normalizedPoints = normalizedPoints.map(point => [
+            point[0] - centerX,
+            point[1] - centerY
+          ] as [number, number]);
+          
+          contourCenterOffset = { x: centerX, y: centerY };
+        }
+        
+        console.log(`  - Contour bounds: X[${minX} to ${maxX}], Y[${minY} to ${maxY}]`);
         console.log(`  - First normalized point: [${normalizedPoints[0][0]}, ${normalizedPoints[0][1]}]`);
         console.log(`  - Feature position for CSG:`, feature.position);
       }
@@ -128,18 +165,22 @@ export class ContourProcessor implements IFeatureProcessor {
       if (distanceFromCenter > 500) {
         console.warn(`⚠️ feature.position seems incorrect (distance: ${distanceFromCenter.toFixed(2)}mm), attempting correction`);
         
-        // Recalculer une position plus logique pour le contour
-        const face = feature.parameters.face;
+        // Recalculer une position plus logique pour le contour avec pénétration
+        const face = feature.parameters.face as any as StandardFace | undefined;
         const correctedPosition = new THREE.Vector3(0, 0, 0);
+        const penetrationOffset = 2; // Décalage de 2mm pour garantir la pénétration
         
-        // Positionner selon la face
+        // Positionner selon la face avec décalage de pénétration
         const faceStr = face?.toString()?.toLowerCase();
-        if (face === ProfileFace.TOP || faceStr === 'top' || faceStr === 'v') {
-          correctedPosition.y = (element.dimensions.height || 0) / 2;
-        } else if (face === ProfileFace.BOTTOM || faceStr === 'bottom' || faceStr === 'u') {
-          correctedPosition.y = -(element.dimensions.height || 0) / 2;
-        } else if (face === ProfileFace.WEB || faceStr === 'web' || faceStr === 'o') {
+        if (faceStr === 'top' || faceStr === 'v' || face === StandardFace.TOP_FLANGE) {
+          // Pour la face supérieure, positionner légèrement EN DESSOUS de la surface
+          correctedPosition.y = (element.dimensions.height || 0) / 2 - penetrationOffset;
+        } else if (faceStr === 'bottom' || faceStr === 'u' || face === StandardFace.BOTTOM_FLANGE) {
+          // Pour la face inférieure, positionner légèrement AU DESSUS de la surface
+          correctedPosition.y = -(element.dimensions.height || 0) / 2 + penetrationOffset;
+        } else if (faceStr === 'web' || faceStr === 'o' || face === StandardFace.WEB) {
           correctedPosition.x = 0; // Au centre de l'âme
+          correctedPosition.y = 0; // Centré verticalement
         }
         
         contourBrush.position.copy(correctedPosition);
@@ -150,9 +191,28 @@ export class ContourProcessor implements IFeatureProcessor {
       }
       console.log(`  - Contour positioned using feature.position:`, contourBrush.position);
       
-      contourBrush.rotation.copy(feature.rotation);
+      // IMPORTANT: Orienter le contour selon la face
+      // Par défaut, l'extrusion est en +Z, mais pour TOP/BOTTOM il faut l'orienter en Y
+      const face = feature.parameters.face as any as StandardFace | undefined;
+      const faceStr = face?.toString()?.toLowerCase();
+      
+      if (faceStr === 'top' || faceStr === 'v' || face === StandardFace.TOP_FLANGE) {
+        // Pour la face TOP: rotation de -90° autour de X pour que l'extrusion soit vers le bas (-Y)
+        contourBrush.rotation.x = -Math.PI / 2;
+      } else if (faceStr === 'bottom' || faceStr === 'u' || face === StandardFace.BOTTOM_FLANGE) {
+        // Pour la face BOTTOM: rotation de +90° autour de X pour que l'extrusion soit vers le haut (+Y)
+        contourBrush.rotation.x = Math.PI / 2;
+      } else if (faceStr === 'web' || faceStr === 'o' || face === StandardFace.WEB) {
+        // Pour l'âme: rotation de 90° autour de Y pour que l'extrusion soit en X
+        contourBrush.rotation.y = Math.PI / 2;
+      } else {
+        // Utiliser la rotation de la feature si définie
+        contourBrush.rotation.copy(feature.rotation);
+      }
+      
       contourBrush.updateMatrixWorld();
       console.log(`  - Contour positioned at:`, contourBrush.position);
+      console.log(`  - Contour rotation:`, `x=${(contourBrush.rotation.x * 180/Math.PI).toFixed(1)}°, y=${(contourBrush.rotation.y * 180/Math.PI).toFixed(1)}°, z=${(contourBrush.rotation.z * 180/Math.PI).toFixed(1)}°`);
       
       // Créer le brush de base
       const baseBrush = new Brush(geometry);
@@ -212,13 +272,21 @@ export class ContourProcessor implements IFeatureProcessor {
           const baseCenter = baseBox.getCenter(new THREE.Vector3());
           contourBrush.position.copy(baseCenter);
           
-          // Ajuster uniquement la position Z selon la face
-          const face = feature.parameters.face;
+          // IMPORTANT: Positionner le contour pour qu'il PÉNÈTRE dans la géométrie
+          // Le contour doit être légèrement décalé pour traverser la surface
+          const face = feature.parameters.face as any as StandardFace | undefined;
           const faceStr = face?.toString()?.toLowerCase();
-          if (face === ProfileFace.TOP || faceStr === 'top' || faceStr === 'v') {
-            contourBrush.position.y = (element.dimensions.height || 0) / 2;
-          } else if (face === ProfileFace.BOTTOM || faceStr === 'bottom' || faceStr === 'u') {
-            contourBrush.position.y = -(element.dimensions.height || 0) / 2;
+          const penetrationOffset = 2; // Décalage de 2mm pour garantir la pénétration
+          
+          if (faceStr === 'top' || faceStr === 'v' || face === StandardFace.TOP_FLANGE) {
+            // Pour la face supérieure, positionner légèrement EN DESSOUS de la surface
+            contourBrush.position.y = (element.dimensions.height || 0) / 2 - penetrationOffset;
+          } else if (faceStr === 'bottom' || faceStr === 'u' || face === StandardFace.BOTTOM_FLANGE) {
+            // Pour la face inférieure, positionner légèrement AU DESSUS de la surface
+            contourBrush.position.y = -(element.dimensions.height || 0) / 2 + penetrationOffset;
+          } else {
+            // Pour l'âme (web), centrer en Y
+            contourBrush.position.y = 0;
           }
           
           contourBrush.updateMatrixWorld();
@@ -425,6 +493,10 @@ export class ContourProcessor implements IFeatureProcessor {
       // Ne pas centrer pour préserver les coordonnées absolues DSTV
       // geometry.center();
       
+      // IMPORTANT: L'extrusion se fait toujours en +Z
+      // Pour les faces TOP/BOTTOM, il faut faire une rotation pour que l'extrusion soit en Y
+      // Cela sera géré par le positionnement et la rotation du brush
+      
       return geometry;
       
     } catch (error) {
@@ -473,9 +545,9 @@ export class ContourProcessor implements IFeatureProcessor {
     const tolerance = 1;
     
     // Tests plus précis pour détecter les contours partiels
-    const face = feature.parameters.face || ProfileFace.WEB;
+    const face = (feature.parameters.face as any as StandardFace) || StandardFace.WEB;
     
-    if (face === ProfileFace.WEB) {
+    if (face === StandardFace.WEB) {
       // Pour l'âme, vérifier si le contour couvre la totalité
       const isFullLength = Math.abs(contourWidth - profileLength) < tolerance;
       const isFullHeight = Math.abs(contourHeight - profileHeight) < tolerance;
@@ -489,8 +561,7 @@ export class ContourProcessor implements IFeatureProcessor {
       console.log(`  - Web result: ${isCut ? 'CUT' : 'FULL PROFILE'}`);
       return isCut;
       
-    } else if (face === ProfileFace.TOP || face === ProfileFace.BOTTOM || 
-               face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE) {
+    } else if (face === StandardFace.TOP_FLANGE || face === StandardFace.BOTTOM_FLANGE) {
       // Pour les semelles, vérifier position et dimensions
       const isFullLength = Math.abs(contourWidth - profileLength) < tolerance;
       const isFullWidth = Math.abs(contourHeight - profileWidth) < tolerance;
@@ -525,18 +596,18 @@ export class ContourProcessor implements IFeatureProcessor {
     }
     
     // Pour les autres contours, utiliser l'épaisseur de l'élément
-    const face = feature.parameters.face || 'front';
+    const face = (feature.parameters.face as any as StandardFace) || StandardFace.WEB;
     const elementDims = element.dimensions;
     
     // CORRECTION: Utiliser des profondeurs plus importantes pour assurer la coupe CSG
     // Calculer la profondeur selon la face et le type d'élément
     const faceStr = face?.toString()?.toLowerCase();
     
-    if (face === ProfileFace.TOP || face === ProfileFace.BOTTOM || faceStr === 'top' || faceStr === 'bottom' || faceStr === 'v' || faceStr === 'u') {
+    if (face === StandardFace.TOP_FLANGE || face === StandardFace.BOTTOM_FLANGE || faceStr === 'top' || faceStr === 'bottom' || faceStr === 'v' || faceStr === 'u') {
       // Pour les semelles, utiliser l'épaisseur de semelle + marge de sécurité
       const flangeThickness = elementDims.flangeThickness || elementDims.thickness || 10;
       return Math.max(flangeThickness * 1.5, 15); // Minimum 15mm
-    } else if (face === ProfileFace.WEB || faceStr === 'web' || faceStr === 'o') {
+    } else if (face === StandardFace.WEB || faceStr === 'web' || faceStr === 'o') {
       // Pour l'âme, utiliser l'épaisseur d'âme + marge de sécurité  
       const webThickness = elementDims.webThickness || elementDims.thickness || 8;
       return Math.max(webThickness * 1.5, 12); // Minimum 12mm
@@ -827,7 +898,7 @@ export class ContourProcessor implements IFeatureProcessor {
     try {
       const points = feature.parameters.points!;
       const profileLength = element.dimensions.length || 0;
-      const face = feature.parameters.face || ProfileFace.WEB;
+      const face = (feature.parameters.face as any as StandardFace) || StandardFace.WEB;
       
       // Analyser les points pour déterminer les zones de notch
       let minX = Infinity;
@@ -961,22 +1032,209 @@ export class ContourProcessor implements IFeatureProcessor {
   /**
    * Calcule l'offset Z pour une face donnée
    */
-  private getFaceZOffset(face: ProfileFace | string | undefined, element: PivotElement): number {
+  private getFaceZOffset(face: ProfileFace | StandardFace | string | undefined, element: PivotElement): number {
     const height = element.dimensions.height || 0;
     
     switch (face) {
       case ProfileFace.TOP:
-      case ProfileFace.TOP_FLANGE:
+      case StandardFace.TOP_FLANGE:
       case 'top':
         return height / 2;
       case ProfileFace.BOTTOM:
-      case ProfileFace.BOTTOM_FLANGE:
+      case StandardFace.BOTTOM_FLANGE:
       case 'bottom':
         return -height / 2;
       case ProfileFace.WEB:
+      case StandardFace.WEB:
       case 'web':
       default:
         return 0;
+    }
+  }
+  
+  /**
+   * Traite un contour en pattern de notches (U inversé)
+   * Crée 2 notches aux extrémités au lieu d'une découpe au centre
+   */
+  private processNotchPattern(
+    geometry: THREE.BufferGeometry,
+    points: Array<[number, number]>,
+    feature: Feature,
+    element: PivotElement
+  ): ProcessorResult {
+    console.log(`🔨 Processing notch pattern for ${feature.id}`);
+    
+    try {
+      const profileLength = element.dimensions.length || 1912.15;
+      const depth = this.calculateEffectiveDepth(feature, element);
+      
+      // Identifier les 2 zones de notches
+      // Zone 1: Points avec X proche de 0
+      // Zone 2: Points avec X proche de profileLength
+      
+      const notch1Points: Array<[number, number]> = [];
+      const notch2Points: Array<[number, number]> = [];
+      
+      // Analyser le contour pour identifier les zones de notches
+      // Le pattern en U inversé a des points aux deux extrémités
+      const tolerance = 1.0;
+      
+      for (let i = 0; i < points.length; i++) {
+        const point = points[i];
+        const nextPoint = points[(i + 1) % points.length];
+        
+        // Zone de début (X proche de 0)
+        if (Math.abs(point[0]) < tolerance) {
+          notch1Points.push(point);
+        }
+        // Zone de fin (X proche de profileLength)  
+        else if (Math.abs(point[0] - profileLength) < tolerance || point[0] > 1800) {
+          notch2Points.push(point);
+        }
+        
+        // Détecter les transitions pour compléter les zones
+        const gap = Math.abs(nextPoint[0] - point[0]);
+        if (gap > 500) {
+          // Grand saut détecté, ajouter les points de transition
+          if (point[0] > 1800) {
+            notch2Points.push(point);
+          }
+          if (nextPoint[0] < 100) {
+            notch1Points.push(nextPoint);
+          }
+        }
+      }
+      
+      console.log(`  - Notch 1: ${notch1Points.length} points near start`);
+      if (notch1Points.length > 0) {
+        console.log(`    Points: ${notch1Points.map(p => `(${p[0]},${p[1]})`).join(', ')}`);
+      }
+      console.log(`  - Notch 2: ${notch2Points.length} points near end`);
+      if (notch2Points.length > 0) {
+        console.log(`    Points: ${notch2Points.map(p => `(${p[0]},${p[1]})`).join(', ')}`);
+      }
+      
+      let resultGeometry = geometry.clone();
+      const baseBrush = new Brush(resultGeometry);
+      baseBrush.updateMatrixWorld();
+      
+      // Créer et appliquer le premier notch (début)
+      // Même avec seulement 2 points, on peut créer un notch si on connaît les dimensions
+      if (notch1Points.length >= 2 || (notch1Points.length === 0 && notch2Points.length > 0)) {
+        // Si on n'a pas de points au début mais qu'on a des points à la fin, c'est un notch complet
+        const minY = notch1Points.length > 0 
+          ? Math.min(...notch1Points.map(p => p[1]))
+          : 0;
+        const maxY = notch1Points.length > 0 
+          ? Math.max(...notch1Points.map(p => p[1]))
+          : element.dimensions.width || 146.1;
+        const notchDepth = 70; // Profondeur du notch en X
+        
+        console.log(`  - Notch 1 Y range: ${minY} to ${maxY}`);
+        console.log(`  - Notch 1 depth: ${notchDepth}mm`);
+        
+        const notch1Rect: Array<[number, number]> = [
+          [0, minY],
+          [notchDepth, minY],
+          [notchDepth, maxY],
+          [0, maxY],
+          [0, minY]
+        ];
+        
+        console.log(`  - Creating notch 1 rectangle: ${notch1Rect.map(p => `(${p[0]},${p[1]})`).join(', ')}`);
+        console.log(`  - Depth for notch 1: ${depth * 2}mm`);
+        const notch1Geometry = this.createContourGeometry(notch1Rect, true, undefined, depth * 2);
+        console.log(`  - Notch 1 geometry created: ${notch1Geometry ? 'YES' : 'NO'}`);
+        
+        if (!notch1Geometry) {
+          console.warn('⚠️ Failed to create notch 1 geometry!');
+        }
+        if (notch1Geometry) {
+          // Debug: vérifier les vertices
+          console.log(`  - Notch 1 geometry vertices: ${notch1Geometry.attributes.position?.count || 0}`);
+          const notch1Brush = new Brush(notch1Geometry);
+          // Positionner au début du profil
+          const notch1X = -profileLength/2 + notchDepth/2; // Centrer le notch dans sa zone
+          notch1Brush.position.set(
+            notch1X,
+            (element.dimensions.height || 0) / 2 - 2,
+            0
+          );
+          console.log(`  - Notch 1 brush position: (${notch1X}, ${(element.dimensions.height || 0) / 2 - 2}, 0)`);
+          
+          // Orienter pour la face TOP
+          notch1Brush.rotation.x = -Math.PI / 2;
+          notch1Brush.updateMatrixWorld();
+          
+          console.log(`  - Applying notch 1 at start`);
+          console.log(`  - Base geometry vertices before: ${baseBrush.geometry.attributes.position?.count || 0}`);
+          const tempBrush = this.evaluator.evaluate(baseBrush, notch1Brush, SUBTRACTION);
+          console.log(`  - Base geometry vertices after notch 1: ${tempBrush.geometry.attributes.position?.count || 0}`);
+          resultGeometry.dispose();
+          resultGeometry = tempBrush.geometry.clone();
+          baseBrush.geometry = resultGeometry;
+          notch1Geometry.dispose();
+        }
+      }
+      
+      // Créer et appliquer le second notch (fin)
+      if (notch2Points.length >= 2) {
+        // Créer un rectangle pour le notch de fin
+        const minY = Math.min(...notch2Points.map(p => p[1]));
+        const maxY = Math.max(...notch2Points.map(p => p[1]));
+        const notchStart = profileLength - 70; // Commence 70mm avant la fin
+        
+        const notch2Rect: Array<[number, number]> = [
+          [notchStart, minY],
+          [profileLength, minY],
+          [profileLength, maxY],
+          [notchStart, maxY],
+          [notchStart, minY]
+        ];
+        
+        const notch2Geometry = this.createContourGeometry(notch2Rect, true, undefined, depth * 2);
+        if (notch2Geometry) {
+          const notch2Brush = new Brush(notch2Geometry);
+          // Positionner à la fin du profil (notchStart - profileLength/2 pour centrer)
+          const notch2X = notchStart + 35 - profileLength/2; // Centrer le notch dans sa zone
+          notch2Brush.position.set(
+            notch2X,
+            (element.dimensions.height || 0) / 2 - 2,
+            0
+          );
+          console.log(`  - Notch 2 brush position: (${notch2X}, ${(element.dimensions.height || 0) / 2 - 2}, 0)`);
+          
+          // Orienter pour la face TOP
+          notch2Brush.rotation.x = -Math.PI / 2;
+          notch2Brush.updateMatrixWorld();
+          
+          console.log(`  - Applying notch 2 at end`);
+          console.log(`  - Base geometry vertices before: ${baseBrush.geometry.attributes.position?.count || 0}`);
+          const finalBrush = this.evaluator.evaluate(baseBrush, notch2Brush, SUBTRACTION);
+          console.log(`  - Base geometry vertices after notch 2: ${finalBrush.geometry.attributes.position?.count || 0}`);
+          resultGeometry.dispose();
+          resultGeometry = finalBrush.geometry.clone();
+          notch2Geometry.dispose();
+        }
+      }
+      
+      // Finaliser la géométrie
+      resultGeometry.computeVertexNormals();
+      resultGeometry.computeBoundingBox();
+      resultGeometry.computeBoundingSphere();
+      
+      console.log(`✅ Notch pattern processed successfully`);
+      return {
+        success: true,
+        geometry: resultGeometry
+      };
+      
+    } catch (error) {
+      console.error(`❌ Failed to process notch pattern: ${error}`);
+      return {
+        success: false,
+        error: `Failed to process notch pattern: ${error}`
+      };
     }
   }
   

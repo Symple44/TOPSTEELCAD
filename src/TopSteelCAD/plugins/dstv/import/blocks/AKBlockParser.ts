@@ -6,7 +6,7 @@
  */
 
 import { BaseStage } from '../../../../core/pipeline/BaseStage';
-import { ProfileFace } from '../../../../core/features/types';
+import { StandardFace } from '../../../../core/coordinates/types';
 
 /**
  * Point 2D pour contours
@@ -31,7 +31,7 @@ interface Rectangle {
  */
 export interface AKBlockData {
   points: Point2D[];           // Points du contour extérieur
-  face?: ProfileFace | undefined;               // Face d'application ('v', 'u', 'o', 'h')
+  face?: StandardFace | undefined;               // Face d'application ('v', 'u', 'o', 'h')
   closed?: boolean;            // Indique si le contour est fermé
   workPlane?: string;          // Plan de travail (E0-E9, optionnel)
   cutRegions?: Array<{         // Régions de découpe calculées
@@ -59,7 +59,7 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
     this.log(null as any, 'debug', `Parsing AK block with ${input.length} fields`);
 
     const points: Point2D[] = [];
-    let face: ProfileFace | undefined = undefined; // Face par défaut
+    let face: StandardFace | undefined = undefined; // Face par défaut
 
     // Détecter le format et parser les points
     if (this.isLegacyFaceIndicatorFormat(input)) {
@@ -111,9 +111,9 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
   /**
    * Parse le format legacy avec indicateurs de face
    */
-  private parseLegacyFormat(input: string[]): { points: Point2D[]; face: ProfileFace | undefined } {
+  private parseLegacyFormat(input: string[]): { points: Point2D[]; face: StandardFace | undefined } {
     const points: Point2D[] = [];
-    let face: ProfileFace | undefined = undefined;
+    let face: StandardFace | undefined = undefined;
 
     // Dans le format DSTV, chaque ligne a le format : "indicateur X Y Z"
     // Les champs sont dans l'ordre : [indicateur+X, Y, Z] pour chaque point
@@ -174,12 +174,12 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
   /**
    * Mappe un indicateur de face vers sa signification
    */
-  private mapFaceIndicator(indicator: string): ProfileFace | undefined {
-    const mapping: Record<string, ProfileFace> = {
-      'v': ProfileFace.WEB,              // Vertical = Âme/web
-      'o': ProfileFace.TOP_FLANGE,       // Over = Face supérieure/dessus
-      'u': ProfileFace.BOTTOM_FLANGE,    // Under = Face inférieure/dessous
-      'h': ProfileFace.WEB               // Face avant -> Web par défaut
+  private mapFaceIndicator(indicator: string): StandardFace | undefined {
+    const mapping: Record<string, StandardFace> = {
+      'v': StandardFace.WEB,              // Vertical = Âme/web
+      'o': StandardFace.TOP_FLANGE,       // Over = Face supérieure/dessus
+      'u': StandardFace.BOTTOM_FLANGE,    // Under = Face inférieure/dessous
+      'h': StandardFace.WEB               // Face avant -> Web par défaut
     };
     return mapping[indicator] || undefined;
   }
@@ -232,7 +232,7 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
   private calculateMissingRegions(
     contourPoints: Point2D[],
     profileContext?: any,
-    face: ProfileFace | undefined = undefined
+    face: StandardFace | undefined = undefined
   ): Point2D[][] {
     if (contourPoints.length < 3) return [];
 
@@ -350,7 +350,7 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
    * Obtient les dimensions de référence selon la face
    */
   private getReferenceDimensions(
-    face: ProfileFace | undefined,
+    face: StandardFace | undefined,
     profileContext?: any
   ): { length: number; height: number } {
     if (!profileContext) {
@@ -434,7 +434,7 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
   /**
    * Calcule la profondeur de découpe appropriée selon la face
    */
-  private calculateCutDepth(face: ProfileFace | undefined, profileContext?: any): number {
+  private calculateCutDepth(face: StandardFace | undefined, profileContext?: any): number {
     if (!profileContext) {
       return 12; // Profondeur par défaut raisonnable
     }
