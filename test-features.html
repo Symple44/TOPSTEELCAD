@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sélection Features - TopSteelCAD</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        h1 {
+            color: #f1f5f9;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .instructions h2 {
+            color: #3b82f6;
+            margin-top: 0;
+        }
+        .instructions ul {
+            line-height: 1.8;
+        }
+        .instructions code {
+            background: #334155;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #10b981;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        a.button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        a.button:hover {
+            background: #2563eb;
+        }
+        a.button.secondary {
+            background: #16a34a;
+        }
+        a.button.secondary:hover {
+            background: #15803d;
+        }
+        .feature-highlight {
+            background: #16a34a;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Test du Système de Sélection de Features</h1>
+    
+    <div class="instructions">
+        <h2>Instructions de Test</h2>
+        <p>Le système de sélection de features a été intégré dans TopSteelCAD. Voici comment le tester :</p>
+        
+        <h3>1. Mode Professional Viewer</h3>
+        <ul>
+            <li>Ouvrez le <strong>Professional Viewer</strong> qui inclut la sélection de features</li>
+            <li>Importez un fichier DSTV contenant des features (trous, découpes, etc.)</li>
+        </ul>
+        
+        <h3>2. Activation du Mode Features</h3>
+        <ul>
+            <li>Cliquez sur le bouton <span class="feature-highlight">🎯 Features</span> dans la barre d'outils</li>
+            <li>Ou utilisez le raccourci <code>Shift+F</code> pour basculer le mode</li>
+            <li>Un indicateur vert apparaît dans le panneau de hiérarchie quand le mode est actif</li>
+        </ul>
+        
+        <h3>3. Sélection de Features</h3>
+        <ul>
+            <li><strong>Clic simple</strong> : Sélectionne une seule feature</li>
+            <li><strong>Ctrl+Clic</strong> : Ajoute/retire une feature de la sélection multiple</li>
+            <li><strong>Dans la hiérarchie</strong> : Les features apparaissent sous chaque élément</li>
+            <li>Les features sélectionnées sont <span style="color: #10b981;">vertes</span></li>
+            <li>Les features survolées sont <span style="color: #fbbf24;">jaunes</span></li>
+        </ul>
+        
+        <h3>4. Visualisation</h3>
+        <ul>
+            <li>Les <strong>trous</strong> ont des anneaux verts (entrée) et jaunes (sortie)</li>
+            <li>Les <strong>oblongs</strong> sont affichés en magenta</li>
+            <li>Un axe magenta traverse chaque trou pour montrer la direction</li>
+            <li>Le nombre de features sélectionnées apparaît en bas à droite</li>
+        </ul>
+        
+        <h3>5. Raccourcis Clavier</h3>
+        <ul>
+            <li><code>Shift+F</code> : Active/désactive le mode features</li>
+            <li><code>F</code> : Focus sur la sélection (élément ou features)</li>
+            <li><code>Escape</code> : Effacer la sélection</li>
+            <li><code>H</code> : Afficher/masquer le panneau de hiérarchie</li>
+        </ul>
+    </div>
+    
+    <div class="button-container">
+        <a href="http://localhost:5173/" class="button">Ouvrir TopSteelCAD</a>
+        <a href="http://localhost:5173/src/TopSteelCAD/test/feature-selection-test.html" class="button secondary">Test Interactif</a>
+    </div>
+    
+    <div class="instructions">
+        <h2>Fichiers DSTV de Test</h2>
+        <p>Utilisez les fichiers DSTV suivants pour tester :</p>
+        <ul>
+            <li><code>samples/100_Flachstahl.nc1</code> - Plaque avec trous</li>
+            <li><code>samples/200_Winkel.nc1</code> - Cornière avec features</li>
+            <li><code>samples/300_U-Profil.nc1</code> - Profil U avec découpes</li>
+            <li><code>samples/400_HEB200.nc1</code> - Poutre HEB avec perçages</li>
+        </ul>
+    </div>
+</body>
+</html>

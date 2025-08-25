@@ -40,11 +40,11 @@ export class FaceManager {
   
   // Mapping standard unifié pour DSTV
   private readonly DSTV_FACE_MAPPING: Record<string, StandardFace> = {
-    // Mapping cohérent basé sur l'analyse
-    'v': StandardFace.WEB,           // Vertical = Âme (cohérent avec BOBlockParser)
-    'o': StandardFace.WEB,           // Opposite = Âme aussi (parfois)
-    'u': StandardFace.BOTTOM_FLANGE, // Under = Semelle inférieure
-    'h': StandardFace.FRONT,         // Horizontal = Face avant
+    // Mapping correct selon la norme DSTV pour profils I
+    'v': StandardFace.TOP_FLANGE,    // v = Semelle supérieure (Vorderseite/top)
+    'o': StandardFace.WEB,           // o = Âme (Oben/web) 
+    'u': StandardFace.BOTTOM_FLANGE, // u = Semelle inférieure (Unten/bottom)
+    'h': StandardFace.FRONT,         // h = Face avant (Hinten/front)
     
     // Mappings secondaires pour compatibilité
     'top': StandardFace.TOP_FLANGE,
@@ -69,7 +69,7 @@ export class FaceManager {
     // Faces pour profils en I/H
     this.registerFace('web', {
       id: 'web',
-      aliases: ['o', 'v', 'ame', 'middle', 'vertical'],
+      aliases: ['o', 'ame', 'middle', 'vertical'],  // 'o' pour DSTV, PAS 'v'
       normal: new THREE.Vector3(1, 0, 0),
       origin: 'center',
       depth: 'thickness'
@@ -77,7 +77,7 @@ export class FaceManager {
     
     this.registerFace('top_flange', {
       id: 'top_flange',
-      aliases: ['top', 'semelle_sup', 'upper_flange', 'tf'],
+      aliases: ['v', 'top', 'semelle_sup', 'upper_flange', 'tf'],  // 'v' pour DSTV
       normal: new THREE.Vector3(0, 1, 0),
       origin: 'edge',
       depth: 'thickness'

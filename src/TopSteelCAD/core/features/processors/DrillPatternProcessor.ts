@@ -10,17 +10,17 @@ import {
   ProcessorResult 
 } from '../types';
 import { PivotElement } from '@/types/viewer';
-import { PositionCalculator } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
 
 export class DrillPatternProcessor implements IFeatureProcessor {
   private evaluator: Evaluator;
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   
   constructor() {
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
   }
   
   process(
@@ -91,22 +91,23 @@ export class DrillPatternProcessor implements IFeatureProcessor {
         );
         
         // Calculer la position 3D
-        const position3D = this.positionCalculator.calculateFeaturePosition(
+        const position3D = this.positionService.calculateFeaturePosition(
           element,
           holePos,
-          feature.face
+          feature.face,
+          'dstv'
         );
         
         const holeBrush = new Brush(holeGeometry);
         holeBrush.position.set(
-          position3D.position[0],
-          position3D.position[1],
-          position3D.position[2]
+          position3D.position.x,
+          position3D.position.y,
+          position3D.position.z
         );
         holeBrush.rotation.set(
-          position3D.rotation[0],
-          position3D.rotation[1],
-          position3D.rotation[2]
+          position3D.rotation.x,
+          position3D.rotation.y,
+          position3D.rotation.z
         );
         holeBrush.updateMatrixWorld();
         

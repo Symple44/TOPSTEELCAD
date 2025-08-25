@@ -14,6 +14,9 @@ import { SimpleMeasurementTool } from './tools/SimpleMeasurementTool';
 import { Toolbar } from './components/toolbar';
 import { FileImporter, ImportResult } from './utils/FileImporter';
 import { FileExporter, ExportFormat } from './utils/FileExporter';
+import { SelectionManager } from './selection/SelectionManager';
+import { FeatureOutlineRenderer } from './viewer/FeatureOutlineRenderer';
+import { ViewCube } from './ui/ViewCube';
 
 /**
  * ProfessionalViewer - Mode professionnel basé sur le Standard avec ajouts pro
@@ -44,13 +47,21 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
   const engineRef = useRef<ViewerEngine | null>(null);
   const eventBusRef = useRef<EventBus | null>(null);
   const measurementToolRef = useRef<SimpleMeasurementTool | null>(null);
+  const selectionManagerRef = useRef<SelectionManager | null>(null);
+  const featureRendererRef = useRef<FeatureOutlineRenderer | null>(null);
+  const cameraControllerRef = useRef<any>(null);
   
   // États de base (comme dans Standard)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>(selectedElementIds || []);
+  const [selectedFeatures, setSelectedFeatures] = useState<Array<{elementId: string; featureId: string}>>([]);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [hoveredFeature, setHoveredFeature] = useState<{elementId: string; featureId: string} | null>(null);
   const [isEngineReady, setIsEngineReady] = useState(false);
+  // Feature selection is now always enabled
+  const featureSelectionEnabled = true;
+  const [expandedElements, setExpandedElements] = useState<Set<string>>(new Set());
   const elementsAddedRef = useRef(false);
   
   // État local pour stocker tous les éléments (initiaux + importés)
@@ -175,7 +186,24 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
   useEffect(() => {
     if (canvasRef.current && containerRef.current && !engineRef.current) {
       try {
-        eventBusRef.current = new EventBus();
+        // Utiliser le singleton EventBus pour partager avec ViewerEngine
+        eventBusRef.current = EventBus.getInstance();
+        
+        // Initialiser le SelectionManager et FeatureOutlineRenderer
+        selectionManagerRef.current = new SelectionManager(eventBusRef.current, {
+          mode: 'multiple' as any,
+          highlightColor: '#ff6600',
+          highlightOpacity: 0.3,
+          enableHover: true,
+          hoverColor: '#ffaa00',
+          // Feature selection is now always enabled
+          featureHighlightColor: '#00ff66',
+          featureHighlightOpacity: 0.5
+        });
+        
+        // Ne pas créer une nouvelle instance, utiliser celle du SceneManager
+        // qui est créée automatiquement lors de l'initialisation
+        // featureRendererRef.current sera défini après l'initialisation de l'engine
         
         const initEngine = async () => {
           engineRef.current = new ViewerEngine();
@@ -190,6 +218,18 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             precision: 'highp',
             powerPreference: 'high-performance'
           });
+          
+          // Récupérer le FeatureOutlineRenderer depuis le SceneManager
+          const sceneManager = (engineRef.current as any).sceneManager;
+          if (sceneManager && sceneManager.featureOutlineRenderer) {
+            featureRendererRef.current = sceneManager.featureOutlineRenderer;
+            console.log('✅ Using FeatureOutlineRenderer from SceneManager');
+          } else {
+            console.warn('⚠️ Could not get FeatureOutlineRenderer from SceneManager');
+          }
+          
+          // Récupérer le CameraController pour le ViewCube
+          cameraControllerRef.current = engineRef.current.getCameraController();
           
           if (canvasRef.current) {
             (canvasRef.current as any).__renderer = engineRef.current.getRenderer();
@@ -238,9 +278,9 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             const axesHelper = new THREE.AxesHelper(1500);
             const axesMaterials = (axesHelper as any).material as THREE.LineBasicMaterial[];
             if (axesMaterials && axesMaterials.length >= 3) {
-              axesMaterials[0].color = new THREE.Color('#dc2626');
-              axesMaterials[1].color = new THREE.Color('#16a34a');
-              axesMaterials[2].color = new THREE.Color('#2563eb');
+              axesMaterials[0].color = new THREE.Color('#dc2626'); // Rouge pour X
+              axesMaterials[1].color = new THREE.Color('#16a34a'); // Vert pour Y
+              axesMaterials[2].color = new THREE.Color('#2563eb'); // Bleu pour Z
               axesMaterials.forEach(mat => {
                 mat.opacity = 0.9;
                 mat.linewidth = 2;
@@ -248,6 +288,84 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             }
             axesHelper.name = 'Axes';
             scene.add(axesHelper);
+            
+            // Ajouter des labels pour les axes
+            // Créer des sprites pour les labels (plus simple que le texte 3D)
+            const createAxisLabel = (text: string, position: THREE.Vector3, color: string) => {
+              const canvas = document.createElement('canvas');
+              const context = canvas.getContext('2d');
+              if (!context) return null;
+              
+              canvas.width = 256;
+              canvas.height = 128;
+              
+              context.fillStyle = color;
+              context.font = 'bold 72px Arial';
+              context.textAlign = 'center';
+              context.textBaseline = 'middle';
+              context.fillText(text, 128, 64);
+              
+              const texture = new THREE.CanvasTexture(canvas);
+              const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: texture,
+                transparent: true,
+                depthTest: false,
+                depthWrite: false
+              });
+              
+              const sprite = new THREE.Sprite(spriteMaterial);
+              sprite.position.copy(position);
+              sprite.scale.set(100, 50, 1);
+              sprite.name = `AxisLabel_${text}`;
+              
+              return sprite;
+            };
+            
+            // Ajouter les labels aux extrémités des axes
+            const xLabel = createAxisLabel('X', new THREE.Vector3(1600, 0, 0), '#dc2626');
+            const yLabel = createAxisLabel('Y', new THREE.Vector3(0, 1600, 0), '#16a34a');
+            const zLabel = createAxisLabel('Z', new THREE.Vector3(0, 0, 1600), '#2563eb');
+            
+            if (xLabel) scene.add(xLabel);
+            if (yLabel) scene.add(yLabel);
+            if (zLabel) scene.add(zLabel);
+            
+            // Ajouter des indicateurs de coordonnées à intervalles réguliers
+            const addCoordinateMarkers = () => {
+              const intervals = [500, 1000];
+              const markerSize = 20;
+              
+              intervals.forEach(distance => {
+                // Marqueurs sur l'axe X (rouge)
+                [-distance, distance].forEach(x => {
+                  const markerX = createAxisLabel(`${x}`, new THREE.Vector3(x, -50, 0), '#dc2626');
+                  if (markerX) {
+                    markerX.scale.set(60, 30, 1);
+                    scene.add(markerX);
+                  }
+                });
+                
+                // Marqueurs sur l'axe Y (vert)
+                [-distance, distance].forEach(y => {
+                  const markerY = createAxisLabel(`${y}`, new THREE.Vector3(-50, y, 0), '#16a34a');
+                  if (markerY) {
+                    markerY.scale.set(60, 30, 1);
+                    scene.add(markerY);
+                  }
+                });
+                
+                // Marqueurs sur l'axe Z (bleu)
+                [-distance, distance].forEach(z => {
+                  const markerZ = createAxisLabel(`${z}`, new THREE.Vector3(0, -50, z), '#2563eb');
+                  if (markerZ) {
+                    markerZ.scale.set(60, 30, 1);
+                    scene.add(markerZ);
+                  }
+                });
+              });
+            };
+            
+            addCoordinateMarkers();
             
             // Plan de référence
             const { minY: planeY } = calculateSceneBounds();
@@ -287,6 +405,9 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             if (scene && canvasRef.current) {
               measurementToolRef.current = new SimpleMeasurementTool(scene, camera, canvasRef.current);
             }
+            
+            // Configurer les événements de sélection de features
+            setupFeatureSelectionEvents();
           }
         };
         
@@ -300,6 +421,15 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
       if (measurementToolRef.current) {
         measurementToolRef.current.dispose();
         measurementToolRef.current = null;
+      }
+      if (selectionManagerRef.current) {
+        selectionManagerRef.current.dispose();
+        selectionManagerRef.current = null;
+      }
+      // Ne pas disposer le FeatureOutlineRenderer car il appartient au SceneManager
+      if (featureRendererRef.current) {
+        // Juste nettoyer la référence
+        featureRendererRef.current = null;
       }
       if (engineRef.current) {
         engineRef.current.dispose();
@@ -321,6 +451,26 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
     }
   }, [selectedIds]);
 
+  // Fonction pour configurer les événements de sélection de features
+  const setupFeatureSelectionEvents = () => {
+    if (!eventBusRef.current || !selectionManagerRef.current) return;
+    
+    const eventBus = eventBusRef.current;
+    
+    // Écouter les changements de sélection de features
+    eventBus.on('feature:selection:changed', (data: { features: Array<{elementId: string; featureId: string}> }) => {
+      setSelectedFeatures(data.features);
+      console.log('🎯 Features sélectionnées:', data.features);
+    });
+    
+    // Écouter les changements de survol de features
+    eventBus.on('feature:hover:changed', (data: {elementId: string; featureId: string} | null) => {
+      setHoveredFeature(data);
+    });
+    
+    // Feature selection is now always enabled - removed event listener
+  };
+  
   const setupSelectionEvents = () => {
     if (!canvasRef.current || !eventBusRef.current) return;
     
@@ -519,7 +669,8 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           break;
           
         case 'f':
-          if (selectedIds.length > 0) {
+          // Feature selection is now always enabled - just focus on selection
+          if (selectedIds.length > 0 || selectedFeatures.length > 0) {
             focusOnSelection();
           }
           break;
@@ -998,6 +1149,13 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
     }
   }, [isEngineReady, theme, allElements]);
 
+  // Log quand les features sélectionnées changent
+  useEffect(() => {
+    console.log('🎯 Selected features updated in ProfessionalViewer:', selectedFeatures);
+    // Le FeatureOutlineRenderer écoute déjà l'événement 'feature:selection:changed'
+    // et met à jour automatiquement la surbrillance via updateSelectedFeatures
+  }, [selectedFeatures]);
+
   return (
     <div style={{
       width: '100%',
@@ -1053,52 +1211,226 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             overflow: 'auto',
             padding: '0.75rem'
           }}>
-            {allElements.map(element => (
-              <div
-                key={element.id}
-                onClick={() => {
-                  setSelectedIds([element.id]);
-                  onElementSelect?.([element.id]);
-                  updateSelectionVisuals([element.id]);
-                }}
-                style={{
-                  padding: '0.5rem 0.75rem',
-                  marginBottom: '0.25rem',
-                  backgroundColor: selectedIds.includes(element.id)
-                    ? (theme === 'dark' ? '#3b82f6' : '#dbeafe')
-                    : 'transparent',
-                  color: selectedIds.includes(element.id)
-                    ? (theme === 'dark' ? '#ffffff' : '#1e40af')
-                    : (theme === 'dark' ? '#cbd5e1' : '#475569'),
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-                onMouseEnter={(e) => {
-                  if (!selectedIds.includes(element.id)) {
-                    e.currentTarget.style.backgroundColor = theme === 'dark' ? '#334155' : '#f1f5f9';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!selectedIds.includes(element.id)) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
-                }}
-              >
-                <span>
-                  {element.materialType === MaterialType.PLATE ? '🔲' : 
-                   element.materialType === MaterialType.COLUMN ? '🏛️' : '📐'}
-                </span>
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {element.name || element.id}
-                </span>
-                {element.visible === false && <EyeOff size={14} />}
-              </div>
-            ))}
+            {allElements.map(element => {
+              const hasFeatures = element.features && element.features.length > 0;
+              const isExpanded = expandedElements.has(element.id);
+              
+              return (
+                <div key={element.id}>
+                  {/* Elément principal */}
+                  <div
+                    onClick={() => {
+                      setSelectedIds([element.id]);
+                      onElementSelect?.([element.id]);
+                      updateSelectionVisuals([element.id]);
+                    }}
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      marginBottom: '0.125rem',
+                      backgroundColor: selectedIds.includes(element.id)
+                        ? (theme === 'dark' ? '#3b82f6' : '#dbeafe')
+                        : 'transparent',
+                      color: selectedIds.includes(element.id)
+                        ? (theme === 'dark' ? '#ffffff' : '#1e40af')
+                        : (theme === 'dark' ? '#cbd5e1' : '#475569'),
+                      borderRadius: '0.375rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!selectedIds.includes(element.id)) {
+                        e.currentTarget.style.backgroundColor = theme === 'dark' ? '#334155' : '#f1f5f9';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!selectedIds.includes(element.id)) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
+                  >
+                    {/* Bouton expand/collapse */}
+                    {hasFeatures && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const newExpanded = new Set(expandedElements);
+                          if (isExpanded) {
+                            newExpanded.delete(element.id);
+                          } else {
+                            newExpanded.add(element.id);
+                          }
+                          setExpandedElements(newExpanded);
+                        }}
+                        style={{
+                          padding: 0,
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'inherit',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          transition: 'transform 0.2s'
+                        }}
+                      >
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          style={{
+                            transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s'
+                          }}
+                        >
+                          <path d="M9 6l6 6-6 6z" />
+                        </svg>
+                      </button>
+                    )}
+                    
+                    {/* Icône de l'élément */}
+                    <span style={{ marginLeft: !hasFeatures ? '16px' : '0' }}>
+                      {element.materialType === MaterialType.PLATE ? '🔲' : 
+                       element.materialType === MaterialType.COLUMN ? '🏛️' : '📐'}
+                    </span>
+                    
+                    {/* Nom de l'élément */}
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {element.name || element.id}
+                    </span>
+                    
+                    {/* Badge du nombre de features */}
+                    {hasFeatures && (
+                      <span style={{
+                        backgroundColor: theme === 'dark' ? '#374151' : '#e5e7eb',
+                        color: theme === 'dark' ? '#9ca3af' : '#6b7280',
+                        padding: '0.125rem 0.375rem',
+                        borderRadius: '0.75rem',
+                        fontSize: '0.7rem',
+                        fontWeight: '600'
+                      }}>
+                        {element.features?.length || 0}
+                      </span>
+                    )}
+                    
+                    {element.visible === false && <EyeOff size={14} />}
+                  </div>
+                  
+                  {/* Features enfants (si expandé) */}
+                  {hasFeatures && isExpanded && (
+                    <div style={{
+                      marginLeft: '1.75rem',
+                      marginTop: '0.125rem',
+                      marginBottom: '0.25rem'
+                    }}>
+                      {element.features?.map((feature) => {
+                        const isFeatureSelected = selectedFeatures.some(
+                          f => f.elementId === element.id && f.featureId === feature.id
+                        );
+                        const isFeatureHovered = hoveredFeature?.elementId === element.id && 
+                                                hoveredFeature?.featureId === feature.id;
+                        
+                        return (
+                          <div
+                            key={feature.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('🖱️ Feature clicked:', {
+                                elementId: element.id,
+                                featureId: feature.id,
+                                featureSelectionEnabled,
+                                hasSelectionManager: !!selectionManagerRef.current
+                              });
+                              if (selectionManagerRef.current && featureSelectionEnabled) {
+                                eventBusRef.current?.emit('feature:click', {
+                                  elementId: element.id,
+                                  featureId: feature.id,
+                                  event: e.nativeEvent
+                                });
+                              }
+                            }}
+                            onMouseEnter={() => {
+                              if (featureSelectionEnabled) {
+                                eventBusRef.current?.emit('feature:hover', {
+                                  elementId: element.id,
+                                  featureId: feature.id
+                                });
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              if (featureSelectionEnabled) {
+                                eventBusRef.current?.emit('feature:hover', {
+                                  elementId: element.id,
+                                  featureId: null
+                                });
+                              }
+                            }}
+                            style={{
+                              padding: '0.375rem 0.5rem',
+                              marginBottom: '0.0625rem',
+                              fontSize: '0.8rem',
+                              backgroundColor: isFeatureSelected
+                                ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)')
+                                : isFeatureHovered
+                                ? (theme === 'dark' ? 'rgba(251, 191, 36, 0.15)' : 'rgba(251, 191, 36, 0.1)')
+                                : 'transparent',
+                              color: isFeatureSelected
+                                ? '#10b981'
+                                : isFeatureHovered
+                                ? '#fbbf24'
+                                : (theme === 'dark' ? '#94a3b8' : '#64748b'),
+                              borderLeft: `2px solid ${
+                                isFeatureSelected ? '#10b981' : 
+                                isFeatureHovered ? '#fbbf24' : 
+                                (theme === 'dark' ? '#334155' : '#e2e8f0')
+                              }`,
+                              borderRadius: '0.25rem',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.375rem'
+                            }}
+                          >
+                            {/* Icône de la feature */}
+                            <span style={{ fontSize: '0.9rem' }}>
+                              {feature.type === 'HOLE' ? '⚫' : 
+                               feature.type === 'SLOT' ? '➖' : 
+                               feature.type === 'CUTOUT' ? '✂️' :
+                               feature.type === 'NOTCH' ? '🕳️' :
+                               feature.type === 'MARKING' ? '✍️' :
+                               feature.type === 'TEXT' ? '🔤' :
+                               '🔧'}
+                            </span>
+                            
+                            {/* Type et ID de la feature */}
+                            <span style={{ flex: 1 }}>
+                              {feature.type === 'HOLE' ? 'Trou' :
+                               feature.type === 'SLOT' ? 'Oblong' :
+                               feature.type === 'CUTOUT' ? 'Découpe' :
+                               feature.type === 'NOTCH' ? 'Encoche' :
+                               feature.type === 'MARKING' ? 'Marquage' :
+                               feature.type === 'TEXT' ? 'Texte' :
+                               feature.type} 
+                              <span style={{ 
+                                marginLeft: '0.25rem',
+                                fontSize: '0.7rem',
+                                opacity: 0.7 
+                              }}>
+                                #{feature.id.split('_').pop()}
+                              </span>
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           
           <div style={{
@@ -1107,7 +1439,44 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             fontSize: '0.75rem',
             color: theme === 'dark' ? '#94a3b8' : '#64748b'
           }}>
-            {allElements.length} éléments • {selectedIds.length} sélectionné(s)
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>
+                {allElements.length} éléments • {selectedIds.length} sélectionné(s)
+                {selectedFeatures.length > 0 && ` • ${selectedFeatures.length} feature(s)`}
+              </span>
+              {allElements.some(e => e.features && e.features.length > 0) && (
+                <button
+                  onClick={() => {
+                    if (expandedElements.size === allElements.filter(e => e.features && e.features.length > 0).length) {
+                      setExpandedElements(new Set());
+                    } else {
+                      setExpandedElements(new Set(allElements.filter(e => e.features && e.features.length > 0).map(e => e.id)));
+                    }
+                  }}
+                  style={{
+                    padding: '0.25rem 0.5rem',
+                    fontSize: '0.7rem',
+                    backgroundColor: theme === 'dark' ? '#374151' : '#e5e7eb',
+                    color: theme === 'dark' ? '#d1d5db' : '#4b5563',
+                    border: 'none',
+                    borderRadius: '0.25rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme === 'dark' ? '#4b5563' : '#d1d5db';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#e5e7eb';
+                  }}
+                >
+                  {expandedElements.size === allElements.filter(e => e.features && e.features.length > 0).length
+                    ? 'Réduire tout'
+                    : 'Étendre tout'
+                  }
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1184,7 +1553,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
         {/* CONTRÔLES STANDARD (comme dans Standard) */}
         <div style={{
           position: 'absolute',
-          top: '1rem',
+          bottom: '2rem',
           right: '1rem',
           display: 'flex',
           flexDirection: 'column',
@@ -1218,7 +1587,6 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             {theme === 'dark' ? 'Clair' : 'Sombre'}
           </button>
-          
           {/* Bouton Propriétés */}
           <button
             onClick={() => setRightPanelOpen(!rightPanelOpen)}
@@ -1249,12 +1617,29 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           </button>
         </div>
 
+        {/* VIEWCUBE - Cube de navigation 3D */}
+        {isEngineReady && cameraControllerRef.current && (
+          <ViewCube
+            cameraController={cameraControllerRef.current}
+            theme={theme}
+            size={120}
+            position="top-right"
+            onViewChange={(view) => {
+              console.log(`🎯 ViewCube: Changement de vue vers ${view}`);
+            }}
+            enableDrag={true}
+            enableDoubleClick={true}
+            animationDuration={500}
+          />
+        )}
+
         {/* INFO SÉLECTION (comme dans Standard) */}
-        {selectedIds.length > 0 && (
+        {(selectedIds.length > 0 || selectedFeatures.length > 0) && (
           <div style={{
             position: 'absolute',
             bottom: '2rem',
-            right: '2rem',
+            left: leftPanelOpen ? '300px' : '2rem',
+            transition: 'left 0.3s ease',
             padding: '0.75rem 1rem',
             backgroundColor: theme === 'dark' ? 'rgba(59, 130, 246, 0.9)' : 'rgba(59, 130, 246, 0.1)',
             color: theme === 'dark' ? '#dbeafe' : '#1e40af',
@@ -1266,7 +1651,16 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
               ? '0 2px 4px -1px rgba(59, 130, 246, 0.3)'
               : '0 2px 4px -1px rgba(59, 130, 246, 0.1)'
           }}>
-            {selectedIds.length === 1 ? (
+            {selectedFeatures.length > 0 ? (
+              <div>
+                <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+                  🎯 {selectedFeatures.length} feature{selectedFeatures.length > 1 ? 's' : ''} sélectionnée{selectedFeatures.length > 1 ? 's' : ''}
+                </div>
+                <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>
+                  {selectedFeatures.map(f => f.featureId).join(', ')}
+                </div>
+              </div>
+            ) : selectedIds.length === 1 ? (
               (() => {
                 const element = allElements.find(e => e.id === selectedIds[0]);
                 if (!element) return `1 élément sélectionné`;

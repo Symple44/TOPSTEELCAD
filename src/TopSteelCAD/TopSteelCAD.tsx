@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { ViewerEngine } from './core/ViewerEngine';
 import { EventBus } from './core/EventBus';
 import { SimpleMeasurementTool } from './tools/SimpleMeasurementTool';
+import { ViewCube } from './ui/ViewCube';
 
 /**
  * Props du composant TopSteelCAD
@@ -44,6 +45,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [measurementMode, setMeasurementMode] = useState(false);
   const measurementToolRef = useRef<SimpleMeasurementTool | null>(null);
+  const cameraControllerRef = useRef<any>(null);
   const [snapInfo, setSnapInfo] = useState<{ type: string; hasSnap: boolean } | null>(null);
   const [measurementProgress, setMeasurementProgress] = useState<{ pointsCount: number; total: number }>({ pointsCount: 0, total: 2 });
 
@@ -200,6 +202,9 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
             (canvasRef.current as any).__scene = engineRef.current.getScene();
             (canvasRef.current as any).__camera = engineRef.current.getCamera();
           }
+          
+          // Récupérer le CameraController pour le ViewCube
+          cameraControllerRef.current = engineRef.current.getCameraController();
         
         
         // Forcer un resize immédiat après l'initialisation
@@ -967,7 +972,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
       {/* Contrôles professionnels */}
       <div style={{
         position: 'absolute',
-        top: '1rem',
+        bottom: '2rem',
         right: '1rem',
         display: 'flex',
         flexDirection: 'column',
@@ -1102,7 +1107,35 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
             <div><span style={{ fontWeight: '500' }}>Ctrl+A</span> - Tout sélectionner</div>
           </div>
         </div>
-        
+      </div>
+      
+      {/* VIEWCUBE - Cube de navigation 3D */}
+      {isEngineReady && cameraControllerRef.current && (
+        <ViewCube
+          cameraController={cameraControllerRef.current}
+          theme={theme}
+          size={100}
+          position="top-right"
+          onViewChange={(view) => {
+            console.log(`🎯 ViewCube: Changement de vue vers ${view}`);
+          }}
+          enableDrag={true}
+          enableDoubleClick={true}
+          animationDuration={500}
+        />
+      )}
+      
+      {/* Zone des indicateurs - en bas de l'écran */}
+      <div style={{
+        position: 'absolute',
+        bottom: '2rem',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+        alignItems: 'center'
+      }}>
         {/* Informations de sélection */}
         {selectedIds.length > 0 && (
           <div style={{

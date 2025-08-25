@@ -9,7 +9,7 @@ import { PivotElement } from '@/types/viewer';
 
 // Import des processors existants
 import { HoleProcessor } from './HoleProcessor';
-// import { CutProcessor } from './CutProcessor';
+import { CutProcessor } from './CutProcessor';
 import { ChamferProcessor } from './ChamferProcessor';
 import { WeldProcessor } from './WeldProcessor';
 import { MarkingProcessor } from './MarkingProcessor';
@@ -199,6 +199,7 @@ export class FeatureProcessorFactory {
     this.register(FeatureType.MARKING, new MarkingProcessor());
     
     // Processors de découpe
+    this.register(FeatureType.CUT, new CutProcessor());
     this.register(FeatureType.CUTOUT, new CutoutProcessor());
     this.register(FeatureType.NOTCH, new NotchProcessor());
     this.register(FeatureType.SLOT, new SlotProcessor());

@@ -10,17 +10,17 @@ import {
   ProcessorResult 
 } from '../types';
 import { PivotElement } from '@/types/viewer';
-import { PositionCalculator } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
 
 export class WeldProcessor implements IFeatureProcessor {
   private evaluator: Evaluator;
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   
   constructor() {
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
   }
   
   process(
@@ -86,23 +86,24 @@ export class WeldProcessor implements IFeatureProcessor {
       }
       
       // Calculer la position
-      const position3D = this.positionCalculator.calculateFeaturePosition(
+      const position3D = this.positionService.calculateFeaturePosition(
         element,
         feature.position,
-        feature.face
+        feature.face,
+        'dstv'
       );
       
       // Positionner le cordon de soudure
       const weldBrush = new Brush(weldGeometry);
       weldBrush.position.set(
-        position3D.position[0],
-        position3D.position[1],
-        position3D.position[2]
+        position3D.position.x,
+        position3D.position.y,
+        position3D.position.z
       );
       weldBrush.rotation.set(
-        position3D.rotation[0],
-        position3D.rotation[1],
-        position3D.rotation[2]
+        position3D.rotation.x,
+        position3D.rotation.y,
+        position3D.rotation.z
       );
       
       if (feature.rotation) {
@@ -410,21 +411,22 @@ export class WeldProcessor implements IFeatureProcessor {
       };
       
       // Positionner le mesh
-      const position3D = this.positionCalculator.calculateFeaturePosition(
+      const position3D = this.positionService.calculateFeaturePosition(
         element,
         feature.position,
-        feature.face
+        feature.face,
+        'dstv'
       );
       
       mesh.position.set(
-        position3D.position[0],
-        position3D.position[1],
-        position3D.position[2]
+        position3D.position.x,
+        position3D.position.y,
+        position3D.position.z
       );
       mesh.rotation.set(
-        position3D.rotation[0],
-        position3D.rotation[1],
-        position3D.rotation[2]
+        position3D.rotation.x,
+        position3D.rotation.y,
+        position3D.rotation.z
       );
       
       if (feature.rotation) {

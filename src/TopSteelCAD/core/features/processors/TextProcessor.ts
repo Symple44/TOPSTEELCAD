@@ -9,13 +9,13 @@ import {
   ProcessorResult 
 } from '../types';
 import { PivotElement } from '@/types/viewer';
-import { PositionCalculator } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
 
 export class TextProcessor implements IFeatureProcessor {
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   
   constructor() {
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
   }
   
   process(

@@ -73,7 +73,6 @@ export type {
 // ========================================
 // FEATURE PROCESSORS - Processeurs de features
 // ========================================
-export { PositionCalculator } from './core/features/utils/PositionCalculator';
 export { 
   HoleProcessor,
   SlotProcessor,

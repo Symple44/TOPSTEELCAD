@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { PivotElement } from '../types/viewer';
 import { Loader2, Home, ZoomIn, ZoomOut, Eye } from 'lucide-react';
 import { ViewerEngine } from './core/ViewerEngine';
+import { ViewCube } from './ui/ViewCube';
 
 /**
  * MinimalViewer - Version épurée avec seulement la 3D et les contrôles essentiels
@@ -24,7 +25,9 @@ export const MinimalViewer: React.FC<MinimalViewerProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<ViewerEngine | null>(null);
+  const cameraControllerRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEngineReady, setIsEngineReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const elementsAddedRef = useRef(false);
 
@@ -68,7 +71,11 @@ export const MinimalViewer: React.FC<MinimalViewerProps> = ({
             camera.position.set(3000, 3000, 3000);
             camera.lookAt(0, 0, 0);
           }
+          
+          // Récupérer le CameraController pour le ViewCube
+          cameraControllerRef.current = engineRef.current.getCameraController();
 
+          setIsEngineReady(true);
           onReady?.();
           setIsLoading(false);
         } catch (err) {
@@ -276,6 +283,22 @@ export const MinimalViewer: React.FC<MinimalViewerProps> = ({
           <Eye size={20} />
         </button>
       </div>
+      
+      {/* VIEWCUBE - Cube de navigation 3D */}
+      {isEngineReady && cameraControllerRef.current && (
+        <ViewCube
+          cameraController={cameraControllerRef.current}
+          theme={theme}
+          size={90}
+          position="top-right"
+          onViewChange={(view) => {
+            console.log(`🎯 ViewCube: Changement de vue vers ${view}`);
+          }}
+          enableDrag={true}
+          enableDoubleClick={true}
+          animationDuration={400}
+        />
+      )}
 
       {/* Chargement */}
       {isLoading && (

@@ -176,10 +176,10 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
    */
   private mapFaceIndicator(indicator: string): StandardFace | undefined {
     const mapping: Record<string, StandardFace> = {
-      'v': StandardFace.WEB,              // Vertical = Âme/web
-      'o': StandardFace.TOP_FLANGE,       // Over = Face supérieure/dessus
-      'u': StandardFace.BOTTOM_FLANGE,    // Under = Face inférieure/dessous
-      'h': StandardFace.WEB               // Face avant -> Web par défaut
+      'v': StandardFace.TOP_FLANGE,       // v = Semelle supérieure (DSTV)
+      'o': StandardFace.WEB,              // o = Âme/web (DSTV)
+      'u': StandardFace.BOTTOM_FLANGE,    // u = Semelle inférieure (DSTV)
+      'h': StandardFace.FRONT             // h = Face avant (DSTV)
     };
     return mapping[indicator] || undefined;
   }

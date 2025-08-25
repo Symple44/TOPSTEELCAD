@@ -108,17 +108,19 @@ class PositionValidator {
     const pos = position.position;
     
     // Vérifier que la position est dans les limites du profil
-    const halfLength = dimensions.length / 2;
     const halfHeight = dimensions.height / 2;
     const halfWidth = dimensions.width / 2;
+    const tolerance = 5.0; // 5mm de tolérance
     
-    // Vérification Z (longueur)
-    if (Math.abs(pos.z) > halfLength * 1.1) {
-      errors.push(`Position Z (${pos.z}) hors limites [-${halfLength}, ${halfLength}]`);
+    // Vérification Z (longueur) - CORRECTION CRITIQUE pour DSTV
+    // Le profil commence à Z=0 et va jusqu'à dimensions.length
+    // Pas de centrage en Z pour les coordonnées converties depuis DSTV
+    if (pos.z < -tolerance || pos.z > dimensions.length + tolerance) {
+      errors.push(`Position Z (${pos.z}) hors limites [0, ${dimensions.length}] avec tolérance ${tolerance}mm`);
       
-      // Correction : ramener dans les limites
+      // Correction : ramener dans les limites du profil (0 à length)
       if (!corrections) corrections = { position: pos.clone() };
-      corrections.position.z = Math.max(-halfLength, Math.min(halfLength, pos.z));
+      corrections.position.z = Math.max(0, Math.min(dimensions.length, pos.z));
     }
     
     // Vérification Y (hauteur)
@@ -366,7 +368,7 @@ export class PositionService {
     element: any,
     featurePosition: any,
     face?: string,
-    sourcePlugin: string = 'dstv'
+    coordinateSystem: string = 'dstv'
   ): {
     position: THREE.Vector3;
     rotation: THREE.Euler;
@@ -374,6 +376,39 @@ export class PositionService {
     normal: THREE.Vector3;
     face?: StandardFace;
   } {
+    // Si les coordonnées sont déjà en format standard, pas de conversion nécessaire
+    if (coordinateSystem === 'standard' || coordinateSystem === 'STANDARD') {
+      if (this.debugMode) {
+        console.log('PositionService.calculateFeaturePosition: STANDARD coordinates detected');
+      }
+      
+      // Les coordonnées sont déjà converties, utiliser directement
+      const standardFace = face ? this.mapToStandardFace(face) : StandardFace.WEB;
+      const rotation = this.calculateRotationForFace(standardFace);
+      
+      // Calculer la profondeur selon la face
+      let depth = 10;
+      if (standardFace === StandardFace.WEB) {
+        // Pour l'âme, utiliser l'épaisseur de l'âme (webThickness) et non la largeur totale
+        depth = element.dimensions?.webThickness || element.dimensions?.thickness || 8.6;
+      } else if (standardFace === StandardFace.TOP_FLANGE || standardFace === StandardFace.BOTTOM_FLANGE) {
+        depth = element.dimensions?.flangeThickness || 15;
+      }
+      
+      let finalPosition = featurePosition instanceof THREE.Vector3 ? featurePosition : new THREE.Vector3(featurePosition.x, featurePosition.y, featurePosition.z || 0);
+      
+      return {
+        position: finalPosition,
+        rotation,
+        depth,
+        normal: this.getNormalForFace(standardFace),
+        face: standardFace
+      };
+    }
+    
+    // Sinon, utiliser le système de conversion normal
+    const sourcePlugin = coordinateSystem === 'DSTV' ? 'dstv' : coordinateSystem.toLowerCase();
+    
     // Contexte de conversion
     const context: PositionContext = {
       profileType: element.type || 'I_PROFILE',
@@ -407,6 +442,48 @@ export class PositionService {
   }
   
   /**
+   * Mappe une face string vers StandardFace
+   */
+  private mapToStandardFace(face: string): StandardFace {
+    // Mapping des faces communes (cohérent avec DSTV)
+    const faceMap: Record<string, StandardFace> = {
+      'web': StandardFace.WEB,
+      'o': StandardFace.WEB,           // o = web (DSTV)
+      'v': StandardFace.TOP_FLANGE,    // v = top flange (DSTV) - CORRIGÉ!
+      'top': StandardFace.TOP_FLANGE,
+      'top_flange': StandardFace.TOP_FLANGE,
+      'bottom': StandardFace.BOTTOM_FLANGE,
+      'bottom_flange': StandardFace.BOTTOM_FLANGE,
+      'u': StandardFace.BOTTOM_FLANGE, // u = bottom flange (DSTV)
+      'front': StandardFace.FRONT,
+      'h': StandardFace.FRONT,         // h = front (DSTV)
+      'back': StandardFace.BACK
+    };
+    
+    return faceMap[face.toLowerCase()] || StandardFace.WEB;
+  }
+  
+  /**
+   * Obtient la normale pour une face
+   */
+  private getNormalForFace(face: StandardFace): THREE.Vector3 {
+    switch (face) {
+      case StandardFace.WEB:
+        return new THREE.Vector3(1, 0, 0);  // Perpendiculaire à l'âme
+      case StandardFace.TOP_FLANGE:
+        return new THREE.Vector3(0, 1, 0);  // Vers le haut
+      case StandardFace.BOTTOM_FLANGE:
+        return new THREE.Vector3(0, -1, 0);  // Vers le bas
+      case StandardFace.FRONT:
+        return new THREE.Vector3(0, 0, -1);  // Vers l'avant
+      case StandardFace.BACK:
+        return new THREE.Vector3(0, 0, 1);  // Vers l'arrière
+      default:
+        return new THREE.Vector3(0, 1, 0);
+    }
+  }
+  
+  /**
    * Calcule la rotation pour une face
    */
   private calculateRotationForFace(face?: StandardFace): THREE.Euler {
@@ -416,17 +493,19 @@ export class PositionService {
     
     switch (face) {
       case StandardFace.WEB:
-        // Rotation de 90° autour de Y pour traverser l'âme
-        return new THREE.Euler(0, Math.PI / 2, 0);
+        // Pour l'âme, le cylindre doit traverser selon X
+        // Le cylindre THREE.js est créé vertical (selon Y) par défaut
+        // Rotation de 90° autour de Z pour orienter le cylindre selon X
+        return new THREE.Euler(0, 0, Math.PI / 2);
         
       case StandardFace.TOP_FLANGE:
       case StandardFace.BOTTOM_FLANGE:
-        // Pas de rotation, vertical par défaut
+        // Pas de rotation, vertical par défaut (traverse selon Y)
         return new THREE.Euler(0, 0, 0);
         
       case StandardFace.FRONT:
       case StandardFace.BACK:
-        // Rotation de 90° autour de X
+        // Rotation de 90° autour de X pour traverser selon Z
         return new THREE.Euler(Math.PI / 2, 0, 0);
         
       default:

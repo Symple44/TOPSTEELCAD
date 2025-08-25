@@ -12,14 +12,14 @@ import {
   ProfileFace
 } from '../types';
 import { PivotElement, MaterialType } from '@/types/viewer';
-import { PositionCalculator } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
 
 export class MarkingProcessor implements IFeatureProcessor {
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   private evaluator: Evaluator;
   
   constructor() {
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
@@ -86,6 +86,7 @@ export class MarkingProcessor implements IFeatureProcessor {
       const isMirrored = geometry.userData.isMirrored;
       
       geometry.userData.markings.push({
+        id: feature.id,  // Ajouter l'ID de la feature DSTV
         text: parsedText,
         position: [
           position.x,  // Garder les coordonnées DSTV originales
@@ -93,7 +94,7 @@ export class MarkingProcessor implements IFeatureProcessor {
           position.z
         ],
         size,
-        face: feature.face,
+        face: feature.parameters.face || feature.face || 'web',  // Use face from parameters or feature
         rotation: [0, 0, 0],
         type: text.includes('r') ? 'scribbing' : 'marking',
         centerOffset: existingCenterOffset, // Préserver le centerOffset
@@ -110,10 +111,11 @@ export class MarkingProcessor implements IFeatureProcessor {
       // Le code CSG ci-dessous est temporairement désactivé car il semble causer des problèmes
       
       // Calculer la position 3D correcte sur la surface
-      const position3D = this.positionCalculator.calculateFeaturePosition(
+      const position3D = this.positionService.calculateFeaturePosition(
         element,
         position,
-        feature.face
+        feature.face,
+        'dstv'
       );
       
       // Créer une géométrie pour la gravure
@@ -135,9 +137,9 @@ export class MarkingProcessor implements IFeatureProcessor {
         const width = element.dimensions.width || 120;
         
         engravingBrush.position.set(
-          position.x - length / 2,  // Position X depuis le coin
+          position.x,  // Position X directe (profil commence à 0 maintenant)
           thickness / 2 - depth / 2, // Sur la surface supérieure, enfoncé de depth/2
-          position.y - width / 2     // Position Y (Z en Three.js) depuis le coin
+          position.y     // Position Y (Z en Three.js) directe
         );
         
         // Pas de rotation pour une gravure sur la face supérieure d'une plaque
@@ -146,9 +148,9 @@ export class MarkingProcessor implements IFeatureProcessor {
       } else {
         // Pour les profils
         engravingBrush.position.set(
-          position3D.position[0],
-          position3D.position[1],
-          position3D.position[2]
+          position3D.position.x,
+          position3D.position.y,
+          position3D.position.z
         );
         
         // Orienter selon la face

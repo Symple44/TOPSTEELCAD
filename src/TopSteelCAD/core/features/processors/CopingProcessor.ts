@@ -11,7 +11,21 @@ import {
   ProcessorResult 
 } from '../types';
 import { PivotElement } from '@/types/viewer';
-import { PositionCalculator, ProfileGeometryType } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
+// Types pour ProfileGeometryType uniquement
+export enum ProfileGeometryType {
+  I_PROFILE = 'I_PROFILE',
+  H_PROFILE = 'H_PROFILE',
+  TUBE_RECT = 'TUBE_RECT',
+  TUBE_SQUARE = 'TUBE_SQUARE',
+  TUBE_ROUND = 'TUBE_ROUND',
+  L_PROFILE = 'L_PROFILE',
+  U_PROFILE = 'U_PROFILE',
+  PLATE = 'PLATE',
+  FLAT_BAR = 'FLAT_BAR',
+  ROUND_BAR = 'ROUND_BAR',
+  UNKNOWN = 'UNKNOWN'
+}
 
 /**
  * Types de coping supportés
@@ -27,13 +41,13 @@ export enum CopingType {
 
 export class CopingProcessor implements IFeatureProcessor {
   private evaluator: Evaluator;
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   
   constructor() {
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
   }
   
   process(
@@ -92,23 +106,24 @@ export class CopingProcessor implements IFeatureProcessor {
       }
       
       // Calculer la position
-      const position3D = this.positionCalculator.calculateFeaturePosition(
+      const position3D = this.positionService.calculateFeaturePosition(
         element,
         feature.position,
-        feature.face
+        feature.face,
+        'dstv'
       );
       
       // Positionner le coping
       const copingBrush = new Brush(copingGeometry);
       copingBrush.position.set(
-        position3D.position[0],
-        position3D.position[1],
-        position3D.position[2]
+        position3D.position.x,
+        position3D.position.y,
+        position3D.position.z
       );
       copingBrush.rotation.set(
-        position3D.rotation[0],
-        position3D.rotation[1],
-        position3D.rotation[2]
+        position3D.rotation.x,
+        position3D.rotation.y,
+        position3D.rotation.z
       );
       
       // Ajouter l'angle de connexion

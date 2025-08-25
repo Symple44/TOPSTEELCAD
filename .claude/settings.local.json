@@ -23,7 +23,12 @@
       "Bash(dir dist)",
       "Bash(npx ts-node:*)",
       "Bash(npx eslint:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git add:*)",
+      "Bash(grep:*)",
+      "Bash(findstr:*)",
+      "Bash(npx tsc:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

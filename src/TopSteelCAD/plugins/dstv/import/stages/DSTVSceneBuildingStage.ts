@@ -8,7 +8,7 @@
 import { BaseStage } from '../../../../core/pipeline/BaseStage';
 import { ProcessingContext } from '../../../../core/pipeline/ProcessingContext';
 import { DSTVNormalizedData } from '../DSTVImportPipeline';
-import { PivotScene, PivotElement, MaterialProperties, ElementType, MaterialType } from '../../../../../types/viewer';
+import { PivotScene, PivotElement, MaterialProperties, ElementType, MaterialType, FeatureType } from '../../../../../types/viewer';
 import { NormalizedFeature, NormalizedFeatureType, NormalizedProfile } from './DSTVNormalizationStage';
 import { ProcessorBridge } from '../../integration/ProcessorBridge';
 import { GeometryBridge } from '../../integration/GeometryBridge';
@@ -267,6 +267,16 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
       rotation: [0, 0, 0],
       scale: [1, 1, 1],
       childIds: profile.features.map(f => f.id),
+      // Add features directly to element for hierarchy display
+      features: profile.features.map(f => ({
+        id: f.id,
+        type: this.mapFeatureType(f.type),
+        elementId: profile.id,
+        position: [f.coordinates.x, f.coordinates.y, f.coordinates.z || 0] as [number, number, number],
+        selectable: true,
+        visible: true,
+        metadata: f.parameters
+      })),
       metadata: {
         elementType: ElementType.BEAM,
         originalData: profile,
@@ -279,6 +289,16 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
         originalFormat: 'DSTV'
       }
     };
+
+    // CRITICAL FIX: Attach the processed geometry to the element
+    // This allows GeometryConverter to use the processed geometry instead of creating new one
+    if (profileGeometry) {
+      (element as any).geometry = profileGeometry;
+      this.log(context, 'info', `✅ Attached processed geometry to element ${element.id}`, {
+        vertexCount: profileGeometry.attributes.position?.count || 0,
+        hasFeatures: profile.features.length > 0
+      });
+    }
 
     // Calculer les bounds si activé
     if (this.sceneBuildingConfig.includeBounds) {
@@ -519,6 +539,56 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
     return `${baseName} ${feature.id.split('_').pop()}`;
   }
 
+  private mapFeatureType(featureType: NormalizedFeatureType): FeatureType {
+    // Map DSTV feature types to viewer FeatureType enum
+    switch(featureType) {
+      case NormalizedFeatureType.HOLE:
+        return FeatureType.HOLE;
+      case NormalizedFeatureType.THREAD:
+        return FeatureType.THREAD;
+      case NormalizedFeatureType.CUT:
+        return FeatureType.CUT;
+      case NormalizedFeatureType.CUT_WITH_NOTCHES:
+        return FeatureType.CUT;
+      case NormalizedFeatureType.CONTOUR:
+        return FeatureType.CONTOUR;
+      case NormalizedFeatureType.UNRESTRICTED_CONTOUR:
+        return FeatureType.UNRESTRICTED_CONTOUR;
+      case NormalizedFeatureType.NOTCH:
+        return FeatureType.NOTCH;
+      case NormalizedFeatureType.BEVEL:
+        return FeatureType.BEVEL;
+      case NormalizedFeatureType.BEND:
+        return FeatureType.BEND;
+      case NormalizedFeatureType.MARKING:
+        return FeatureType.MARKING;
+      case NormalizedFeatureType.WELD_PREP:
+        return FeatureType.WELD_PREP;
+      case NormalizedFeatureType.PUNCH:
+        return FeatureType.PUNCH;
+      case NormalizedFeatureType.PROFILE:
+        return FeatureType.PROFILE;
+      case NormalizedFeatureType.VOLUME:
+        return FeatureType.VOLUME;
+      case NormalizedFeatureType.NUMERIC_CONTROL:
+        return FeatureType.NUMERIC_CONTROL;
+      case NormalizedFeatureType.FREE_PROGRAM:
+        return FeatureType.FREE_PROGRAM;
+      case NormalizedFeatureType.LINE_PROGRAM:
+        return FeatureType.LINE_PROGRAM;
+      case NormalizedFeatureType.ROTATION:
+        return FeatureType.ROTATION;
+      case NormalizedFeatureType.WASHING:
+        return FeatureType.WASHING;
+      case NormalizedFeatureType.GROUP:
+        return FeatureType.GROUP;
+      case NormalizedFeatureType.VARIABLE:
+        return FeatureType.VARIABLE;
+      default:
+        return FeatureType.CUT; // Default fallback
+    }
+  }
+
   private mapFeatureTypeToElementType(featureType: NormalizedFeatureType): ElementType | null {
     const mapping: Partial<Record<NormalizedFeatureType, ElementType>> = {
       [NormalizedFeatureType.HOLE]: ElementType.HOLE,
@@ -617,6 +687,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
       [NormalizedFeatureType.CUT]: { r: 0.8, g: 0.2, b: 0.2, a: 0.8 },   // Rouge
       [NormalizedFeatureType.CONTOUR]: { r: 0.2, g: 0.8, b: 0.2, a: 0.8 }, // Vert
       [NormalizedFeatureType.NOTCH]: { r: 0.8, g: 0.2, b: 0.2, a: 0.8 }, // Rouge foncé
+      [NormalizedFeatureType.CUT_WITH_NOTCHES]: { r: 0.9, g: 0.3, b: 0.2, a: 0.8 }, // Rouge orangé
       [NormalizedFeatureType.MARKING]: { r: 0.8, g: 0.8, b: 0.2, a: 1.0 }, // Jaune
       [NormalizedFeatureType.PUNCH]: { r: 0.8, g: 0.4, b: 0.2, a: 1.0 }, // Orange
       [NormalizedFeatureType.WELD_PREP]: { r: 0.6, g: 0.2, b: 0.8, a: 0.8 }, // Violet

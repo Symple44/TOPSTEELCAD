@@ -7,18 +7,21 @@ logger.ts:426   - .enableConsole(true) pour activer la sortie console
 CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
 demo.tsx:160 Demo montée, pas de chargement asynchrone
 ControlsManager.ts:669 🔍 Limites zoom: 500mm ↔ 15000mm
+vite.svg:1  GET http://localhost:5174/vite.svg 404 (Not Found)
 CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:223 ✅ Using FeatureOutlineRenderer from SceneManager
 ControlsManager.ts:669 🔍 Limites zoom: 500mm ↔ 15000mm
-ProfessionalViewer.tsx:280 🎮 Contrôles de caméra activés
-ProfessionalViewer.tsx:799 📁 Import en cours: M1002.nc
+ProfessionalViewer.tsx:392 🎮 Contrôles de caméra activés
+ProfessionalViewer.tsx:957 📁 Import en cours: M1002.nc
  [Pipeline] Processing context initialized {file: undefined, fileSize: undefined, options: Array(2)}
  [Pipeline] Starting pipeline execution: dstv-import-pipeline {stageCount: 5, middlewareCount: 0}
  [dstv-lexical-analysis] Starting stage: dstv-lexical-analysis {stageIndex: 1, totalStages: 5}
  [dstv-lexical-analysis] Starting stage: dstv-lexical-analysis {description: 'DSTV Lexical Analysis - Tokenizes DSTV file according to official grammar', estimatedDuration: '100ms'}
  [dstv-lexical-analysis] [dstv-lexical-analysis] Starting lexical analysis {fileSize: 971, contentLength: 971}
- [dstv-lexical-analysis] [dstv-lexical-analysis] Lexical analysis completed {tokensGenerated: 177, duration: '1.20ms', blocksDetected: 7}
- [dstv-lexical-analysis] Completed stage: dstv-lexical-analysis {duration: '2.00ms', outputType: 'Object'}
- [dstv-lexical-analysis] Completed stage: dstv-lexical-analysis {duration: '3.00ms'}
+ [dstv-lexical-analysis] [dstv-lexical-analysis] Lexical analysis completed {tokensGenerated: 177, duration: '1.30ms', blocksDetected: 7}
+ [dstv-lexical-analysis] Completed stage: dstv-lexical-analysis {duration: '1.80ms', outputType: 'Object'}
+ [dstv-lexical-analysis] Completed stage: dstv-lexical-analysis {duration: '2.60ms'}
  [dstv-syntax-analysis] Starting stage: dstv-syntax-analysis {stageIndex: 2, totalStages: 5}
  [dstv-syntax-analysis] Starting stage: dstv-syntax-analysis {description: 'DSTV Syntax Analysis - Builds AST from tokens according to DSTV grammar', estimatedDuration: '200ms'}
  [dstv-syntax-analysis] [dstv-syntax-analysis] Starting syntax analysis {totalTokens: 177, blocksDetected: 7}
@@ -27,226 +30,2043 @@ ProfessionalViewer.tsx:799 📁 Import en cours: M1002.nc
    ✅ Added point: (0, 0) on face web
    ✅ Added point: (0, 146.1) on face web
    ✅ Added point: (1842.1, 146.1) on face web
-   ✅ Added point: (1842.1, 0) on face web
- 📊 parseAKBlock result: 5 points parsed
-   📍 Parsed 2 holes from BO block
- 🔍 parseAKBlock: Parsing 36 raw data elements: (36) ['v', '1912.15', '18.60', '0.00', 'v', '1912.15', '232.80', '0.00', 'v', '1842.10', '232.80', '0.00', 'v', '1842.10', '251.40', '0.00', 'v', '0.00', '251.40', '0.00', 'v', '0.00', '0.00', '0.00', 'v', '1842.10', '0.00', '0.00', 'v', '1842.10', '18.60', '0.00', 'v', '1912.15', '18.60', '0.00']
-   ✅ Added point: (1912.15, 18.6) on face top
-   ✅ Added point: (1912.15, 232.8) on face top
-   ✅ Added point: (1842.1, 232.8) on face top
-   ✅ Added point: (1842.1, 251.4) on face top
-   ✅ Added point: (0, 251.4) on face top
-   ✅ Added point: (0, 0) on face top
-   ✅ Added point: (1842.1, 0) on face top
-   ✅ Added point: (1842.1, 18.6) on face top
-   ✅ Added point: (1912.15, 18.6) on face top
- 📊 parseAKBlock result: 9 points parsed
- 🔍 parseAKBlock: Parsing 20 raw data elements: (20) ['u', '1842.10', '146.10', '0.00', 'u', '0.00', '146.10', '0.00', 'u', '0.00', '0.00', '0.00', 'u', '1842.10', '0.00', '0.00', 'u', '1842.10', '146.10', '0.00']
-   ✅ Added point: (1842.1, 146.1) on face bottom
-   ✅ Added point: (0, 146.1) on face bottom
-   ✅ Added point: (0, 0) on face bottom
-   ✅ Added point: (1842.1, 0) on face bottom
-   ✅ Added point: (1842.1, 146.1) on face bottom
- 📊 parseAKBlock result: 5 points parsed
- [dstv-syntax-analysis] [dstv-syntax-analysis] Syntax analysis completed {blocksParsed: 7, duration: '3.40ms', profile: 'UB254x146x31'}
- [dstv-syntax-analysis] Completed stage: dstv-syntax-analysis {duration: '3.50ms', outputType: 'Object'}
- [dstv-syntax-analysis] Completed stage: dstv-syntax-analysis {duration: '4.10ms'}
- [dstv-semantic-validation] Starting stage: dstv-semantic-validation {stageIndex: 3, totalStages: 5}
- [dstv-semantic-validation] Starting stage: dstv-semantic-validation {description: 'DSTV Semantic Validation - Validates DSTV data against business rules and standards', estimatedDuration: '150ms'}
- [dstv-semantic-validation] [dstv-semantic-validation] Starting semantic validation {totalBlocks: 7, profile: 'UB254x146x31'}
- [dstv-semantic-validation] File contains both geometry and marking blocks - good practice 
- [dstv-semantic-validation] [dstv-semantic-validation] Semantic validation completed {validBlocks: 7, totalErrors: 2, totalWarnings: 3, conformityScore: '97.9%', duration: '1.10ms'}
- [dstv-semantic-validation] Completed stage: dstv-semantic-validation {duration: '1.30ms', outputType: 'Object'}
- [dstv-semantic-validation] Completed stage: dstv-semantic-validation {duration: '1.60ms'}
- [dstv-normalization] Starting stage: dstv-normalization {stageIndex: 4, totalStages: 5}
- [dstv-normalization] Starting stage: dstv-normalization {description: 'DSTV Normalization - Converts DSTV data to normalized internal format', estimatedDuration: '100ms'}
- [dstv-normalization] [dstv-normalization] Starting normalization {validBlocks: 7, conformityScore: '97.9%'}
- Extracted dimensions from ST data: height=251.4, width=146.1, webThickness=8.6, flangeThickness=6
- 📐 Profile dimensions set for coordinate conversion: {length: 1912.15, height: 251.4, width: 146.1}
-   📏 Notch detection: Contour length=1842.1mm, Profile length=1912.15mm
-   📏 Difference=70.05000000000018mm - Notches detected!
-   📏 Face: web
-   🔧 AK block detected as notches at extremities
- 🔄 Converting DSTV coordinates to standard: {input: {…}, face: 'web', dimensions: {…}}
-   → Standard coordinates: {x: 0, y: 37.499999999999986, z: 901.075}
- 🔄 Converting DSTV coordinates to standard: {input: {…}, face: 'web', dimensions: {…}}
-   → Standard coordinates: {x: 0, y: -37.5, z: 901.075}
- 🔄 Converting DSTV coordinates to standard: {input: {…}, face: 'web', dimensions: {…}}
-   → Standard coordinates: {x: 0, y: -123.7, z: -954.075}
-   📏 Notch detection: Contour length=1842.1mm, Profile length=1912.15mm
-   📏 Difference=70.05000000000018mm - Notches detected!
-   📏 Face: bottom
-   🔧 AK block detected as notches at extremities
- [dstv-normalization] [dstv-normalization] Normalization completed {featuresNormalized: 6, profileName: 'UB254x146x31', duration: '3.00ms'}
- [dstv-normalization] Completed stage: dstv-normalization {duration: '3.20ms', outputType: 'Object'}
- [dstv-normalization] Completed stage: dstv-normalization {duration: '3.40ms'}
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1842.1, 0) on face web
+DSTVSyntaxStage.ts?t=1756121888743:417 📊 parseAKBlock result: 5 points parsed
+DSTVSyntaxStage.ts?t=1756121888743:329   📍 Parsed 2 holes from BO block
+DSTVSyntaxStage.ts?t=1756121888743:336 🔍 parseAKBlock: Parsing 36 raw data elements: (36) ['v', '1912.15', '18.60', '0.00', 'v', '1912.15', '232.80', '0.00', 'v', '1842.10', '232.80', '0.00', 'v', '1842.10', '251.40', '0.00', 'v', '0.00', '251.40', '0.00', 'v', '0.00', '0.00', '0.00', 'v', '1842.10', '0.00', '0.00', 'v', '1842.10', '18.60', '0.00', 'v', '1912.15', '18.60', '0.00']
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1912.15, 18.6) on face top
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1912.15, 232.8) on face top
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1842.1, 232.8) on face top
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1842.1, 251.4) on face top
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (0, 251.4) on face top
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (0, 0) on face top
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1842.1, 0) on face top
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1842.1, 18.6) on face top
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1912.15, 18.6) on face top
+DSTVSyntaxStage.ts?t=1756121888743:417 📊 parseAKBlock result: 9 points parsed
+DSTVSyntaxStage.ts?t=1756121888743:336 🔍 parseAKBlock: Parsing 20 raw data elements: (20) ['u', '1842.10', '146.10', '0.00', 'u', '0.00', '146.10', '0.00', 'u', '0.00', '0.00', '0.00', 'u', '1842.10', '0.00', '0.00', 'u', '1842.10', '146.10', '0.00']
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1842.1, 146.1) on face bottom
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (0, 146.1) on face bottom
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (0, 0) on face bottom
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1842.1, 0) on face bottom
+DSTVSyntaxStage.ts?t=1756121888743:381   ✅ Added point: (1842.1, 146.1) on face bottom
+DSTVSyntaxStage.ts?t=1756121888743:417 📊 parseAKBlock result: 5 points parsed
+ProcessingContext.ts:503 [dstv-syntax-analysis] [dstv-syntax-analysis] Syntax analysis completed {blocksParsed: 7, duration: '3.20ms', profile: 'UB254x146x31'}
+ProcessingContext.ts:503 [dstv-syntax-analysis] Completed stage: dstv-syntax-analysis {duration: '3.50ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-syntax-analysis] Completed stage: dstv-syntax-analysis {duration: '3.80ms'}
+ProcessingContext.ts:503 [dstv-semantic-validation] Starting stage: dstv-semantic-validation {stageIndex: 3, totalStages: 5}
+ProcessingContext.ts:503 [dstv-semantic-validation] Starting stage: dstv-semantic-validation {description: 'DSTV Semantic Validation - Validates DSTV data against business rules and standards', estimatedDuration: '150ms'}
+ProcessingContext.ts:503 [dstv-semantic-validation] [dstv-semantic-validation] Starting semantic validation {totalBlocks: 7, profile: 'UB254x146x31'}
+ProcessingContext.ts:503 [dstv-semantic-validation] File contains both geometry and marking blocks - good practice 
+ProcessingContext.ts:503 [dstv-semantic-validation] [dstv-semantic-validation] Semantic validation completed {validBlocks: 7, totalErrors: 2, totalWarnings: 3, conformityScore: '97.9%', duration: '1.50ms'}
+ProcessingContext.ts:503 [dstv-semantic-validation] Completed stage: dstv-semantic-validation {duration: '1.90ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-semantic-validation] Completed stage: dstv-semantic-validation {duration: '2.10ms'}
+ProcessingContext.ts:503 [dstv-normalization] Starting stage: dstv-normalization {stageIndex: 4, totalStages: 5}
+ProcessingContext.ts:503 [dstv-normalization] Starting stage: dstv-normalization {description: 'DSTV Normalization - Converts DSTV data to normalized internal format', estimatedDuration: '100ms'}
+ProcessingContext.ts:503 [dstv-normalization] [dstv-normalization] Starting normalization {validBlocks: 7, conformityScore: '97.9%'}
+DSTVNormalizationStage.ts:1401 Extracted dimensions from ST data: height=251.4, width=146.1, webThickness=8.6, flangeThickness=6
+DSTVNormalizationStage.ts:209 📐 Profile dimensions set for coordinate conversion: {length: 1912.15, height: 251.4, width: 146.1}
+DSTVNormalizationStage.ts:645   🔍 Analyzing contour type for 5 points on face web
+DSTVNormalizationStage.ts:1779   🔍 Analyzing 5 points on face web, profile length=1912.15mm
+DSTVNormalizationStage.ts:1799   📏 Contour bounds: X[0.0, 1842.1] = 1842.1mm
+DSTVNormalizationStage.ts:1800   📏 Contour height: Y[0.0, 146.1] = 146.1mm
+DSTVNormalizationStage.ts:1814   🔧 Analysis: complex=false, flange=false, fullLength=false
+DSTVNormalizationStage.ts:1815   🔧 ContourLength=1842.1mm vs ProfileLength=1912.15mm
+DSTVNormalizationStage.ts:1827   📐 No cutting needed: Contour=1842.1mm < Profile=1912.15mm
+DSTVNormalizationStage.ts:1828   📐 This represents the base shape without any cutting operation
+DSTVNormalizationStage.ts:647   🔍 Contour type result: CONTOUR
+DSTVNormalizationStage.ts:783   📐 Skipping base shape contour: 1842.1mm < 1912.15mm
+DSTVNormalizationStage.ts:645   🔍 Analyzing contour type for 9 points on face top
+DSTVNormalizationStage.ts:1779   🔍 Analyzing 9 points on face top, profile length=1912.15mm
+DSTVNormalizationStage.ts:1799   📏 Contour bounds: X[0.0, 1912.2] = 1912.2mm
+DSTVNormalizationStage.ts:1800   📏 Contour height: Y[0.0, 251.4] = 251.4mm
+DSTVNormalizationStage.ts:1814   🔧 Analysis: complex=true, flange=true, fullLength=true
+DSTVNormalizationStage.ts:1815   🔧 ContourLength=1912.2mm vs ProfileLength=1912.15mm
+DSTVNormalizationStage.ts:1819   🔧 Cut with notches detected (M1002 pattern): Points=9, Face=top
+DSTVNormalizationStage.ts:1820   🔧 Contour: 1912.2x251.4mm
+DSTVNormalizationStage.ts:647   🔍 Contour type result: CUT_WITH_NOTCHES
+DSTVNormalizationStage.ts:650   🔧 AK block detected as cut with partial notches (M1002 pattern)
+DSTVNormalizationStage.ts:645   🔍 Analyzing contour type for 5 points on face bottom
+DSTVNormalizationStage.ts:1779   🔍 Analyzing 5 points on face bottom, profile length=1912.15mm
+DSTVNormalizationStage.ts:1799   📏 Contour bounds: X[0.0, 1842.1] = 1842.1mm
+DSTVNormalizationStage.ts:1800   📏 Contour height: Y[0.0, 146.1] = 146.1mm
+DSTVNormalizationStage.ts:1814   🔧 Analysis: complex=false, flange=true, fullLength=false
+DSTVNormalizationStage.ts:1815   🔧 ContourLength=1842.1mm vs ProfileLength=1912.15mm
+DSTVNormalizationStage.ts:1827   📐 No cutting needed: Contour=1842.1mm < Profile=1912.15mm
+DSTVNormalizationStage.ts:1828   📐 This represents the base shape without any cutting operation
+DSTVNormalizationStage.ts:647   🔍 Contour type result: CONTOUR
+DSTVNormalizationStage.ts:783   📐 Skipping base shape contour: 1842.1mm < 1912.15mm
+ProcessingContext.ts:503 [dstv-normalization] [dstv-normalization] Normalization completed {featuresNormalized: 4, profileName: 'UB254x146x31', duration: '5.20ms'}
+ProcessingContext.ts:503 [dstv-normalization] Completed stage: dstv-normalization {duration: '5.70ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-normalization] Completed stage: dstv-normalization {duration: '6.20ms'}
+ProcessingContext.ts:503 [dstv-scene-building] Starting stage: dstv-scene-building {stageIndex: 5, totalStages: 5}
+ProcessingContext.ts:503 [dstv-scene-building] Starting stage: dstv-scene-building {description: 'DSTV Scene Building - Builds final 3D scene from normalized DSTV data', estimatedDuration: '200ms'}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Starting scene building {profiles: 1, totalFeatures: 4}
+GeometryBridge.ts:82 Calling IProfileGenerator with dimensions: {height: 251.4, width: 146.1, profileType: 'I_PROFILE', profileName: 'UB254x146x31', webThickness: 8.6, …} and length: 1912.15
+DSTVSceneBuildingStage.ts:456 Created I_PROFILE geometry using existing generator
+DSTVSceneBuildingStage.ts:231 📦 Applying 4 features to profile -_001_M1002:
+DSTVSceneBuildingStage.ts:233   Feature 0: id=dstv_cut-with-notches_4, type=cut_with_notches, params: {points: Array(9), closed: true, contourType: 'outer', interpolation: 'linear', face: 'top_flange', …}
+DSTVSceneBuildingStage.ts:233   Feature 1: id=dstv_hole_1, type=hole, params: {diameter: 22, depth: 0, angle: 0, tolerance: undefined, holeType: 'round', …}
+DSTVSceneBuildingStage.ts:233   Feature 2: id=dstv_hole_2, type=hole, params: {diameter: 22, depth: 0, angle: 0, tolerance: undefined, holeType: 'round', …}
+DSTVSceneBuildingStage.ts:233   Feature 3: id=dstv_marking_3, type=marking, params: {text: '0.00', height: 10, angle: 10, depth: 1002, font: 'standard', …}
+ProcessorBridge.ts?t=1756121888743:13 🔧 ProcessorBridge: Applying normalized feature dstv_cut-with-notches_4 of type cut_with_notches
+ProcessorBridge.ts?t=1756121888743:228 🔄 Converting 9 points for cut_with_notches dstv_cut-with-notches_4
+ProcessorBridge.ts?t=1756121888743:229 🔄 Input points type: object First point: (2) [1912.15, 18.6]
+ ✅ Converted points result: (9) [Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2)]
+ 🔄 ProcessorBridge - Creating feature position: {featureId: 'dstv_cut-with-notches_4', featureType: 'cut_with_notches', inputCoords: {…}, outputPosition: {…}, face: 'top_flange'}
+ ✅ Converted feature dstv_cut-with-notches_4 type cut, using processor factory...
+ 📋 Feature details: {type: 'cut', id: 'dstv_cut-with-notches_4', position: _Vector3, rotation: _Euler, parameters: {…}}
+ 🏭 FeatureProcessorFactory.process called for type: cut, id: dstv_cut-with-notches_4
+ ✅ Found processor for cut, calling process...
+ 🔪 Processing cut with 9 points on face top_flange
+   🔧 Detected partial notches pattern (M1002 type)
+   🔧 Processing partial notches with extension:
+     Contour bounds: X[0.0, 1912.2] Y[0.0, 251.4]
+     Profile length: 1912.15mm, Extension: 0.0mm
+   🔍 Extension analysis: baseX=1842.1, extensionX=1912.15
+   🔍 Extension Y values: (3) [18.6, 18.6, 232.8]
+   📐 Detected TOP notch: X[1842.1, 1912.2] Y[0.0, 18.6]
+   📐 Detected BOTTOM notch: X[1842.1, 1912.2] Y[232.8, 251.4]
+     Creating notch: X[1842.1, 1912.2] Y[0.0, 18.6]
+         Box dimensions: X=166.1mm Y=18.6mm Z=70.1mm
+       Box position: X=0.0mm Y=-116.4mm Z=1877.1mm
+       Box final bounds: X[-83.1, 83.1] Y[-125.7, -107.1] Z[1842.1, 1912.2]
+       Intersection check: X=true, Y=true, Z=true
+     Creating notch: X[1842.1, 1912.2] Y[232.8, 251.4]
+         Box dimensions: X=166.1mm Y=18.6mm Z=70.1mm
+       Box position: X=0.0mm Y=116.4mm Z=1877.1mm
+       Box final bounds: X[-83.1, 83.1] Y[107.1, 125.7] Z[1842.1, 1912.2]
+       Intersection check: X=true, Y=true, Z=true
+   🔧 Applying CSG subtraction: 2 notch(es)
+     Original geometry bounds: X[-73.1, 73.1] Y[-125.7, 125.7] Z[0.0, 1912.2]
+     Cut geometry bounds: X[-83.1, 83.1] Y[-125.7, 125.7] Z[1842.1, 1912.2]
+     Original geometry vertices: 132
+     Cut geometry vertices: 48
+     Result geometry vertices: 327
+     Vertices change: 195
+   📐 Added cut info to userData: {id: 'dstv_cut-with-notches_4_notch_0', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+   📐 Added cut info to userData: {id: 'dstv_cut-with-notches_4_notch_1', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+ 📊 Processing result for dstv_cut-with-notches_4: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ 🔧 ProcessorBridge: Applying normalized feature dstv_hole_1 of type hole
+ 🔄 ProcessorBridge - Creating feature position: {featureId: 'dstv_hole_1', featureType: 'hole', inputCoords: {…}, outputPosition: {…}, face: 'web'}
+ ✅ Converted feature dstv_hole_1 type hole, using processor factory...
+ 📋 Feature details: {type: 'hole', id: 'dstv_hole_1', position: _Vector3, rotation: _Euler, parameters: {…}}
+ 🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_1
+ ✅ Found processor for hole, calling process...
+ 🔨 HoleProcessor: Processing hole for element -_001_M1002
+   - Feature: {type: 'hole', id: 'dstv_hole_1', position: _Vector3, rotation: _Euler, coordinateSystem: 'standard', …}
+   - Element dimensions: {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+   - Using standard position: (0, 37.499999999999986, 1857.15)
+HoleProcessor.ts:57   - Face: web
+HoleProcessor.ts:65   - Calculated 3D position: {position: _Vector3, rotation: _Euler, depth: 8.6, normal: _Vector3, face: 'web'}
+HoleProcessor.ts:66     → Position Vector3: 0 37.499999999999986 1857.15
+HoleProcessor.ts:67     → Rotation Euler: 0 0 1.5707963267948966
+HoleProcessor.ts:245   🔩 Round hole geometry: diameter=22mm, segments=32, depth=12.899999999999999mm, face=web
+HoleProcessor.ts:94   - Created round hole: diameter=22
+HoleProcessor.ts:115   - Hole brush position: _Vector3 {x: 0, y: 37.499999999999986, z: 1857.15}
+HoleProcessor.ts:116   - Hole brush rotation: _Euler {isEuler: true, _x: 0, _y: 0, _z: 1.5707963267948966, _order: 'XYZ', …}
+HoleProcessor.ts:123   - Performing CSG subtraction...
+HoleProcessor.ts:167   - Original vertex count: 327
+HoleProcessor.ts:168   - Result vertex count: 1395
+HoleProcessor.ts:169   - Vertices ADDED: 1068
+ProcessorBridge.ts?t=1756121888743:28 📊 Processing result for dstv_hole_1: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ProcessorBridge.ts?t=1756121888743:13 🔧 ProcessorBridge: Applying normalized feature dstv_hole_2 of type hole
+ProcessorBridge.ts?t=1756121888743:249 🔄 ProcessorBridge - Creating feature position: {featureId: 'dstv_hole_2', featureType: 'hole', inputCoords: {…}, outputPosition: {…}, face: 'web'}
+ProcessorBridge.ts?t=1756121888743:19 ✅ Converted feature dstv_hole_2 type hole, using processor factory...
+ProcessorBridge.ts?t=1756121888743:20 📋 Feature details: {type: 'hole', id: 'dstv_hole_2', position: _Vector3, rotation: _Euler, parameters: {…}}
+FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_2
+FeatureProcessorFactory.ts:137 ✅ Found processor for hole, calling process...
+HoleProcessor.ts:35 🔨 HoleProcessor: Processing hole for element -_001_M1002
+HoleProcessor.ts:36   - Feature: {type: 'hole', id: 'dstv_hole_2', position: _Vector3, rotation: _Euler, coordinateSystem: 'standard', …}
+HoleProcessor.ts:37   - Element dimensions: {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+HoleProcessor.ts:56   - Using standard position: (0, -37.5, 1857.15)
+HoleProcessor.ts:57   - Face: web
+HoleProcessor.ts:65   - Calculated 3D position: {position: _Vector3, rotation: _Euler, depth: 8.6, normal: _Vector3, face: 'web'}
+HoleProcessor.ts:66     → Position Vector3: 0 -37.5 1857.15
+HoleProcessor.ts:67     → Rotation Euler: 0 0 1.5707963267948966
+HoleProcessor.ts:245   🔩 Round hole geometry: diameter=22mm, segments=32, depth=12.899999999999999mm, face=web
+HoleProcessor.ts:94   - Created round hole: diameter=22
+HoleProcessor.ts:115   - Hole brush position: _Vector3 {x: 0, y: -37.5, z: 1857.15}
+HoleProcessor.ts:116   - Hole brush rotation: _Euler {isEuler: true, _x: 0, _y: 0, _z: 1.5707963267948966, _order: 'XYZ', …}
+HoleProcessor.ts:123   - Performing CSG subtraction...
+HoleProcessor.ts:167   - Original vertex count: 1395
+HoleProcessor.ts:168   - Result vertex count: 2478
+HoleProcessor.ts:169   - Vertices ADDED: 1083
+ProcessorBridge.ts?t=1756121888743:28 📊 Processing result for dstv_hole_2: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ProcessorBridge.ts?t=1756121888743:13 🔧 ProcessorBridge: Applying normalized feature dstv_marking_3 of type marking
+ProcessorBridge.ts?t=1756121888743:249 🔄 ProcessorBridge - Creating feature position: {featureId: 'dstv_marking_3', featureType: 'marking', inputCoords: {…}, outputPosition: {…}, face: 'web'}
+ProcessorBridge.ts?t=1756121888743:19 ✅ Converted feature dstv_marking_3 type marking, using processor factory...
+ProcessorBridge.ts?t=1756121888743:20 📋 Feature details: {type: 'marking', id: 'dstv_marking_3', position: _Vector3, rotation: _Euler, parameters: {…}}
+FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: marking, id: dstv_marking_3
+FeatureProcessorFactory.ts:137 ✅ Found processor for marking, calling process...
+MarkingProcessor.ts?t=1756113073030:23 📝 Processing marking/scribbing: "0" at position [0, -123.7, 2] with size 10mm
+MarkingProcessor.ts?t=1756113073030:49 ✅ Marking stored for visual display
+ProcessorBridge.ts?t=1756121888743:28 📊 Processing result for dstv_marking_3: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Features applied successfully {originalVertices: 132, finalVertices: 2478, verticesAdded: 2346, featuresApplied: 4}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] ✅ Attached processed geometry to element -_001_M1002 {vertexCount: 2478, hasFeatures: true}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Scene building completed {elementsCreated: 1, sceneId: 'dstv_scene_-_001_M1002_1756122053731', duration: '89.50ms'}
+ProcessingContext.ts:503 [dstv-scene-building] Completed stage: dstv-scene-building {duration: '90.10ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-scene-building] Completed stage: dstv-scene-building {duration: '90.40ms'}
+ProcessingContext.ts:503 [dstv-scene-building] Pipeline execution completed: dstv-import-pipeline {duration: '105.90ms', success: true}
+DSTVImportPipeline.ts:168 🎯 DSTV Import completed successfully {duration: '0.00ms', elements: 1, metadata: {…}}
+ProfessionalViewer.tsx:961 📊 État actuel avant import: []
+ProfessionalViewer.tsx:962 📊 Éléments à importer: [{…}]
+ProfessionalViewer.tsx:975 📊 Avant import: 0 éléments
+ProfessionalViewer.tsx:976 📊 Nouveaux éléments: 1
+ProfessionalViewer.tsx:977 📊 Total après import: 1 éléments
+ProfessionalViewer.tsx:978 📊 Nouveau tableau complet: [{…}]
+GeometryConverter.ts:23 ✅ Using existing geometry for -_001_M1002 (vertices: 2478)
+FeatureOutlineRenderer.ts:105 🔵 Creating outlines - Mesh yOffset: 125.69999694824219
+FeatureOutlineRenderer.ts:339 🔵 Creating hole outline 0: {position: Array(3), originalPosition: Array(3), originalDSTVCoords: undefined, rotation: _Euler, diameter: 22, …}
+FeatureOutlineRenderer.ts:455   -> Ring 1 at: [-4.3, 163.1999969482422, 1857.15] (rounded: [-4.3, 163.2, 1857.2])
+FeatureOutlineRenderer.ts:455   -> Ring 2 at: [4.3, 163.1999969482422, 1857.15] (rounded: [4.3, 163.2, 1857.2])
+FeatureOutlineRenderer.ts:339 🔵 Creating hole outline 1: {position: Array(3), originalPosition: Array(3), originalDSTVCoords: undefined, rotation: _Euler, diameter: 22, …}
+FeatureOutlineRenderer.ts:455   -> Ring 1 at: [-4.3, 88.19999694824219, 1857.15] (rounded: [-4.3, 88.2, 1857.2])
+FeatureOutlineRenderer.ts:455   -> Ring 2 at: [4.3, 88.19999694824219, 1857.15] (rounded: [4.3, 88.2, 1857.2])
+FeatureOutlineRenderer.ts:765 🔵 Creating cut outline 0: {id: 'dstv_cut-with-notches_4_notch_0', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+FeatureOutlineRenderer.ts:800   -> Cut outline at: [0.0, 9.3, 1877.1]
+FeatureOutlineRenderer.ts:801   -> Dimensions: 166.1 x 18.6 x 70.1
+FeatureOutlineRenderer.ts:765 🔵 Creating cut outline 1: {id: 'dstv_cut-with-notches_4_notch_1', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+FeatureOutlineRenderer.ts:800   -> Cut outline at: [0.0, 242.1, 1877.1]
+FeatureOutlineRenderer.ts:801   -> Dimensions: 166.1 x 18.6 x 70.1
+FeatureOutlineRenderer.ts:304 📋 Created outlines for element -_001_M1002_1756122053822_0: {totalOutlines: 4, featureIds: Array(4), elementFeatures: Array(5)}
+SceneManager.ts:330 ✨ Added 4 feature outlines for -_001_M1002
+SceneManager.ts:336 📝 Processing markings for visual display: [{…}]
+MarkingVisualProcessor.ts?t=1756121595322:74    📍 BEAM marking: DSTV[0, -123.7] -> Three.js[4.8, 2.0, -956.1]
+MarkingVisualProcessor.ts?t=1756121595322:75    📍 Face: web, WebThickness: 8.6mm
+MarkingVisualProcessor.ts?t=1756121595322:124    🔄 Rotation applied: X=0.0°, Y=90.0°, Z=0.0°
+MarkingVisualProcessor.ts?t=1756121595322:41 📝 Created marking visual: "0" at position [4.8, 2.0, -956.1]
+SceneManager.ts:344 ✅ Added 1 marking visual(s) to element
+demo.tsx:165 Elements sélectionnés: ['-_001_M1002_1756122053822_0']
+ProfessionalViewer.tsx:1021 ✅ Import réussi: 1 éléments ajoutés
+GeometryConverter.ts:23 ✅ Using existing geometry for -_001_M1002 (vertices: 2478)
+FeatureOutlineRenderer.ts:105 🔵 Creating outlines - Mesh yOffset: 125.69999694824219
+FeatureOutlineRenderer.ts:339 🔵 Creating hole outline 0: {position: Array(3), originalPosition: Array(3), originalDSTVCoords: undefined, rotation: _Euler, diameter: 22, …}
+FeatureOutlineRenderer.ts:455   -> Ring 1 at: [-4.3, 163.1999969482422, 1857.15] (rounded: [-4.3, 163.2, 1857.2])
+FeatureOutlineRenderer.ts:455   -> Ring 2 at: [4.3, 163.1999969482422, 1857.15] (rounded: [4.3, 163.2, 1857.2])
+FeatureOutlineRenderer.ts:339 🔵 Creating hole outline 1: {position: Array(3), originalPosition: Array(3), originalDSTVCoords: undefined, rotation: _Euler, diameter: 22, …}
+FeatureOutlineRenderer.ts:455   -> Ring 1 at: [-4.3, 88.19999694824219, 1857.15] (rounded: [-4.3, 88.2, 1857.2])
+FeatureOutlineRenderer.ts:455   -> Ring 2 at: [4.3, 88.19999694824219, 1857.15] (rounded: [4.3, 88.2, 1857.2])
+FeatureOutlineRenderer.ts:765 🔵 Creating cut outline 0: {id: 'dstv_cut-with-notches_4_notch_0', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+FeatureOutlineRenderer.ts:800   -> Cut outline at: [0.0, 9.3, 1877.1]
+FeatureOutlineRenderer.ts:801   -> Dimensions: 166.1 x 18.6 x 70.1
+FeatureOutlineRenderer.ts:765 🔵 Creating cut outline 1: {id: 'dstv_cut-with-notches_4_notch_1', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+FeatureOutlineRenderer.ts:800   -> Cut outline at: [0.0, 242.1, 1877.1]
+FeatureOutlineRenderer.ts:801   -> Dimensions: 166.1 x 18.6 x 70.1
+FeatureOutlineRenderer.ts:304 📋 Created outlines for element -_001_M1002_1756122053822_0: {totalOutlines: 4, featureIds: Array(4), elementFeatures: Array(5)}
+SceneManager.ts:330 ✨ Added 4 feature outlines for -_001_M1002
+SceneManager.ts:336 📝 Processing markings for visual display: [{…}]
+MarkingVisualProcessor.ts?t=1756121595322:74    📍 BEAM marking: DSTV[0, -123.7] -> Three.js[4.8, 2.0, -956.1]
+MarkingVisualProcessor.ts?t=1756121595322:75    📍 Face: web, WebThickness: 8.6mm
+MarkingVisualProcessor.ts?t=1756121595322:124    🔄 Rotation applied: X=0.0°, Y=90.0°, Z=0.0°
+MarkingVisualProcessor.ts?t=1756121595322:41 📝 Created marking visual: "0" at position [4.8, 2.0, -956.1]
+SceneManager.ts:344 ✅ Added 1 marking visual(s) to element
+ControlsManager.ts:669 🔍 Limites zoom: 200mm ↔ 4500mm
+demo.tsx:165 Elements sélectionnés: ['-_001_M1002_1756122053822_0']
+demo.tsx:165 Elements sélectionnés: ['-_001_M1002_1756122053822_0']
+ProfessionalViewer.tsx:1362 🖱️ Feature clicked: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', featureSelectionEnabled: true, hasSelectionManager: true}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: [{…}]
+ProfessionalViewer.tsx:1362 🖱️ Feature clicked: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', featureSelectionEnabled: true, hasSelectionManager: true}
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: [{…}]
+ProfessionalViewer.tsx:1362 🖱️ Feature clicked: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', featureSelectionEnabled: true, hasSelectionManager: true}
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_0, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_0, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_1, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ ProfessionalViewer.tsx:1358
+(anonymous) @ ProfessionalViewer.tsx:1350
+ProfessionalViewer @ ProfessionalViewer.tsx:1235
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+processRootScheduleInMicrotask @ react-dom_client.js?v=1e977a5a:11757
+(anonymous) @ react-dom_client.js?v=1e977a5a:11852
+<ProfessionalViewer>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+DemoApp @ demo.tsx:393
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17678
+renderWithHooks @ react-dom_client.js?v=1e977a5a:4321
+updateFunctionComponent @ react-dom_client.js?v=1e977a5a:6759
+beginWork @ react-dom_client.js?v=1e977a5a:7805
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+performUnitOfWork @ react-dom_client.js?v=1e977a5a:11059
+workLoopSync @ react-dom_client.js?v=1e977a5a:10916
+renderRootSync @ react-dom_client.js?v=1e977a5a:10898
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10510
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2705
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+handleMouseUp_ @ unknown
+<DemoApp>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1e977a5a:256
+(anonymous) @ demo.tsx:431
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_0, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: [{…}]
+ProfessionalViewer.tsx:1362 🖱️ Feature clicked: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', featureSelectionEnabled: true, hasSelectionManager: true}
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_0, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_2, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_0, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_2, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_cut-with-notches_4_notch_0', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_cut-with-notches_4_notch_0, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 1, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_2, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: [{…}]
+ProfessionalViewer.tsx:1362 🖱️ Feature clicked: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', featureSelectionEnabled: true, hasSelectionManager: true}
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_2, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_2, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+selectSingleFeature @ SelectionManager.ts:397
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_2', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_2, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+selectSingleFeature @ SelectionManager.ts:406
+handleFeatureClick @ SelectionManager.ts:384
+(anonymous) @ SelectionManager.ts:132
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+onClick @ ProfessionalViewer.tsx:1369
+executeDispatch @ react-dom_client.js?v=1e977a5a:11940
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+processDispatchQueue @ react-dom_client.js?v=1e977a5a:11976
+(anonymous) @ react-dom_client.js?v=1e977a5a:12396
+batchedUpdates$1 @ react-dom_client.js?v=1e977a5a:2701
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1e977a5a:12085
+dispatchEvent @ react-dom_client.js?v=1e977a5a:15036
+dispatchDiscreteEvent @ react-dom_client.js?v=1e977a5a:15017
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: true, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_1, applying highlight: true
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: [{…}]
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: [{…}]
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+clearSelection @ SelectionManager.ts:577
+dispose @ SelectionManager.ts:782
+(anonymous) @ ProfessionalViewer.tsx:420
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17746
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+commitHookEffectListUnmount @ react-dom_client.js?v=1e977a5a:8658
+commitHookPassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:8677
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10342
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10363
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10363
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10341
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10350
+flushPassiveEffects @ react-dom_client.js?v=1e977a5a:11497
+flushPendingEffects @ react-dom_client.js?v=1e977a5a:11471
+flushSpawnedWork @ react-dom_client.js?v=1e977a5a:11445
+commitRoot @ react-dom_client.js?v=1e977a5a:11276
+commitRootWhenReady @ react-dom_client.js?v=1e977a5a:10695
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10640
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+scheduleRefresh @ react-dom_client.js?v=1e977a5a:382
+p.scheduleRefresh @ renderer.js:994
+(anonymous) @ @react-refresh:228
+performReactRefresh @ @react-refresh:217
+(anonymous) @ @react-refresh:608
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:530 ✅ Found outline for feature dstv_hole_1, applying highlight: false
+FeatureOutlineRenderer.ts:531    Outline details: {visible: true, parent: 'FeatureOutlines', children: 3, position: _Vector3, scale: _Vector3}
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+clearSelection @ SelectionManager.ts:577
+dispose @ SelectionManager.ts:782
+dispose @ ViewerEngine.ts:526
+(anonymous) @ ProfessionalViewer.tsx:429
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17746
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+commitHookEffectListUnmount @ react-dom_client.js?v=1e977a5a:8658
+commitHookPassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:8677
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10342
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10363
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10363
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10341
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10350
+flushPassiveEffects @ react-dom_client.js?v=1e977a5a:11497
+flushPendingEffects @ react-dom_client.js?v=1e977a5a:11471
+flushSpawnedWork @ react-dom_client.js?v=1e977a5a:11445
+commitRoot @ react-dom_client.js?v=1e977a5a:11276
+commitRootWhenReady @ react-dom_client.js?v=1e977a5a:10695
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10640
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+scheduleRefresh @ react-dom_client.js?v=1e977a5a:382
+p.scheduleRefresh @ renderer.js:994
+(anonymous) @ @react-refresh:228
+performReactRefresh @ @react-refresh:217
+(anonymous) @ @react-refresh:608
+FeatureOutlineRenderer.ts:519 Available elements: []
+FeatureOutlineRenderer.ts:514 🎯 highlightFeature called: {elementId: '-_001_M1002_1756122053822_0', featureId: 'dstv_hole_1', highlight: false, color: '#00ff66'}
+FeatureOutlineRenderer.ts:518 ⚠️ No outlines found for element -_001_M1002_1756122053822_0
+overrideMethod @ hook.js:608
+highlightFeature @ FeatureOutlineRenderer.ts:518
+(anonymous) @ FeatureOutlineRenderer.ts:58
+(anonymous) @ EventBus.ts:108
+emit @ EventBus.ts:106
+highlightFeature @ SelectionManager.ts:439
+(anonymous) @ SelectionManager.ts:588
+(anonymous) @ SelectionManager.ts:587
+clearFeatureSelection @ SelectionManager.ts:586
+clearSelection @ SelectionManager.ts:577
+dispose @ SelectionManager.ts:782
+dispose @ ViewerEngine.ts:526
+(anonymous) @ ProfessionalViewer.tsx:429
+react_stack_bottom_frame @ react-dom_client.js?v=1e977a5a:17746
+runWithFiberInDEV @ react-dom_client.js?v=1e977a5a:1540
+commitHookEffectListUnmount @ react-dom_client.js?v=1e977a5a:8658
+commitHookPassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:8677
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10342
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10363
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10363
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10341
+recursivelyTraversePassiveUnmountEffects @ react-dom_client.js?v=1e977a5a:10334
+commitPassiveUnmountOnFiber @ react-dom_client.js?v=1e977a5a:10350
+flushPassiveEffects @ react-dom_client.js?v=1e977a5a:11497
+flushPendingEffects @ react-dom_client.js?v=1e977a5a:11471
+flushSpawnedWork @ react-dom_client.js?v=1e977a5a:11445
+commitRoot @ react-dom_client.js?v=1e977a5a:11276
+commitRootWhenReady @ react-dom_client.js?v=1e977a5a:10695
+performWorkOnRoot @ react-dom_client.js?v=1e977a5a:10640
+performSyncWorkOnRoot @ react-dom_client.js?v=1e977a5a:11838
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1e977a5a:11735
+flushSyncWork$1 @ react-dom_client.js?v=1e977a5a:10753
+scheduleRefresh @ react-dom_client.js?v=1e977a5a:382
+p.scheduleRefresh @ renderer.js:994
+(anonymous) @ @react-refresh:228
+performReactRefresh @ @react-refresh:217
+(anonymous) @ @react-refresh:608
+FeatureOutlineRenderer.ts:519 Available elements: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed for uploading 3D textures
+CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: [{…}]
+ProfessionalViewer.tsx:223 ✅ Using FeatureOutlineRenderer from SceneManager
+ControlsManager.ts:669 🔍 Limites zoom: 200mm ↔ 4500mm
+ProfessionalViewer.tsx:392 🎮 Contrôles de caméra activés
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:223 ✅ Using FeatureOutlineRenderer from SceneManager
+ControlsManager.ts:669 🔍 Limites zoom: 500mm ↔ 15000mm
+ProfessionalViewer.tsx:392 🎮 Contrôles de caméra activés
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:223 ✅ Using FeatureOutlineRenderer from SceneManager
+ControlsManager.ts:669 🔍 Limites zoom: 500mm ↔ 15000mm
+ProfessionalViewer.tsx:392 🎮 Contrôles de caméra activés
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:223 ✅ Using FeatureOutlineRenderer from SceneManager
+ControlsManager.ts:669 🔍 Limites zoom: 500mm ↔ 15000mm
+ProfessionalViewer.tsx:392 🎮 Contrôles de caméra activés
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+ProfessionalViewer.tsx:457 🎯 Features sélectionnées: []
+CameraController.ts:701 📐 Updated camera limits: minDist=100, maxDist=10000
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:223 ✅ Using FeatureOutlineRenderer from SceneManager
+ControlsManager.ts:669 🔍 Limites zoom: 500mm ↔ 15000mm
+ProfessionalViewer.tsx:392 🎮 Contrôles de caméra activés
+ProfessionalViewer.tsx:1161 🎯 Selected features updated in ProfessionalViewer: []
+ProfessionalViewer.tsx:957 📁 Import en cours: M1002.nc
+ [Pipeline] Processing context initialized {file: undefined, fileSize: undefined, options: Array(2)}
+ [Pipeline] Starting pipeline execution: dstv-import-pipeline {stageCount: 5, middlewareCount: 0}
+ [dstv-lexical-analysis] Starting stage: dstv-lexical-analysis {stageIndex: 1, totalStages: 5}
+ [dstv-lexical-analysis] Starting stage: dstv-lexical-analysis {description: 'DSTV Lexical Analysis - Tokenizes DSTV file according to official grammar', estimatedDuration: '100ms'}
+ [dstv-lexical-analysis] [dstv-lexical-analysis] Starting lexical analysis {fileSize: 971, contentLength: 971}
+ [dstv-lexical-analysis] [dstv-lexical-analysis] Lexical analysis completed {tokensGenerated: 177, duration: '0.80ms', blocksDetected: 7}
+ [dstv-lexical-analysis] Completed stage: dstv-lexical-analysis {duration: '1.10ms', outputType: 'Object'}
+ [dstv-lexical-analysis] Completed stage: dstv-lexical-analysis {duration: '1.50ms'}
+ProcessingContext.ts:503 [dstv-syntax-analysis] Starting stage: dstv-syntax-analysis {stageIndex: 2, totalStages: 5}
+ProcessingContext.ts:503 [dstv-syntax-analysis] Starting stage: dstv-syntax-analysis {description: 'DSTV Syntax Analysis - Builds AST from tokens according to DSTV grammar', estimatedDuration: '200ms'}
+ProcessingContext.ts:503 [dstv-syntax-analysis] [dstv-syntax-analysis] Starting syntax analysis {totalTokens: 177, blocksDetected: 7}
+DSTVSyntaxStage.ts:442 🔍 parseAKBlock: Parsing 20 raw data elements: (20) ['o', '1842.10', '0.00', '0.00', 'o', '0.00', '0.00', '0.00', 'o', '0.00', '146.10', '0.00', 'o', '1842.10', '146.10', '0.00', 'o', '1842.10', '0.00', '0.00']
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 0) on face web
+DSTVSyntaxStage.ts:505   ✅ Added point: (0, 0) on face web
+DSTVSyntaxStage.ts:505   ✅ Added point: (0, 146.1) on face web
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 146.1) on face web
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 0) on face web
+DSTVSyntaxStage.ts:545 📊 parseAKBlock result: 5 points parsed
+DSTVSyntaxStage.ts:434   📍 Parsed 2 holes from BO block
+DSTVSyntaxStage.ts:605 🔍 parseSIBlock: Parsing raw data: (6) ['v', '2.00', '2.00', '0.00', '10', '1002']
+DSTVSyntaxStage.ts:617   📍 Found face indicator: v
+DSTVSyntaxStage.ts:627   📍 Parsed coordinate: "2.00" -> 2
+DSTVSyntaxStage.ts:627   📍 Parsed coordinate: "2.00" -> 2
+DSTVSyntaxStage.ts:632   📍 Found marking text: 0.00
+DSTVSyntaxStage.ts:652   ✅ Parsed SI block: {x: 2, y: 2, text: '0.00', face: 'v', height: 0, …}
+DSTVSyntaxStage.ts:442 🔍 parseAKBlock: Parsing 36 raw data elements: (36) ['v', '1912.15', '18.60', '0.00', 'v', '1912.15', '232.80', '0.00', 'v', '1842.10', '232.80', '0.00', 'v', '1842.10', '251.40', '0.00', 'v', '0.00', '251.40', '0.00', 'v', '0.00', '0.00', '0.00', 'v', '1842.10', '0.00', '0.00', 'v', '1842.10', '18.60', '0.00', 'v', '1912.15', '18.60', '0.00']
+DSTVSyntaxStage.ts:505   ✅ Added point: (1912.15, 18.6) on face top
+DSTVSyntaxStage.ts:505   ✅ Added point: (1912.15, 232.8) on face top
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 232.8) on face top
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 251.4) on face top
+DSTVSyntaxStage.ts:505   ✅ Added point: (0, 251.4) on face top
+DSTVSyntaxStage.ts:505   ✅ Added point: (0, 0) on face top
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 0) on face top
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 18.6) on face top
+DSTVSyntaxStage.ts:505   ✅ Added point: (1912.15, 18.6) on face top
+DSTVSyntaxStage.ts:545 📊 parseAKBlock result: 9 points parsed
+DSTVSyntaxStage.ts:442 🔍 parseAKBlock: Parsing 20 raw data elements: (20) ['u', '1842.10', '146.10', '0.00', 'u', '0.00', '146.10', '0.00', 'u', '0.00', '0.00', '0.00', 'u', '1842.10', '0.00', '0.00', 'u', '1842.10', '146.10', '0.00']
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 146.1) on face bottom
+DSTVSyntaxStage.ts:505   ✅ Added point: (0, 146.1) on face bottom
+DSTVSyntaxStage.ts:505   ✅ Added point: (0, 0) on face bottom
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 0) on face bottom
+DSTVSyntaxStage.ts:505   ✅ Added point: (1842.1, 146.1) on face bottom
+DSTVSyntaxStage.ts:545 📊 parseAKBlock result: 5 points parsed
+ProcessingContext.ts:503 [dstv-syntax-analysis] [dstv-syntax-analysis] Syntax analysis completed {blocksParsed: 7, duration: '4.90ms', profile: 'UB254x146x31'}
+ProcessingContext.ts:503 [dstv-syntax-analysis] Completed stage: dstv-syntax-analysis {duration: '5.10ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-syntax-analysis] Completed stage: dstv-syntax-analysis {duration: '5.50ms'}
+ProcessingContext.ts:503 [dstv-semantic-validation] Starting stage: dstv-semantic-validation {stageIndex: 3, totalStages: 5}
+ProcessingContext.ts:503 [dstv-semantic-validation] Starting stage: dstv-semantic-validation {description: 'DSTV Semantic Validation - Validates DSTV data against business rules and standards', estimatedDuration: '150ms'}
+ProcessingContext.ts:503 [dstv-semantic-validation] [dstv-semantic-validation] Starting semantic validation {totalBlocks: 7, profile: 'UB254x146x31'}
+ProcessingContext.ts:503 [dstv-semantic-validation] File contains both geometry and marking blocks - good practice 
+ProcessingContext.ts:503 [dstv-semantic-validation] [dstv-semantic-validation] Semantic validation completed {validBlocks: 7, totalErrors: 2, totalWarnings: 3, conformityScore: '97.9%', duration: '1.90ms'}
+ProcessingContext.ts:503 [dstv-semantic-validation] Completed stage: dstv-semantic-validation {duration: '2.20ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-semantic-validation] Completed stage: dstv-semantic-validation {duration: '2.60ms'}
+ProcessingContext.ts:503 [dstv-normalization] Starting stage: dstv-normalization {stageIndex: 4, totalStages: 5}
+ProcessingContext.ts:503 [dstv-normalization] Starting stage: dstv-normalization {description: 'DSTV Normalization - Converts DSTV data to normalized internal format', estimatedDuration: '100ms'}
+ProcessingContext.ts:503 [dstv-normalization] [dstv-normalization] Starting normalization {validBlocks: 7, conformityScore: '97.9%'}
+DSTVNormalizationStage.ts:1401 Extracted dimensions from ST data: height=251.4, width=146.1, webThickness=8.6, flangeThickness=6
+DSTVNormalizationStage.ts:209 📐 Profile dimensions set for coordinate conversion: {length: 1912.15, height: 251.4, width: 146.1}
+DSTVNormalizationStage.ts:645   🔍 Analyzing contour type for 5 points on face web
+DSTVNormalizationStage.ts:1779   🔍 Analyzing 5 points on face web, profile length=1912.15mm
+DSTVNormalizationStage.ts:1799   📏 Contour bounds: X[0.0, 1842.1] = 1842.1mm
+DSTVNormalizationStage.ts:1800   📏 Contour height: Y[0.0, 146.1] = 146.1mm
+DSTVNormalizationStage.ts:1814   🔧 Analysis: complex=false, flange=false, fullLength=false
+DSTVNormalizationStage.ts:1815   🔧 ContourLength=1842.1mm vs ProfileLength=1912.15mm
+DSTVNormalizationStage.ts:1827   📐 No cutting needed: Contour=1842.1mm < Profile=1912.15mm
+DSTVNormalizationStage.ts:1828   📐 This represents the base shape without any cutting operation
+DSTVNormalizationStage.ts:647   🔍 Contour type result: CONTOUR
+DSTVNormalizationStage.ts:783   📐 Skipping base shape contour: 1842.1mm < 1912.15mm
+DSTVNormalizationStage.ts:645   🔍 Analyzing contour type for 9 points on face top
+DSTVNormalizationStage.ts:1779   🔍 Analyzing 9 points on face top, profile length=1912.15mm
+DSTVNormalizationStage.ts:1799   📏 Contour bounds: X[0.0, 1912.2] = 1912.2mm
+DSTVNormalizationStage.ts:1800   📏 Contour height: Y[0.0, 251.4] = 251.4mm
+DSTVNormalizationStage.ts:1814   🔧 Analysis: complex=true, flange=true, fullLength=true
+DSTVNormalizationStage.ts:1815   🔧 ContourLength=1912.2mm vs ProfileLength=1912.15mm
+DSTVNormalizationStage.ts:1819   🔧 Cut with notches detected (M1002 pattern): Points=9, Face=top
+DSTVNormalizationStage.ts:1820   🔧 Contour: 1912.2x251.4mm
+DSTVNormalizationStage.ts:647   🔍 Contour type result: CUT_WITH_NOTCHES
+DSTVNormalizationStage.ts:650   🔧 AK block detected as cut with partial notches (M1002 pattern)
+DSTVNormalizationStage.ts:645   🔍 Analyzing contour type for 5 points on face bottom
+DSTVNormalizationStage.ts:1779   🔍 Analyzing 5 points on face bottom, profile length=1912.15mm
+DSTVNormalizationStage.ts:1799   📏 Contour bounds: X[0.0, 1842.1] = 1842.1mm
+DSTVNormalizationStage.ts:1800   📏 Contour height: Y[0.0, 146.1] = 146.1mm
+DSTVNormalizationStage.ts:1814   🔧 Analysis: complex=false, flange=true, fullLength=false
+DSTVNormalizationStage.ts:1815   🔧 ContourLength=1842.1mm vs ProfileLength=1912.15mm
+DSTVNormalizationStage.ts:1827   📐 No cutting needed: Contour=1842.1mm < Profile=1912.15mm
+DSTVNormalizationStage.ts:1828   📐 This represents the base shape without any cutting operation
+DSTVNormalizationStage.ts:647   🔍 Contour type result: CONTOUR
+DSTVNormalizationStage.ts:783   📐 Skipping base shape contour: 1842.1mm < 1912.15mm
+ProcessingContext.ts:503 [dstv-normalization] [dstv-normalization] Normalization completed {featuresNormalized: 4, profileName: 'UB254x146x31', duration: '4.70ms'}
+ProcessingContext.ts:503 [dstv-normalization] Completed stage: dstv-normalization {duration: '5.00ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-normalization] Completed stage: dstv-normalization {duration: '5.40ms'}
  [dstv-scene-building] Starting stage: dstv-scene-building {stageIndex: 5, totalStages: 5}
  [dstv-scene-building] Starting stage: dstv-scene-building {description: 'DSTV Scene Building - Builds final 3D scene from normalized DSTV data', estimatedDuration: '200ms'}
- [dstv-scene-building] [dstv-scene-building] Starting scene building {profiles: 1, totalFeatures: 6}
+ [dstv-scene-building] [dstv-scene-building] Starting scene building {profiles: 1, totalFeatures: 4}
  Calling IProfileGenerator with dimensions: {height: 251.4, width: 146.1, profileType: 'I_PROFILE', profileName: 'UB254x146x31', webThickness: 8.6, …} and length: 1912.15
  Created I_PROFILE geometry using existing generator
- 📦 Applying 6 features to profile -_001_M1002:
-   Feature 0: id=dstv_notch_1, type=notch, params: {points: Array(5), closed: true, contourType: 'outer', interpolation: 'linear', face: 'web', …}
-   Feature 1: id=dstv_contour_outer_5, type=contour, params: {points: Array(9), closed: true, contourType: 'outer', interpolation: 'linear', face: 'top'}
-   Feature 2: id=dstv_notch_6, type=notch, params: {points: Array(5), closed: true, contourType: 'outer', interpolation: 'linear', face: 'bottom', …}
-   Feature 3: id=dstv_hole_2, type=hole, params: {diameter: 22, depth: 0, angle: 0, tolerance: undefined, holeType: 'round', …}
-   Feature 4: id=dstv_hole_3, type=hole, params: {diameter: 22, depth: 0, angle: 0, tolerance: undefined, holeType: 'round', …}
-   Feature 5: id=dstv_marking_4, type=marking, params: {text: '0.00', height: 10, angle: 10, depth: 1002, font: 'standard', …}
- 🔧 ProcessorBridge: Applying normalized feature dstv_notch_1 of type notch
- 🔄 Converting 5 points for notch dstv_notch_1
- 🔄 Input points type: object First point: (2) [1842.1, 0]
- ✅ Converted points result: (5) [Array(2), Array(2), Array(2), Array(2), Array(2)]
- ✅ Converted feature dstv_notch_1 type notch, using processor factory...
- 📋 Feature details: {type: 'notch', id: 'dstv_notch_1', position: _Vector3, rotation: _Euler, parameters: {…}}
- 🏭 FeatureProcessorFactory.process called for type: notch, id: dstv_notch_1
- ✅ Found processor for notch, calling process...
- 🔨 NotchProcessor.process called for feature dstv_notch_1
-   - Feature params: {points: Array(5), closed: true, contourType: 'outer', interpolation: 'linear', face: 'web', …}
-   - Element: -_001_M1002 {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
-   📏 Profile length: 1912.15mm, Contour length: 1842.1mm
-   ✂️ Notch depth: 35.02500000000009mm at each extremity
-   ✂️ Creating end notch from 1842.1mm to 1912.15mm
-     📐 Creating notch geometry in Three.js space:
-       - X: 886.0249999999999 to 956.075 (width: 70.05000000000018)
-       - Y: 0 to 146.1 (height: 146.1)
-       - Depth: 25.799999999999997
-       - Face: web
-     ✅ Notch geometry created at (921.05, 73.05, 0)
-   ✅ End notch applied
-   ✅ Notches processing completed successfully
- 📊 Processing result for dstv_notch_1: {success: true, hasGeometry: true, error: undefined, warning: undefined}
- 🔧 ProcessorBridge: Applying normalized feature dstv_contour_outer_5 of type contour
- 🔄 Converting 9 points for contour dstv_contour_outer_5
+ 📦 Applying 4 features to profile -_001_M1002:
+   Feature 0: id=dstv_cut-with-notches_4, type=cut_with_notches, params: {points: Array(9), closed: true, contourType: 'outer', interpolation: 'linear', face: 'top_flange', …}
+   Feature 1: id=dstv_hole_1, type=hole, params: {diameter: 22, depth: 0, angle: 0, tolerance: undefined, holeType: 'round', …}
+   Feature 2: id=dstv_hole_2, type=hole, params: {diameter: 22, depth: 0, angle: 0, tolerance: undefined, holeType: 'round', …}
+   Feature 3: id=dstv_marking_3, type=marking, params: {text: '0.00', height: 10, angle: 10, depth: 1002, font: 'standard', …}
+ 🔧 ProcessorBridge: Applying normalized feature dstv_cut-with-notches_4 of type cut_with_notches
+ 🔄 Converting 9 points for cut_with_notches dstv_cut-with-notches_4
  🔄 Input points type: object First point: (2) [1912.15, 18.6]
  ✅ Converted points result: (9) [Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2), Array(2)]
- ✅ Converted feature dstv_contour_outer_5 type contour, using processor factory...
- 📋 Feature details: {type: 'contour', id: 'dstv_contour_outer_5', position: _Vector3, rotation: _Euler, parameters: {…}}
- 🏭 FeatureProcessorFactory.process called for type: contour, id: dstv_contour_outer_5
- ✅ Found processor for contour, calling process...
- 🎯 ContourProcessor.process called for feature dstv_contour_outer_5
-   - Feature params: {points: Array(9), closed: true, contourType: 'outer', interpolation: 'linear', face: 'top'}
-   - Element: -_001_M1002 {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
-   ⚠️ Skipping DSTV outer contour dstv_contour_outer_5 - matches full profile shape
- 📊 Processing result for dstv_contour_outer_5: {success: true, hasGeometry: true, error: undefined, warning: 'DSTV outer contour matches the complete profile shape and is not applied as cut'}
- 🔧 ProcessorBridge: Applying normalized feature dstv_notch_6 of type notch
- 🔄 Converting 5 points for notch dstv_notch_6
- 🔄 Input points type: object First point: (2) [1842.1, 146.1]
- ✅ Converted points result: (5) [Array(2), Array(2), Array(2), Array(2), Array(2)]
- ✅ Converted feature dstv_notch_6 type notch, using processor factory...
- 📋 Feature details: {type: 'notch', id: 'dstv_notch_6', position: _Vector3, rotation: _Euler, parameters: {…}}
- 🏭 FeatureProcessorFactory.process called for type: notch, id: dstv_notch_6
- ✅ Found processor for notch, calling process...
- 🔨 NotchProcessor.process called for feature dstv_notch_6
-   - Feature params: {points: Array(5), closed: true, contourType: 'outer', interpolation: 'linear', face: 'bottom', …}
-   - Element: -_001_M1002 {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
-   📏 Profile length: 1912.15mm, Contour length: 1842.1mm
-   ✂️ Notch depth: 35.02500000000009mm at each extremity
-   ✂️ Creating end notch from 1842.1mm to 1912.15mm
-     📐 Creating notch geometry in Three.js space:
-       - X: 886.0249999999999 to 956.075 (width: 70.05000000000018)
-       - Y: 0 to 146.1 (height: 146.1)
-       - Depth: 25.799999999999997
-       - Face: bottom
-     ✅ Notch geometry created at (921.05, 73.05, -125.7)
-   ✅ End notch applied
-   ✅ Notches processing completed successfully
-ProcessorBridge.ts:59 📊 Processing result for dstv_notch_6: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ 🔄 ProcessorBridge - Creating feature position: {featureId: 'dstv_cut-with-notches_4', featureType: 'cut_with_notches', inputCoords: {…}, outputPosition: {…}, face: 'top_flange'}
+ ✅ Converted feature dstv_cut-with-notches_4 type cut, using processor factory...
+ 📋 Feature details: {type: 'cut', id: 'dstv_cut-with-notches_4', position: _Vector3, rotation: _Euler, parameters: {…}}
+ 🏭 FeatureProcessorFactory.process called for type: cut, id: dstv_cut-with-notches_4
+ ✅ Found processor for cut, calling process...
+ 🔪 Processing cut with 9 points on face top_flange
+   🔧 Detected partial notches pattern (M1002 type)
+   🔧 Processing partial notches with extension:
+     Contour bounds: X[0.0, 1912.2] Y[0.0, 251.4]
+     Profile length: 1912.15mm, Extension: 0.0mm
+   🔍 Extension analysis: baseX=1842.1, extensionX=1912.15
+   🔍 Extension Y values: (3) [18.6, 18.6, 232.8]
+   📐 Detected TOP notch: X[1842.1, 1912.2] Y[0.0, 18.6]
+   📐 Detected BOTTOM notch: X[1842.1, 1912.2] Y[232.8, 251.4]
+     Creating notch: X[1842.1, 1912.2] Y[0.0, 18.6]
+         Box dimensions: X=166.1mm Y=18.6mm Z=70.1mm
+       Box position: X=0.0mm Y=-116.4mm Z=1877.1mm
+       Box final bounds: X[-83.1, 83.1] Y[-125.7, -107.1] Z[1842.1, 1912.2]
+       Intersection check: X=true, Y=true, Z=true
+     Creating notch: X[1842.1, 1912.2] Y[232.8, 251.4]
+         Box dimensions: X=166.1mm Y=18.6mm Z=70.1mm
+       Box position: X=0.0mm Y=116.4mm Z=1877.1mm
+       Box final bounds: X[-83.1, 83.1] Y[107.1, 125.7] Z[1842.1, 1912.2]
+       Intersection check: X=true, Y=true, Z=true
+   🔧 Applying CSG subtraction: 2 notch(es)
+     Original geometry bounds: X[-73.1, 73.1] Y[-125.7, 125.7] Z[0.0, 1912.2]
+     Cut geometry bounds: X[-83.1, 83.1] Y[-125.7, 125.7] Z[1842.1, 1912.2]
+     Original geometry vertices: 132
+     Cut geometry vertices: 48
+     Result geometry vertices: 327
+     Vertices change: 195
+   📐 Added cut info to userData: {id: 'dstv_cut-with-notches_4_notch_0', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+   📐 Added cut info to userData: {id: 'dstv_cut-with-notches_4_notch_1', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+ 📊 Processing result for dstv_cut-with-notches_4: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ 🔧 ProcessorBridge: Applying normalized feature dstv_hole_1 of type hole
+ 🔄 ProcessorBridge - Creating feature position: {featureId: 'dstv_hole_1', featureType: 'hole', inputCoords: {…}, outputPosition: {…}, face: 'web'}
+ ✅ Converted feature dstv_hole_1 type hole, using processor factory...
+ 📋 Feature details: {type: 'hole', id: 'dstv_hole_1', position: _Vector3, rotation: _Euler, parameters: {…}}
+ 🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_1
+ ✅ Found processor for hole, calling process...
+ 🔨 HoleProcessor: Processing hole for element -_001_M1002
+   - Feature: {type: 'hole', id: 'dstv_hole_1', position: _Vector3, rotation: _Euler, coordinateSystem: 'standard', …}
+   - Element dimensions: {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+   - Using standard position: (0, 37.499999999999986, 1857.15)
+HoleProcessor.ts:57   - Face: web
+HoleProcessor.ts:65   - Calculated 3D position: {position: _Vector3, rotation: _Euler, depth: 8.6, normal: _Vector3, face: 'web'}
+HoleProcessor.ts:66     → Position Vector3: 0 37.499999999999986 1857.15
+HoleProcessor.ts:67     → Rotation Euler: 0 0 1.5707963267948966
+HoleProcessor.ts:245   🔩 Round hole geometry: diameter=22mm, segments=32, depth=12.899999999999999mm, face=web
+HoleProcessor.ts:94   - Created round hole: diameter=22
+HoleProcessor.ts:115   - Hole brush position: _Vector3 {x: 0, y: 37.499999999999986, z: 1857.15}
+HoleProcessor.ts:116   - Hole brush rotation: _Euler {isEuler: true, _x: 0, _y: 0, _z: 1.5707963267948966, _order: 'XYZ', …}
+HoleProcessor.ts:123   - Performing CSG subtraction...
+HoleProcessor.ts:167   - Original vertex count: 327
+HoleProcessor.ts:168   - Result vertex count: 1395
+HoleProcessor.ts:169   - Vertices ADDED: 1068
+ProcessorBridge.ts:59 📊 Processing result for dstv_hole_1: {success: true, hasGeometry: true, error: undefined, warning: undefined}
 ProcessorBridge.ts:37 🔧 ProcessorBridge: Applying normalized feature dstv_hole_2 of type hole
+ProcessorBridge.ts:341 🔄 ProcessorBridge - Creating feature position: {featureId: 'dstv_hole_2', featureType: 'hole', inputCoords: {…}, outputPosition: {…}, face: 'web'}
 ProcessorBridge.ts:47 ✅ Converted feature dstv_hole_2 type hole, using processor factory...
 ProcessorBridge.ts:48 📋 Feature details: {type: 'hole', id: 'dstv_hole_2', position: _Vector3, rotation: _Euler, parameters: {…}}
 FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_2
 FeatureProcessorFactory.ts:137 ✅ Found processor for hole, calling process...
-HoleProcessor.ts:33 🔨 HoleProcessor: Processing hole for element -_001_M1002
-HoleProcessor.ts:34   - Feature: {type: 'hole', id: 'dstv_hole_2', position: _Vector3, rotation: _Euler, coordinateSystem: 'DSTV', …}
-HoleProcessor.ts:35   - Element dimensions: {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
-HoleProcessor.ts:54   - Using standard position: (0, 37.499999999999986, 901.075)
-HoleProcessor.ts:55   - Face: web
-HoleProcessor.ts:62   - Calculated 3D position: {position: Array(3), rotation: Array(3), face: 'web', depth: 8.6, normal: _Vector3}
-HoleProcessor.ts:237   🔩 Round hole geometry: diameter=22mm, segments=16, depth=10.319999999999999mm, face=web
-HoleProcessor.ts:247     Applied base rotation for web hole (90° around Z)
-HoleProcessor.ts:89   - Created round hole: diameter=22
-HoleProcessor.ts:110   - Hole brush position: _Vector3 {x: 0, y: 37.499999999999986, z: 901.075}
-HoleProcessor.ts:111   - Hole brush rotation: _Euler {isEuler: true, _x: 0, _y: 0, _z: 0, _order: 'XYZ', …}
-HoleProcessor.ts:118   - Performing CSG subtraction...
-HoleProcessor.ts:160   - Original vertex count: 132
-HoleProcessor.ts:161   - Result vertex count: 654
-HoleProcessor.ts:162   - Vertices ADDED: 522
+HoleProcessor.ts:35 🔨 HoleProcessor: Processing hole for element -_001_M1002
+HoleProcessor.ts:36   - Feature: {type: 'hole', id: 'dstv_hole_2', position: _Vector3, rotation: _Euler, coordinateSystem: 'standard', …}
+HoleProcessor.ts:37   - Element dimensions: {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
+HoleProcessor.ts:56   - Using standard position: (0, -37.5, 1857.15)
+HoleProcessor.ts:57   - Face: web
+HoleProcessor.ts:65   - Calculated 3D position: {position: _Vector3, rotation: _Euler, depth: 8.6, normal: _Vector3, face: 'web'}
+HoleProcessor.ts:66     → Position Vector3: 0 -37.5 1857.15
+HoleProcessor.ts:67     → Rotation Euler: 0 0 1.5707963267948966
+HoleProcessor.ts:245   🔩 Round hole geometry: diameter=22mm, segments=32, depth=12.899999999999999mm, face=web
+HoleProcessor.ts:94   - Created round hole: diameter=22
+HoleProcessor.ts:115   - Hole brush position: _Vector3 {x: 0, y: -37.5, z: 1857.15}
+HoleProcessor.ts:116   - Hole brush rotation: _Euler {isEuler: true, _x: 0, _y: 0, _z: 1.5707963267948966, _order: 'XYZ', …}
+HoleProcessor.ts:123   - Performing CSG subtraction...
+HoleProcessor.ts:167   - Original vertex count: 1395
+HoleProcessor.ts:168   - Result vertex count: 2478
+HoleProcessor.ts:169   - Vertices ADDED: 1083
 ProcessorBridge.ts:59 📊 Processing result for dstv_hole_2: {success: true, hasGeometry: true, error: undefined, warning: undefined}
-ProcessorBridge.ts:37 🔧 ProcessorBridge: Applying normalized feature dstv_hole_3 of type hole
-ProcessorBridge.ts:47 ✅ Converted feature dstv_hole_3 type hole, using processor factory...
-ProcessorBridge.ts:48 📋 Feature details: {type: 'hole', id: 'dstv_hole_3', position: _Vector3, rotation: _Euler, parameters: {…}}
-FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_3
-FeatureProcessorFactory.ts:137 ✅ Found processor for hole, calling process...
-HoleProcessor.ts:33 🔨 HoleProcessor: Processing hole for element -_001_M1002
-HoleProcessor.ts:34   - Feature: {type: 'hole', id: 'dstv_hole_3', position: _Vector3, rotation: _Euler, coordinateSystem: 'DSTV', …}
-HoleProcessor.ts:35   - Element dimensions: {length: 1912.15, width: 146.1, height: 251.4, thickness: 8.6}
-HoleProcessor.ts:54   - Using standard position: (0, -37.5, 901.075)
-HoleProcessor.ts:55   - Face: web
-HoleProcessor.ts:62   - Calculated 3D position: {position: Array(3), rotation: Array(3), face: 'web', depth: 8.6, normal: _Vector3}
-HoleProcessor.ts:237   🔩 Round hole geometry: diameter=22mm, segments=16, depth=10.319999999999999mm, face=web
-HoleProcessor.ts:247     Applied base rotation for web hole (90° around Z)
-HoleProcessor.ts:89   - Created round hole: diameter=22
-HoleProcessor.ts:110   - Hole brush position: _Vector3 {x: 0, y: -37.5, z: 901.075}
-HoleProcessor.ts:111   - Hole brush rotation: _Euler {isEuler: true, _x: 0, _y: 0, _z: 0, _order: 'XYZ', …}
-HoleProcessor.ts:118   - Performing CSG subtraction...
-HoleProcessor.ts:160   - Original vertex count: 654
-HoleProcessor.ts:161   - Result vertex count: 1200
-HoleProcessor.ts:162   - Vertices ADDED: 546
-ProcessorBridge.ts:59 📊 Processing result for dstv_hole_3: {success: true, hasGeometry: true, error: undefined, warning: undefined}
-ProcessorBridge.ts:37 🔧 ProcessorBridge: Applying normalized feature dstv_marking_4 of type marking
-ProcessorBridge.ts:47 ✅ Converted feature dstv_marking_4 type marking, using processor factory...
-ProcessorBridge.ts:48 📋 Feature details: {type: 'marking', id: 'dstv_marking_4', position: _Vector3, rotation: _Euler, parameters: {…}}
-FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: marking, id: dstv_marking_4
+ProcessorBridge.ts:37 🔧 ProcessorBridge: Applying normalized feature dstv_marking_3 of type marking
+ProcessorBridge.ts:341 🔄 ProcessorBridge - Creating feature position: {featureId: 'dstv_marking_3', featureType: 'marking', inputCoords: {…}, outputPosition: {…}, face: 'v'}
+ProcessorBridge.ts:47 ✅ Converted feature dstv_marking_3 type marking, using processor factory...
+ProcessorBridge.ts:48 📋 Feature details: {type: 'marking', id: 'dstv_marking_3', position: _Vector3, rotation: _Euler, parameters: {…}}
+FeatureProcessorFactory.ts:125 🏭 FeatureProcessorFactory.process called for type: marking, id: dstv_marking_3
 FeatureProcessorFactory.ts:137 ✅ Found processor for marking, calling process...
-MarkingProcessor.ts:72 📝 Processing marking/scribbing: "0" at position [0, -123.7, -954.075] with size 10mm
-MarkingProcessor.ts:102 ✅ Marking stored for visual display
-ProcessorBridge.ts:59 📊 Processing result for dstv_marking_4: {success: true, hasGeometry: true, error: undefined, warning: undefined}
-ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Features applied successfully {originalVertices: 132, finalVertices: 1200, verticesAdded: 1068, featuresApplied: 6}
-ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Scene building completed {elementsCreated: 1, sceneId: 'dstv_scene_-_001_M1002_1755953169493', duration: '41.90ms'}
-ProcessingContext.ts:503 [dstv-scene-building] Completed stage: dstv-scene-building {duration: '42.00ms', outputType: 'Object'}
-ProcessingContext.ts:503 [dstv-scene-building] Completed stage: dstv-scene-building {duration: '42.20ms'}
-ProcessingContext.ts:503 [dstv-scene-building] Pipeline execution completed: dstv-import-pipeline {duration: '55.10ms', success: true}
+MarkingProcessor.ts:73 📝 Processing marking/scribbing: "0" at position [-71.05, 125.7, 2] with size 10mm
+MarkingProcessor.ts:104 ✅ Marking stored for visual display
+ProcessorBridge.ts:59 📊 Processing result for dstv_marking_3: {success: true, hasGeometry: true, error: undefined, warning: undefined}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Features applied successfully {originalVertices: 132, finalVertices: 2478, verticesAdded: 2346, featuresApplied: 4}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] ✅ Attached processed geometry to element -_001_M1002 {vertexCount: 2478, hasFeatures: true}
+ProcessingContext.ts:503 [dstv-scene-building] [dstv-scene-building] Scene building completed {elementsCreated: 1, sceneId: 'dstv_scene_-_001_M1002_1756123911840', duration: '61.00ms'}
+ProcessingContext.ts:503 [dstv-scene-building] Completed stage: dstv-scene-building {duration: '61.40ms', outputType: 'Object'}
+ProcessingContext.ts:503 [dstv-scene-building] Completed stage: dstv-scene-building {duration: '61.90ms'}
+ProcessingContext.ts:503 [dstv-scene-building] Pipeline execution completed: dstv-import-pipeline {duration: '77.50ms', success: true}
 DSTVImportPipeline.ts:168 🎯 DSTV Import completed successfully {duration: '0.00ms', elements: 1, metadata: {…}}
-ProfessionalViewer.tsx:803 📊 État actuel avant import: []
-ProfessionalViewer.tsx:804 📊 Éléments à importer: [{…}]
-ProfessionalViewer.tsx:817 📊 Avant import: 0 éléments
-ProfessionalViewer.tsx:818 📊 Nouveaux éléments: 1
-ProfessionalViewer.tsx:819 📊 Total après import: 1 éléments
-ProfessionalViewer.tsx:820 📊 Nouveau tableau complet: [{…}]
-GeometryConverter.ts:23 ✅ Using existing geometry for UB254x146x31 (vertices: 1200)
-FeatureOutlineRenderer.ts:51 🔵 Creating hole outline 0: {position: Array(3), originalPosition: Array(3), rotation: Array(3), diameter: 22, depth: 8.6, …}
-FeatureOutlineRenderer.ts:162   -> Ring 1 at: [-4.3, 163.2, 901.1]
-FeatureOutlineRenderer.ts:162   -> Ring 2 at: [4.3, 163.2, 901.1]
-FeatureOutlineRenderer.ts:51 🔵 Creating hole outline 1: {position: Array(3), originalPosition: Array(3), rotation: Array(3), diameter: 22, depth: 8.6, …}
-FeatureOutlineRenderer.ts:162   -> Ring 1 at: [-4.3, 88.2, 901.1]
-FeatureOutlineRenderer.ts:162   -> Ring 2 at: [4.3, 88.2, 901.1]
-SceneManager.ts:314 ✨ Added 2 feature outlines for UB254x146x31
-SceneManager.ts:320 📝 Markings have been engraved into the geometry via CSG: [{…}]
-SceneManager.ts:402 🔍 Element materialType: "beam"
-SceneManager.ts:564    🏗️ I-Profile marking: position(0.0, -123.7, -954.1)
-SceneManager.ts:665 📍 Marking positioned at: [0.0, 130.1, -954.1]
-SceneManager.ts:666    From DSTV coords: [0, -123.7]
-SceneManager.ts:667    Face: web, Angle: 0°
-SceneManager.ts:668    Rotation applied: x=-90.0°, y=0.0°, z=0.0°
-SceneManager.ts:669    Plate dimensions: 1912.15x146.1x8.6mm
-SceneManager.ts:676 🎯 Created visible marking: "0" at position 0,-123.7,-954.075
-demo.tsx:165 Elements sélectionnés: ['-_001_M1002_1755953169536_0']
-ProfessionalViewer.tsx:863 ✅ Import réussi: 1 éléments ajoutés
-GeometryConverter.ts:23 ✅ Using existing geometry for UB254x146x31 (vertices: 1200)
-FeatureOutlineRenderer.ts:51 🔵 Creating hole outline 0: {position: Array(3), originalPosition: Array(3), rotation: Array(3), diameter: 22, depth: 8.6, …}
-FeatureOutlineRenderer.ts:162   -> Ring 1 at: [-4.3, 163.2, 901.1]
-FeatureOutlineRenderer.ts:162   -> Ring 2 at: [4.3, 163.2, 901.1]
-FeatureOutlineRenderer.ts:51 🔵 Creating hole outline 1: {position: Array(3), originalPosition: Array(3), rotation: Array(3), diameter: 22, depth: 8.6, …}
-FeatureOutlineRenderer.ts:162   -> Ring 1 at: [-4.3, 88.2, 901.1]
-FeatureOutlineRenderer.ts:162   -> Ring 2 at: [4.3, 88.2, 901.1]
-SceneManager.ts:314 ✨ Added 2 feature outlines for UB254x146x31
-SceneManager.ts:320 📝 Markings have been engraved into the geometry via CSG: [{…}]
-SceneManager.ts:402 🔍 Element materialType: "beam"
-SceneManager.ts:564    🏗️ I-Profile marking: position(0.0, -123.7, -954.1)
-SceneManager.ts:665 📍 Marking positioned at: [0.0, 130.1, -954.1]
-SceneManager.ts:666    From DSTV coords: [0, -123.7]
-SceneManager.ts:667    Face: web, Angle: 0°
-SceneManager.ts:668    Rotation applied: x=-90.0°, y=0.0°, z=0.0°
-SceneManager.ts:669    Plate dimensions: 1912.15x146.1x8.6mm
-SceneManager.ts:676 🎯 Created visible marking: "0" at position 0,-123.7,-954.075
-ControlsManager.ts:669 🔍 Limites zoom: 200mm ↔ 4500mm
+ProfessionalViewer.tsx:961 📊 État actuel avant import: []
+ProfessionalViewer.tsx:962 📊 Éléments à importer: [{…}]
+ProfessionalViewer.tsx:975 📊 Avant import: 0 éléments
+ProfessionalViewer.tsx:976 📊 Nouveaux éléments: 1
+ProfessionalViewer.tsx:977 📊 Total après import: 1 éléments
+ProfessionalViewer.tsx:978 📊 Nouveau tableau complet: [{…}]
+GeometryConverter.ts:23 ✅ Using existing geometry for -_001_M1002 (vertices: 2478)
+FeatureOutlineRenderer.ts:105 🔵 Creating outlines - Mesh yOffset: 125.69999694824219
+FeatureOutlineRenderer.ts:339 🔵 Creating hole outline 0: {position: Array(3), originalPosition: Array(3), originalDSTVCoords: undefined, rotation: _Euler, diameter: 22, …}
+FeatureOutlineRenderer.ts:455   -> Ring 1 at: [-4.3, 163.1999969482422, 1857.15] (rounded: [-4.3, 163.2, 1857.2])
+FeatureOutlineRenderer.ts:455   -> Ring 2 at: [4.3, 163.1999969482422, 1857.15] (rounded: [4.3, 163.2, 1857.2])
+FeatureOutlineRenderer.ts:339 🔵 Creating hole outline 1: {position: Array(3), originalPosition: Array(3), originalDSTVCoords: undefined, rotation: _Euler, diameter: 22, …}
+FeatureOutlineRenderer.ts:455   -> Ring 1 at: [-4.3, 88.19999694824219, 1857.15] (rounded: [-4.3, 88.2, 1857.2])
+FeatureOutlineRenderer.ts:455   -> Ring 2 at: [4.3, 88.19999694824219, 1857.15] (rounded: [4.3, 88.2, 1857.2])
+FeatureOutlineRenderer.ts:765 🔵 Creating cut outline 0: {id: 'dstv_cut-with-notches_4_notch_0', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+FeatureOutlineRenderer.ts:800   -> Cut outline at: [0.0, 9.3, 1877.1]
+FeatureOutlineRenderer.ts:801   -> Dimensions: 166.1 x 18.6 x 70.1
+FeatureOutlineRenderer.ts:765 🔵 Creating cut outline 1: {id: 'dstv_cut-with-notches_4_notch_1', parentFeatureId: 'dstv_cut-with-notches_4', type: 'notch', face: 'top_flange', bounds: {…}}
+FeatureOutlineRenderer.ts:800   -> Cut outline at: [0.0, 242.1, 1877.1]
+FeatureOutlineRenderer.ts:801   -> Dimensions: 166.1 x 18.6 x 70.1
+FeatureOutlineRenderer.ts:304 📋 Created outlines for element -_001_M1002_1756123911904_0: {totalOutlines: 4, featureIds: Array(4), elementFeatures: Array(5)}
+SceneManager.ts:330 ✨ Added 4 feature outlines for -_001_M1002
+SceneManager.ts:336 📝 Processing markings for visual display: [{…}]
+MarkingVisualProcessor.ts:121    📍 TOP FLANGE marking: DSTV[-71.05, 125.7] -> Three.js[52.7, 125.7, -1027.1]
+MarkingVisualProcessor.ts:144    📍 Face: v, Dimensions: L=1912.15, H=251.4, W=146.1
+MarkingVisualProcessor.ts:218    🔄 Rotation applied: X=0.0°, Y=0.0°, Z=0.0°
+MarkingVisualProcessor.ts:83 📝 Created marking visual: "0" at position [52.7, 125.7, -1027.1]
+SceneManager.ts:344 ✅ Added 1 marking visual(s) to element
+demo.tsx:165 Elements sélectionnés: ['-_001_M1002_1756123911904_0']
+ProfessionalViewer.tsx:1021 ✅ Import réussi: 1 éléments ajoutés

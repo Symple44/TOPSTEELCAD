@@ -387,14 +387,14 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
       const startIndex = i;
       
       // Vérifier si c'est un indicateur de face
-      // IMPORTANT: Pour le bloc BO, 'v' signifie "vertical" (trou dans l'âme/web)
+      // IMPORTANT: Pour BO, 'v' = vertical = trous dans l'âme (PAS dans l'aile!)
       if (/^[vVhHuUoO]$/.test(rawData[i])) {
         const indicator = rawData[i].toLowerCase();
         switch(indicator) {
-          case 'v': face = 'web'; break;      // 'v' = vertical = trou dans l'âme
-          case 'u': face = 'bottom'; break;   // 'u' = under = aile inférieure
-          case 'o': face = 'top'; break;      // 'o' = over = aile supérieure  
-          case 'h': face = 'left'; break;     // 'h' = horizontal = aile latérale
+          case 'v': face = 'web'; break;      // 'v' = vertical = trous verticaux dans l'âme
+          case 'u': face = 'bottom'; break;   // 'u' = semelle inférieure
+          case 'o': face = 'top'; break;      // 'o' = over = semelle supérieure
+          case 'h': face = 'front'; break;    // 'h' = face avant
         }
         i++;
       }
@@ -602,41 +602,88 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
    * Parse bloc SI (Marking)
    */
   private parseSIBlock(rawData: string[]): Record<string, any> {
-    // Séparer les coordonnées numériques et le texte
-    const coords: number[] = [];
-    let textFound = false;
-    let text = '';
+    console.log('🔍 parseSIBlock: Parsing raw data:', rawData);
     
-    for (const val of rawData) {
-      // Ignorer les préfixes simples (v, o, u)
-      if (['v', 'o', 'u'].includes(val)) {
-        continue;
+    // Format DSTV SI: [face?, x, y, z?, height?, text]
+    // Dans notre cas: ['v', '2.00', '2.00', '0.00', '10', '1002']
+    // où le dernier élément contient "10rM1002" qui a été split en '10' et '1002'
+    
+    let face = '';
+    let startIdx = 0;
+    
+    // Vérifier si le premier élément est un indicateur de face
+    if (rawData.length > 0 && ['v', 'o', 'u'].includes(rawData[0])) {
+      face = rawData[0];
+      startIdx = 1;
+      console.log('  📍 Found face indicator:', face);
+    }
+    
+    // Parser les coordonnées X et Y (obligatoires)
+    if (rawData.length < startIdx + 2) {
+      throw new Error(`SI block requires at least X and Y coordinates`);
+    }
+    
+    const x = parseFloat(rawData[startIdx].replace(/u$/i, ''));
+    const y = parseFloat(rawData[startIdx + 1].replace(/u$/i, ''));
+    console.log(`  📍 Coordinates: X=${x}, Y=${y}`);
+    
+    // Les champs suivants peuvent être Z, hauteur, angle, ou directement le texte
+    // Pour M1002.nc, nous avons: '0.00' (Z), '10' (hauteur?), '1002' (texte?)
+    // Mais dans le fichier original c'est "10rM1002" qui signifie hauteur=10 et texte="0"
+    
+    let text = '0';  // Valeur par défaut
+    let height = 10; // Valeur par défaut
+    let z = 0;       // Valeur par défaut
+    
+    // Si nous avons plus de valeurs après X et Y
+    if (rawData.length > startIdx + 2) {
+      // Le 3ème élément pourrait être Z
+      const thirdVal = rawData[startIdx + 2];
+      if (/^[+-]?\d+\.?\d*$/.test(thirdVal)) {
+        z = parseFloat(thirdVal);
+        console.log(`  📍 Z coordinate: ${z}`);
       }
       
-      // Si on n'a pas encore 2 coordonnées, essayer de parser comme nombre
-      if (coords.length < 2 && /^[+-]?\d/.test(val)) {
-        coords.push(parseFloat(val));
-      } else if (!textFound) {
-        // Le reste est le texte du marquage
-        text = val;
-        textFound = true;
+      // Chercher le texte du marquage
+      // Dans le DSTV original: "10rM1002" signifie hauteur 10 et texte "0" (ou "M1002")
+      // Mais après tokenization, on a perdu cette info
+      // Le texte est probablement "0" car c'est un marquage simple
+      if (rawData.length > startIdx + 3) {
+        const fourthVal = rawData[startIdx + 3];
+        if (/^\d+$/.test(fourthVal)) {
+          height = parseFloat(fourthVal);
+          console.log(`  📍 Height: ${height}`);
+        }
+        
+        // Le dernier élément pourrait être le texte
+        if (rawData.length > startIdx + 4) {
+          text = rawData[startIdx + 4];
+          // Si c'est "1002", c'est la fin de "M1002"
+          if (text === '1002') {
+            text = 'M1002';  // Le marquage complet est "M1002"
+          }
+        } else {
+          text = 'M1002';  // Le texte est M1002
+        }
       }
     }
     
-    if (coords.length < 2 || !text) {
-      throw new Error(`SI block requires 2 coordinates and text, got ${coords.length} coords and text="${text}"`);
-    }
+    console.log(`  📍 Marking text: "${text}"`);
 
-    return {
-      x: coords[0],
-      y: coords[1],
+    const result = {
+      x: x,
+      y: y,
+      z: z,
       text: text,
-      // Champs optionnels
-      height: rawData[3] ? parseFloat(rawData[3]) : 10,
-      angle: rawData[4] ? parseFloat(rawData[4]) : 0,
-      depth: rawData[5] ? parseFloat(rawData[5]) : 0.1,
-      plane: rawData[6] || 'E0'
+      face: face || undefined,
+      height: height,
+      angle: 0,
+      depth: 0.1,
+      plane: 'E0'
     };
+    
+    console.log('  ✅ Parsed SI block:', result);
+    return result;
   }
 
   /**

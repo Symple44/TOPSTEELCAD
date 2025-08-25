@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { EventBus } from './EventBus';
 import { PivotElement, MaterialType } from '@/types/viewer';
 import { GeometryConverter } from '../viewer/GeometryConverter';
+import { MarkingVisualProcessor } from './features/processors/MarkingVisualProcessor';
 import { VisualFeatureRenderer } from '../viewer/VisualFeatureRenderer';
 import { FeatureOutlineRenderer } from '../viewer/FeatureOutlineRenderer';
 
@@ -128,7 +129,7 @@ export class SceneManager {
     // Initialiser les renderers
     this.geometryConverter = new GeometryConverter();
     this.visualFeatureRenderer = new VisualFeatureRenderer();
-    this.featureOutlineRenderer = new FeatureOutlineRenderer();
+    this.featureOutlineRenderer = new FeatureOutlineRenderer(eventBus);
     
     this.setupEventListeners();
   }
@@ -329,14 +330,18 @@ export class SceneManager {
       console.log(`✨ Added ${featureOutlines.children.length} feature outlines for ${element.name}`);
     }
     
-    // Ajouter les markings comme décalcomanies visuelles sur la surface
-    // En complément du CSG pour une meilleure visibilité
+    // Ajouter les markings comme éléments visuels
+    // Utiliser le processeur dédié pour une architecture propre
     if (mesh.geometry?.userData?.markings) {
-      console.log(`📝 Markings have been engraved into the geometry via CSG:`, mesh.geometry.userData.markings);
-      const markingsGroup = this.createVisibleMarkings(mesh.geometry.userData.markings, element, mesh);
+      console.log(`📝 Processing markings for visual display:`, mesh.geometry.userData.markings);
+      const markingsGroup = MarkingVisualProcessor.createMarkingVisuals(
+        mesh.geometry.userData.markings, 
+        element, 
+        mesh
+      );
       if (markingsGroup.children.length > 0) {
-        markingsGroup.name = 'VisibleMarkings';
         elementGroup.add(markingsGroup);
+        console.log(`✅ Added ${markingsGroup.children.length} marking visual(s) to element`);
       }
     }
     
@@ -352,9 +357,10 @@ export class SceneManager {
   }
   
   /**
-   * Crée des markings visibles sur la surface (en complément du CSG)
+   * [DEPRECATED] Méthode déplacée vers MarkingVisualProcessor
+   * @deprecated Utiliser MarkingVisualProcessor.createMarkingVisuals() à la place
    */
-  private createVisibleMarkings(markings: MarkingData[], element: PivotElement, mesh: THREE.Mesh): THREE.Group {
+  private createVisibleMarkings_DEPRECATED(markings: MarkingData[], element: PivotElement, mesh: THREE.Mesh): THREE.Group {
     const group = new THREE.Group();
     
     markings.forEach((marking: MarkingData, index) => {
@@ -363,10 +369,10 @@ export class SceneManager {
       
       // Créer une géométrie 3D adaptée à la longueur du texte
       const textLength = text.length;
-      // Taille réaliste basée sur la taille DSTV (10mm par défaut)
-      const scaleFactor = 1; // Pas de multiplication excessive
-      // Largeur proportionnelle au nombre de caractères (environ 0.6 fois la hauteur par caractère)
-      const textWidth = size * scaleFactor * textLength * 0.6;
+      // Augmenter temporairement pour debug - mais respecter le ratio
+      const scaleFactor = 5; // Augmenté pour visibilité (temporaire debug)
+      // Largeur proportionnelle au nombre de caractères
+      const textWidth = size * scaleFactor * textLength * 0.7;
       const textHeight = size * scaleFactor;
       const textGeometry = new THREE.PlaneGeometry(textWidth, textHeight);
       
@@ -380,8 +386,9 @@ export class SceneManager {
       canvas.width = Math.max(256, textLength * canvasScale);
       canvas.height = canvasScale * 2; // Hauteur fixe pour un bon ratio
       
-      // Fond transparent
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      // Fond rouge pour debug - s'assurer que le marking est visible
+      context.fillStyle = 'red';
+      context.fillRect(0, 0, canvas.width, canvas.height);
       
       // Police standard industrielle, pas trop épaisse
       const fontSize = canvas.height * 0.6; // Taille de police proportionnelle
@@ -401,9 +408,11 @@ export class SceneManager {
       const texture = new THREE.CanvasTexture(canvas);
       const material = new THREE.MeshBasicMaterial({
         map: texture,
-        transparent: true,
-        opacity: 0.9,
-        side: THREE.DoubleSide
+        transparent: false,  // Pas de transparence pour debug
+        opacity: 1.0,
+        side: THREE.DoubleSide,
+        depthTest: false,  // Ignorer la profondeur pour toujours voir le marking
+        depthWrite: false
       });
       
       const textMesh = new THREE.Mesh(textGeometry, material);
@@ -558,21 +567,45 @@ export class SceneManager {
             console.log(`   🔺 L-Profile marking: DSTV(${dstvX}, ${dstvY}) -> Three.js(${x.toFixed(1)}, ?, ${z.toFixed(1)})`);
           } else if (element.materialType === MaterialType.BEAM) {
             // Pour les profils en I/H (poutres)
-            // Le marking a déjà des coordonnées converties depuis DSTV
-            // marking.position contient [x, y, z] en coordonnées Three.js
-            if (Array.isArray(marking.position) && marking.position.length >= 3) {
-              x = marking.position[0];
-              y = marking.position[1]; 
-              z = marking.position[2];
-            } else {
-              // Fallback si les coordonnées ne sont pas déjà converties
-              const dstvX = marking.position[0];  // Position le long du profil
-              const dstvY = marking.position[1];  // Position sur la face
+            // marking.position contient [x, y] ou [x, y, z] où :
+            // Pour 2 éléments : [x, y] = position le long du profil, position verticale
+            // Pour 3 éléments : [x, y, z] = position latérale, position verticale, position le long
+            const webThickness = element.dimensions?.webThickness || 8.6;
+            
+            if (Array.isArray(marking.position)) {
+              if (marking.position.length >= 3) {
+                // Format à 3 coordonnées
+                x = marking.position[0];  // Position latérale
+                y = marking.position[1];  // Position verticale
+                z = marking.position[2];  // Position le long de la poutre
+              } else if (marking.position.length >= 2) {
+                // Format à 2 coordonnées (plus courant en DSTV)
+                // [position le long, position verticale]
+                z = marking.position[0];  // Position le long du profil
+                y = marking.position[1];  // Position verticale sur l'âme
+                x = 0;  // Par défaut au centre
+              } else {
+                // Fallback
+                z = marking.position[0] || 0;
+                y = 0;
+                x = 0;
+              }
               
-              // Conversion basique
-              z = dstvX - length / 2;
-              x = 0; // Centré sur l'âme par défaut
-              y = dstvY; // Utiliser directement la coordonnée Y
+              // Ajuster X selon la face pour être sur la surface
+              if (marking.face === 'web' || marking.face === 'o' || !marking.face) {
+                // Positionner sur la face avant de l'âme
+                x = webThickness / 2 + 0.5;  // Surface de l'âme + petit décalage
+              } else if (marking.face === 'v' || marking.face === 'top_flange') {
+                // Sur l'aile supérieure
+                x = 0;
+                const flangeThickness = element.dimensions?.flangeThickness || 7.6;
+                y = (element.dimensions?.height || 251.4) / 2 - flangeThickness / 2;
+              }
+            } else {
+              // Si marking.position n'est pas un tableau
+              z = 0;
+              x = webThickness / 2 + 0.5;
+              y = 0;
             }
             
             console.log(`   🏗️ I-Profile marking: position(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`);
@@ -614,13 +647,20 @@ export class SceneManager {
           // Convertir la position DSTV Y vers Three.js
           y = meshY + dstvY - (element.dimensions.height || 0) / 2;  // Position sur l'aile verticale
           console.log(`   📐 L-Profile Y: DSTV=${dstvY} -> Three.js=${y.toFixed(1)} (meshY=${meshY})`);
+        } else if (element.materialType === MaterialType.BEAM) {
+          // Pour les profils I/H, y a déjà été correctement défini dans la section BEAM ci-dessus
+          // La position Y du marking est déjà dans le système de coordonnées correct
+          const meshY = mesh.position.y;
+          // Ne pas ajouter meshY car la position est déjà correcte
+          y = y || 0;  // Assurer que y a une valeur
+          console.log(`   📐 I-Profile Y: marking Y=${y.toFixed(1)} (meshY=${meshY})`);
         } else {
           // Pour les plaques
           const meshY = mesh.position.y;
           y = meshY + thickness / 2 + 0.1;  // Surface supérieure dans l'espace du groupe
         }
         
-        textMesh.position.set(x, y, z);
+        textMesh.position.set(x, y || 0, z);
         
         // Gérer la rotation du marking selon la face et l'angle
         // Par défaut, le texte est dans le plan XZ (horizontal)
@@ -640,9 +680,17 @@ export class SceneManager {
           if (markingAngle !== 0) {
             textMesh.rotation.x = (markingAngle * Math.PI) / 180;
           }
-        } else if (marking.face === 'v' || marking.face === 'web' || marking.face === 'top' || !marking.face) {
+        } else if (marking.face === 'web' || marking.face === 'o') {
+          // Face âme (web) - le texte doit être vertical et faire face à l'axe X positif
+          // Rotation de 90° autour de Y pour faire face à X+
+          textMesh.rotation.y = Math.PI / 2;
+          // Appliquer l'angle de rotation du marking si nécessaire
+          if (markingAngle !== 0) {
+            textMesh.rotation.z = (markingAngle * Math.PI) / 180; // Rotation dans le plan de l'âme
+          }
+        } else if (marking.face === 'v' || marking.face === 'top' || !marking.face) {
           // Face supérieure - le texte doit être parallèle à la surface (rotation de -90° autour de X)
-          // Cela place le texte à plat sur la surface supérieure du tube
+          // Cela place le texte à plat sur la surface supérieure
           textMesh.rotation.x = -Math.PI / 2;
           // Appliquer l'angle de rotation du marking autour de Y (vertical)
           if (markingAngle !== 0) {
@@ -676,7 +724,7 @@ export class SceneManager {
           }
         }
         
-        console.log(`📍 Marking positioned at: [${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        console.log(`📍 Marking positioned at: [${x.toFixed(1)}, ${(y || 0).toFixed(1)}, ${z.toFixed(1)}]`);
         console.log(`   From DSTV coords: [${marking.position[0]}, ${marking.position[1]}]`);
         console.log(`   Face: ${marking.face || 'default'}, Angle: ${markingAngle}°`);
         console.log(`   Rotation applied: x=${(textMesh.rotation.x * 180 / Math.PI).toFixed(1)}°, y=${(textMesh.rotation.y * 180 / Math.PI).toFixed(1)}°, z=${(textMesh.rotation.z * 180 / Math.PI).toFixed(1)}°`);
@@ -687,7 +735,7 @@ export class SceneManager {
       }
       
       group.add(textMesh);
-      console.log(`🎯 Created visible marking: "${text}" at position ${marking.position}`);
+      console.log(`🎯 Created visible marking: "${text}" at Three.js position [${textMesh.position.x.toFixed(1)}, ${textMesh.position.y.toFixed(1)}, ${textMesh.position.z.toFixed(1)}]`);
     });
     
     return group;
@@ -715,8 +763,9 @@ export class SceneManager {
       canvas.width = 512;
       canvas.height = 256;
       
-      // Fond transparent
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      // Fond rouge pour debug - s'assurer que le marking est visible
+      context.fillStyle = 'red';
+      context.fillRect(0, 0, canvas.width, canvas.height);
       
       // Style de gravure réaliste avec meilleur contraste
       if (marking.type === 'scribbing') {

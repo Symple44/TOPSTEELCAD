@@ -15,6 +15,29 @@ import { AKBlockData } from '../import/blocks/AKBlockParser';
 import { IKBlockData } from '../import/blocks/IKBlockParser';
 import { SIBlockData } from '../import/blocks/SIBlockParser';
 import { SCBlockData } from '../import/blocks/SCBlockParser';
+import { StandardFace } from '../../../core/coordinates/types';
+
+/**
+ * Convertit StandardFace en ProfileFace
+ */
+function standardFaceToProfileFace(face: StandardFace | undefined): ProfileFace | undefined {
+  if (!face) return undefined;
+  
+  switch (face) {
+    case StandardFace.WEB:
+      return ProfileFace.WEB;
+    case StandardFace.TOP_FLANGE:
+      return ProfileFace.TOP_FLANGE;
+    case StandardFace.BOTTOM_FLANGE:
+      return ProfileFace.BOTTOM_FLANGE;
+    case StandardFace.LEFT:
+      return ProfileFace.LEFT_LEG;
+    case StandardFace.RIGHT:
+      return ProfileFace.RIGHT_LEG;
+    default:
+      return ProfileFace.WEB;
+  }
+}
 
 /**
  * Pont entre les features DSTV et les processeurs existants
@@ -141,10 +164,7 @@ export class ProcessorBridge {
           coordinateSystem: CoordinateSystem.DSTV,
           parameters: {
             // Convertir les points en format tableau [x, y]
-            points: region.points.map(p => {
-              console.debug(`Converting AK point: {x: ${p.x}, y: ${p.y}} -> [${p.x}, ${p.y}]`);
-              return [p.x, p.y];
-            }),
+            points: region.points.map(p => [p.x, p.y]),
             closed: true, // Les régions de découpe sont toujours fermées
             depth: Math.min(region.depth || 10, 15), // Limiter la profondeur
             isTransverse: region.isTransverse,
@@ -185,10 +205,7 @@ export class ProcessorBridge {
       coordinateSystem: CoordinateSystem.DSTV,
       parameters: {
         // Convertir les points en format tableau [x, y]
-        points: ikData.points.map(p => {
-          console.debug(`Converting IK point: {x: ${p.x}, y: ${p.y}} -> [${p.x}, ${p.y}]`);
-          return [p.x, p.y];
-        }),
+        points: ikData.points.map(p => [p.x, p.y]),
         closed: ikData.closed !== false, // Par défaut fermé
         depth: ikData.depth || 10,
         isTransverse: ikData.isTransverse || false,
@@ -214,6 +231,9 @@ export class ProcessorBridge {
     siData: SIBlockData,
     element: PivotElement
   ): Promise<THREE.BufferGeometry> {
+    // Log the raw SI data to debug
+    console.log('🎯 ProcessorBridge.applySIBlock - Raw SI data:', siData);
+    
     const feature: Feature = {
       type: siData.text.length > 1 ? FeatureType.TEXT : FeatureType.MARKING,
       id: `marking_${Date.now()}_${Math.random()}`,
@@ -226,9 +246,12 @@ export class ProcessorBridge {
         depth: siData.depth || 0.1,
         angle: siData.angle || 0,
         font: siData.font || 'Arial',
-        markingMethod: siData.markingMethod || 'engrave'
+        markingMethod: siData.markingMethod || 'engrave',
+        face: standardFaceToProfileFace(siData.face) || ProfileFace.WEB  // Convert StandardFace to ProfileFace
       }
     };
+
+    console.log('🎯 ProcessorBridge.applySIBlock - Feature created:', feature);
 
     const result = this.processorFactory.process(geometry, feature, element);
     
@@ -283,6 +306,7 @@ export class ProcessorBridge {
       [NormalizedFeatureType.CUT]: FeatureType.CUTOUT,
       [NormalizedFeatureType.CONTOUR]: FeatureType.CONTOUR,
       [NormalizedFeatureType.NOTCH]: FeatureType.NOTCH,
+      [NormalizedFeatureType.CUT_WITH_NOTCHES]: FeatureType.CUT,  // Router vers CutProcessor
       [NormalizedFeatureType.MARKING]: FeatureType.MARKING,
       [NormalizedFeatureType.PUNCH]: FeatureType.DRILL_PATTERN,
       [NormalizedFeatureType.WELD_PREP]: FeatureType.WELD,
@@ -306,10 +330,11 @@ export class ProcessorBridge {
       return null;
     }
 
-    // Convertir les points si c'est un contour ou une notch
+    // Convertir les points si c'est un contour, une notch ou une coupe avec encoches
     const parameters = { ...normalizedFeature.parameters };
     if ((normalizedFeature.type === NormalizedFeatureType.CONTOUR || 
-         normalizedFeature.type === NormalizedFeatureType.NOTCH) && parameters.points) {
+         normalizedFeature.type === NormalizedFeatureType.NOTCH ||
+         normalizedFeature.type === NormalizedFeatureType.CUT_WITH_NOTCHES) && parameters.points) {
       console.log(`🔄 Converting ${parameters.points.length} points for ${normalizedFeature.type} ${normalizedFeature.id}`);
       console.log(`🔄 Input points type:`, typeof parameters.points[0], 'First point:', parameters.points[0]);
       
@@ -330,16 +355,26 @@ export class ProcessorBridge {
       console.log(`✅ Converted points result:`, parameters.points);
     }
     
+    const position = new THREE.Vector3(
+      normalizedFeature.coordinates.x,
+      normalizedFeature.coordinates.y,
+      normalizedFeature.coordinates.z || 0
+    );
+    
+    console.log(`🔄 ProcessorBridge - Creating feature position:`, {
+      featureId: normalizedFeature.id,
+      featureType: normalizedFeature.type,
+      inputCoords: normalizedFeature.coordinates,
+      outputPosition: { x: position.x, y: position.y, z: position.z },
+      face: parameters.face || normalizedFeature.metadata?.face
+    });
+    
     return {
       type: featureType,
       id: normalizedFeature.id,
-      position: new THREE.Vector3(
-        normalizedFeature.coordinates.x,
-        normalizedFeature.coordinates.y,
-        normalizedFeature.coordinates.z || 0
-      ),
+      position: position,
       rotation: new THREE.Euler(0, 0, 0), // Rotation par défaut
-      coordinateSystem: CoordinateSystem.DSTV, // Système de coordonnées DSTV
+      coordinateSystem: CoordinateSystem.STANDARD, // Les coordonnées sont déjà converties en standard dans DSTVNormalizationStage
       face: parameters.face || normalizedFeature.metadata?.face, // Ajouter la face au niveau racine
       parameters
     };

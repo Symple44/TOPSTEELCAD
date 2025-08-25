@@ -87,6 +87,74 @@ export enum ElementType {
 }
 
 /**
+ * Types de features supportées
+ * Mapping avec le système interne de features
+ */
+export enum FeatureType {
+  // Trous et perçages
+  HOLE = 'HOLE',
+  TAPPED_HOLE = 'TAPPED_HOLE',
+  COUNTERSINK = 'COUNTERSINK',
+  COUNTERBORE = 'COUNTERBORE',
+  DRILL_PATTERN = 'DRILL_PATTERN',
+  THREAD = 'THREAD',
+  
+  // Découpes et contours
+  CUT = 'CUT',
+  SLOT = 'SLOT',
+  CUTOUT = 'CUTOUT',
+  CONTOUR = 'CONTOUR',
+  UNRESTRICTED_CONTOUR = 'UNRESTRICTED_CONTOUR',
+  NOTCH = 'NOTCH',
+  COPING = 'COPING',
+  
+  // Finitions et déformations
+  CHAMFER = 'CHAMFER',
+  BEVEL = 'BEVEL',
+  BEND = 'BEND',
+  
+  // Marquages et annotations
+  MARKING = 'MARKING',
+  TEXT = 'TEXT',
+  
+  // Soudures et assemblages
+  WELD = 'WELD',
+  WELD_PREP = 'WELD_PREP',
+  
+  // Features DSTV avancées
+  VOLUME = 'VOLUME',
+  NUMERIC_CONTROL = 'NUMERIC_CONTROL',
+  FREE_PROGRAM = 'FREE_PROGRAM',
+  LINE_PROGRAM = 'LINE_PROGRAM',
+  ROTATION = 'ROTATION',
+  WASHING = 'WASHING',
+  GROUP = 'GROUP',
+  VARIABLE = 'VARIABLE',
+  
+  // Autres
+  PUNCH = 'PUNCH',
+  PROFILE = 'PROFILE'
+}
+
+/**
+ * Interface pour les features sélectionnables
+ */
+export interface SelectableFeature {
+  id: string;
+  type: FeatureType;
+  elementId: string;
+  position: [number, number, number];
+  boundingBox?: {
+    min: [number, number, number];
+    max: [number, number, number];
+  };
+  selectable: boolean;
+  visible: boolean;
+  highlighted?: boolean;
+  metadata?: Record<string, any>;
+}
+
+/**
  * Dimensions d'un élément métallique
  */
 export interface MetalDimensions {
@@ -160,6 +228,15 @@ export interface PivotElement {
     position: [number, number, number];
   }[];
   
+  // Features sélectionnables
+  features?: SelectableFeature[];
+  featureGroups?: {
+    id: string;
+    name: string;
+    featureIds: string[];
+    visible: boolean;
+  }[];
+  
   // Métadonnées métier
   partNumber?: string;        // Référence pièce
   weight?: number;            // Poids calculé (kg)
@@ -184,6 +261,8 @@ export interface PivotElement {
   visible: boolean;
   selected?: boolean;
   highlighted?: boolean;
+  selectedFeatures?: string[];  // IDs des features sélectionnées
+  highlightedFeature?: string;  // ID de la feature survolée
   
   // Timestamps
   createdAt?: Date;
@@ -215,6 +294,7 @@ export interface PivotScene {
  */
 export interface ViewerConfig {
   enableSelection: boolean;
+  enableFeatureSelection: boolean;
   enableMeasurement: boolean;
   enableAnimation: boolean;
   backgroundColor: string;
@@ -223,6 +303,8 @@ export interface ViewerConfig {
   showGrid: boolean;
   showAxes: boolean;
   showViewCube: boolean;
+  featureHighlightColor?: string;
+  featureHighlightOpacity?: number;
 }
 
 /**
@@ -231,7 +313,15 @@ export interface ViewerConfig {
 export interface ViewerState {
   scene: PivotScene | null;
   selectedElementIds: string[];
+  selectedFeatures: Array<{
+    elementId: string;
+    featureId: string;
+  }>;
   highlightedElementId: string | null;
+  highlightedFeature: {
+    elementId: string;
+    featureId: string;
+  } | null;
   camera: {
     position: [number, number, number];
     target: [number, number, number];

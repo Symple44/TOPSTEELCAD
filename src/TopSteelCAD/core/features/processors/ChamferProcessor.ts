@@ -10,17 +10,17 @@ import {
   ProcessorResult 
 } from '../types';
 import { PivotElement } from '@/types/viewer';
-import { PositionCalculator } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
 
 export class ChamferProcessor implements IFeatureProcessor {
   private evaluator: Evaluator;
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   
   constructor() {
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
   }
   
   process(
@@ -56,23 +56,24 @@ export class ChamferProcessor implements IFeatureProcessor {
       );
       
       // Calculer la position
-      const position3D = this.positionCalculator.calculateFeaturePosition(
+      const position3D = this.positionService.calculateFeaturePosition(
         element,
         feature.position,
-        feature.face
+        feature.face,
+        'dstv'
       );
       
       // Positionner le chanfrein
       const chamferBrush = new Brush(chamferGeometry);
       chamferBrush.position.set(
-        position3D.position[0],
-        position3D.position[1],
-        position3D.position[2]
+        position3D.position.x,
+        position3D.position.y,
+        position3D.position.z
       );
       chamferBrush.rotation.set(
-        position3D.rotation[0],
-        position3D.rotation[1],
-        position3D.rotation[2]
+        position3D.rotation.x,
+        position3D.rotation.y,
+        position3D.rotation.z
       );
       
       // Ajouter rotation supplémentaire si spécifiée
@@ -275,22 +276,23 @@ export class ChamferProcessor implements IFeatureProcessor {
           element
         );
         
-        const position3D = this.positionCalculator.calculateFeaturePosition(
+        const position3D = this.positionService.calculateFeaturePosition(
           element,
           chamfer.position,
-          chamfer.face
+          chamfer.face,
+          'dstv'
         );
         
         const chamferBrush = new Brush(chamferGeometry);
         chamferBrush.position.set(
-          position3D.position[0],
-          position3D.position[1],
-          position3D.position[2]
+          position3D.position.x,
+          position3D.position.y,
+          position3D.position.z
         );
         chamferBrush.rotation.set(
-          position3D.rotation[0],
-          position3D.rotation[1],
-          position3D.rotation[2]
+          position3D.rotation.x,
+          position3D.rotation.y,
+          position3D.rotation.z
         );
         
         if (chamfer.rotation) {

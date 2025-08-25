@@ -9,15 +9,15 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import { FeatureProcessor, ProcessResult } from './FeatureProcessor';
 import {Feature, FeatureType, ProfileFace} from '../types';
 import { PivotElement } from '@/types/viewer';
-import { PositionCalculator } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
 
 export class CutProcessor extends FeatureProcessor {
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   private evaluator: Evaluator;
   
   constructor() {
     super();
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
@@ -52,6 +52,7 @@ export class CutProcessor extends FeatureProcessor {
       const face = feature.face || ProfileFace.WEB;
       const depth = feature.parameters.depth || element.dimensions.flangeThickness || 10;
       const isTransverse = feature.parameters.isTransverse || false;
+      const cutType = feature.parameters.cutType;
       
       if (contourPoints.length < 3) {
         return {
@@ -61,6 +62,13 @@ export class CutProcessor extends FeatureProcessor {
       }
       
       console.log(`🔪 Processing cut with ${contourPoints.length} points on face ${face}`);
+      
+      // Détecter si c'est une coupe avec encoches partielles (M1002 pattern)
+      if (cutType === 'partial_notches' || this.isPartialNotchPattern(contourPoints, element)) {
+        console.log(`  🔧 Detected partial notches pattern (M1002 type)`);
+        return this.processPartialNotches(geometry, contourPoints, face, element, feature);
+      }
+      
       if (face === ProfileFace.WEB || face === ProfileFace.BOTTOM) {
         const bounds = this.getContourBounds(contourPoints);
         console.log(`    Original bounds: X[${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}] Y[${bounds.minY.toFixed(1)}, ${bounds.maxY.toFixed(1)}]`);
@@ -130,6 +138,7 @@ export class CutProcessor extends FeatureProcessor {
         resultGeometry.userData.cuts = [];
       }
       resultGeometry.userData.cuts.push({
+        id: feature.id,  // Ajouter l'ID de la feature DSTV
         contourPoints,
         face,
         depth
@@ -215,26 +224,23 @@ export class CutProcessor extends FeatureProcessor {
     console.log(`    Original contour points:`, contourPoints);
     
     // Créer une forme (Shape) à partir des points du contour
-    // IMPORTANT: Pour les ailes (face v/u), créer la forme dans le plan XZ (horizontal)
     const shape = new THREE.Shape();
     
-    // Transformer et ajouter les points
+    // Transformer et centrer les points selon la face
     const transformedPoints = contourPoints.map(p => {
-      if (face === ProfileFace.WEB || face === ProfileFace.BOTTOM) {
-        // Pour les ailes, créer une forme dans le plan XZ
-        // X = position le long de la poutre
-        // Z = position sur la largeur de l'aile
+      if (face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE) {
+        // Pour les ailes : forme dans le plan XZ (horizontal)
         const transformedPoint = [
-          p[0] - length / 2,     // X: centrer sur la longueur
-          p[1] - dims.width / 2  // Z: centrer sur la largeur
+          p[0] - length / 2,     // Position le long de la poutre
+          p[1] - dims.width / 2  // Position sur la largeur
         ];
         console.log(`      Point [${p[0].toFixed(1)}, ${p[1].toFixed(1)}] -> X=${transformedPoint[0].toFixed(1)}, Z=${transformedPoint[1].toFixed(1)}`);
         return transformedPoint;
       } else {
-        // Pour l'âme, forme dans le plan XY
+        // Pour l'âme : forme dans le plan XY (vertical)
         return [
-          p[0] - length / 2,     // X
-          p[1] - height / 2      // Y
+          p[0] - length / 2,     // Position le long de la poutre
+          p[1] - height / 2      // Position verticale
         ];
       }
     });
@@ -261,15 +267,14 @@ export class CutProcessor extends FeatureProcessor {
       fromMetadata: element.metadata?.flangeThickness,
       fallback: 7.6
     });
-    // Pour une découpe dans l'aile, on doit traverser toute l'épaisseur
-    // On utilise une grande valeur pour s'assurer de traverser complètement
-    const actualDepth = face === ProfileFace.WEB || face === ProfileFace.BOTTOM 
-      ? 50  // Profondeur fixe large pour garantir la traversée complète de l'aile
-      : depth * 2.0;
+    // Profondeur de la découpe selon la face
+    const actualDepth = (face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE)
+      ? 50  // Profondeur fixe pour traverser complètement l'aile
+      : depth * 2.0;  // Pour l'âme, utiliser la profondeur fournie
     
     let geometry: THREE.BufferGeometry;
     
-    if (face === ProfileFace.WEB || face === ProfileFace.BOTTOM) {
+    if (face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE) {
       // Pour les ailes, créer un BoxGeometry directement à partir des bounds
       const bounds = this.getContourBounds(contourPoints);
       const cutWidth = bounds.maxX - bounds.minX;
@@ -302,14 +307,8 @@ export class CutProcessor extends FeatureProcessor {
     const rotationMatrix = new THREE.Matrix4();
     
     switch (face) {
-      case ProfileFace.WEB: { // Face supérieure (top flange)
-        // Pour face 'v', le BoxGeometry est créé centré à l'origine
-        // On doit le positionner pour qu'il traverse l'aile supérieure
-        
-        // IMPORTANT: Pour un profil UB254x146x31:
-        // - height = 146.1mm (hauteur totale du profil)
-        // - flangeThickness = 7.6mm (épaisseur de l'aile)
-        // L'aile supérieure est située de Y = (height/2 - flangeThickness) à Y = height/2
+      case ProfileFace.TOP_FLANGE: { // Aile supérieure
+        // Positionner la découpe pour traverser l'aile supérieure
         const topFlangeBottom = (height / 2) - flangeThickness;
         const topFlangeTop = height / 2;
         
@@ -344,24 +343,18 @@ export class CutProcessor extends FeatureProcessor {
         break;
       }
         
-      case ProfileFace.BOTTOM_FLANGE: { // Face inférieure (bottom flange) 
-        // Même rotation que pour l'aile supérieure
-        rotationMatrix.makeRotationX(-Math.PI / 2);
-        geometry.applyMatrix4(rotationMatrix);
-        // Positionner pour que la découpe traverse l'aile inférieure
-        // L'aile inférieure est à Y = -height/2 jusqu'à Y = -height/2 + flangeThickness
+      case ProfileFace.BOTTOM_FLANGE: { // Aile inférieure
+        // Positionner la découpe pour traverser l'aile inférieure
         const bottomFlangeBottom = -height / 2;
-        // La géométrie doit partir du bas et monter à travers l'aile
-        // Après rotation et inversion, on positionne depuis le bas
-        geometry.translate(0, bottomFlangeBottom + actualDepth, 0);
+        const bottomFlangeTop = bottomFlangeBottom + flangeThickness;
+        const cutCenterY = (bottomFlangeBottom + bottomFlangeTop) / 2;
+        
+        geometry.translate(0, cutCenterY, 0);
         break;
       }
         
-      case ProfileFace.TOP_FLANGE: // Âme (web)
-      case 'web':
-        // La découpe doit traverser l'âme horizontalement (selon Z)
-        // L'extrusion se fait déjà selon Z, pas de rotation nécessaire
-        // Centrer sur Z pour traverser l'âme
+      case ProfileFace.WEB: // Âme
+        // Centrer la découpe sur l'âme
         geometry.translate(0, 0, -actualDepth / 2);
         break;
         
@@ -374,87 +367,6 @@ export class CutProcessor extends FeatureProcessor {
     geometry.computeBoundingBox();
     
     return geometry;
-  }
-  
-  /**
-   * Calcule la position de la découpe en fonction de la face
-   */
-  private calculateCutPosition(
-    contourPoints: Array<[number, number]>,
-    face: ProfileFace | undefined,
-    element: PivotElement
-  ): THREE.Vector3 {
-    const dims = element.dimensions;
-    const length = dims.length || 1000;
-    const height = dims.height || 300;
-    const width = dims.width || 150;
-    const flangeThickness = dims.flangeThickness || 10;
-    
-    // Calculer les limites du contour
-    let minX = Infinity, maxX = -Infinity;
-    let minY = Infinity, maxY = -Infinity;
-    
-    for (const point of contourPoints) {
-      minX = Math.min(minX, point[0]);
-      maxX = Math.max(maxX, point[0]);
-      minY = Math.min(minY, point[1]);
-      maxY = Math.max(maxY, point[1]);
-    }
-    
-    // Ne pas centrer - utiliser directement les coordonnées DSTV
-    // Les coordonnées DSTV sont déjà dans le repère local de la pièce
-    const startX = minX;  // Position de début en X
-    const startY = minY;  // Position de début en Y
-    
-    const position = new THREE.Vector3();
-    
-    switch (face) {
-      case ProfileFace.WEB: { // Face supérieure (top flange)
-        // Positionner la découpe au niveau de l'aile supérieure
-        // La hauteur du profil UB254x146x31 est 251.4mm
-        // L'épaisseur de l'aile est 7.6mm
-        // On veut que la découpe soit centrée sur l'épaisseur de l'aile
-        const topFlangeCenter = (height / 2) - (flangeThickness / 2);  // Centre de l'aile supérieure
-        position.set(
-          0,                     // Déjà centré sur X
-          topFlangeCenter,       // Position Y au centre de l'aile
-          0                      // Déjà centré sur Z
-        );
-break;
-      }
-        
-      case ProfileFace.BOTTOM_FLANGE: { // Face inférieure (bottom flange)
-        const bottomFlangeY = -(height / 2) + (flangeThickness / 2);  // Centre de l'aile inférieure
-        position.set(
-          0,                     // Déjà centré sur X
-          bottomFlangeY,         // Position Y au centre de l'aile
-          0                      // Déjà centré sur Z
-        );
-break;
-      }
-        
-      case ProfileFace.TOP_FLANGE: // Âme (web)
-        // Si c'est un contour avec extension, le traiter comme l'aile supérieure
-        if (contourPoints.length > 5) {
-          position.set(
-            startX - length / 2,
-            height / 2 - flangeThickness,
-            startY - width / 2
-          );
-} else {
-          position.set(
-            startX - length / 2,
-            startY - height / 2,
-            0
-          );
-        }
-        break;
-        
-      default:
-        position.set(startX - length / 2, startY - height / 2, 0);
-    }
-    
-    return position;
   }
   
   /**
@@ -766,6 +678,288 @@ break;
     geometry.translate(0, 0, -width);
     
     return geometry;
+  }
+  
+  /**
+   * Détecte si le contour représente un pattern d'encoches partielles (M1002)
+   */
+  private isPartialNotchPattern(contourPoints: Array<[number, number]>, element: PivotElement): boolean {
+    // Détection du pattern M1002: 9 points avec extension
+    if (contourPoints.length !== 9) {
+      return false;
+    }
+    
+    const bounds = this.getContourBounds(contourPoints);
+    const profileLength = element.dimensions.length;
+    
+    // Vérifier s'il y a une extension au-delà de la longueur du profil
+    const hasExtension = bounds.maxX > profileLength + 1;
+    
+    if (hasExtension) {
+      console.log(`  📐 Partial notch pattern detected: ${contourPoints.length} points, extension=${(bounds.maxX - profileLength).toFixed(1)}mm`);
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Traite les encoches partielles avec extension (M1002 pattern)
+   */
+  private processPartialNotches(
+    geometry: THREE.BufferGeometry,
+    contourPoints: Array<[number, number]>,
+    face: ProfileFace | undefined,
+    element: PivotElement,
+    feature: Feature
+  ): ProcessResult {
+    try {
+      const dims = element.dimensions;
+      const bounds = this.getContourBounds(contourPoints);
+      
+      console.log(`  🔧 Processing partial notches with extension:`);
+      console.log(`    Contour bounds: X[${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}] Y[${bounds.minY.toFixed(1)}, ${bounds.maxY.toFixed(1)}]`);
+      console.log(`    Profile length: ${dims.length}mm, Extension: ${(bounds.maxX - dims.length).toFixed(1)}mm`);
+      
+      // Analyser les points pour identifier les encoches
+      // Pour M1002: les encoches sont définies par les changements de Y aux extrémités
+      const notches = this.extractNotchesFromContour(contourPoints, dims);
+      
+      // Créer les géométries de découpe pour chaque encoche
+      const cutGeometries: THREE.BufferGeometry[] = [];
+      
+      // Récupérer l'épaisseur de l'aile pour dimensionner les encoches
+      const flangeThickness = element.dimensions.flangeThickness || element.metadata?.flangeThickness || 7.6;
+      
+      // Calculer les dimensions une fois pour réutilisation
+      const profileHeight = dims.height || 251.4;
+      let globalCenterY = 0;
+      if (face === ProfileFace.TOP_FLANGE && dims.height) {
+        const topFlangeBottom = (dims.height / 2) - flangeThickness;
+        globalCenterY = topFlangeBottom + (flangeThickness / 2);
+      }
+      
+      for (const notch of notches) {
+        console.log(`    Creating notch: X[${notch.xStart.toFixed(1)}, ${notch.xEnd.toFixed(1)}] Y[${notch.yStart.toFixed(1)}, ${notch.yEnd.toFixed(1)}]`);
+        
+        // Créer un box pour chaque encoche
+        // Pour face 'v' (TOP_FLANGE), Y représente la hauteur du profil
+        // Mapping : DSTV X -> Three.js Z, DSTV Y -> Three.js Y
+        const notchDepthZ = notch.xEnd - notch.xStart;           // Profondeur de l'encoche
+        const notchHeightY = notch.yEnd - notch.yStart;          // Hauteur de l'encoche
+        const notchWidthX = dims.width + 20;                     // Largeur totale avec marge de sécurité
+        
+        // BoxGeometry(width_X, height_Y, depth_Z) en coordonnées Three.js
+        const boxGeometry = new THREE.BoxGeometry(notchWidthX, notchHeightY, notchDepthZ);
+        
+        console.log(`        Box dimensions: X=${notchWidthX.toFixed(1)}mm Y=${notchHeightY.toFixed(1)}mm Z=${notchDepthZ.toFixed(1)}mm`);
+        
+        // Positionner le box dans l'espace 3D
+        // Système de coordonnées Three.js pour profil I :
+        // X = largeur, Y = hauteur, Z = longueur de la poutre
+        
+        // Position le long de la poutre (Z)
+        const centerZ = (notch.xStart + notch.xEnd) / 2;
+        
+        // Position latérale (X) - centré sur l'âme
+        const centerX = 0;
+        
+        // Position verticale (Y) - conversion DSTV vers Three.js
+        const centerY = (notch.yStart + notch.yEnd) / 2 - profileHeight / 2;
+        
+        console.log(`      Box position: X=${centerX.toFixed(1)}mm Y=${centerY.toFixed(1)}mm Z=${centerZ.toFixed(1)}mm`);
+        
+        // Appliquer la transformation immédiatement pour éviter les problèmes de fusion
+        boxGeometry.translate(centerX, centerY, centerZ);
+        
+        // Forcer le calcul des attributs
+        boxGeometry.computeBoundingBox();
+        boxGeometry.computeBoundingSphere();
+        
+        // Vérifier la position finale APRÈS translation
+        console.log(`      Box final bounds:`, 
+          `X[${boxGeometry.boundingBox?.min.x.toFixed(1)}, ${boxGeometry.boundingBox?.max.x.toFixed(1)}]`,
+          `Y[${boxGeometry.boundingBox?.min.y.toFixed(1)}, ${boxGeometry.boundingBox?.max.y.toFixed(1)}]`,
+          `Z[${boxGeometry.boundingBox?.min.z.toFixed(1)}, ${boxGeometry.boundingBox?.max.z.toFixed(1)}]`
+        );
+        
+        // Vérifier l'intersection avec la géométrie originale
+        const originalBounds = geometry.boundingBox;
+        if (originalBounds && boxGeometry.boundingBox) {
+          const intersectsX = boxGeometry.boundingBox.max.x >= originalBounds.min.x && 
+                             boxGeometry.boundingBox.min.x <= originalBounds.max.x;
+          const intersectsY = boxGeometry.boundingBox.max.y >= originalBounds.min.y && 
+                             boxGeometry.boundingBox.min.y <= originalBounds.max.y;
+          const intersectsZ = boxGeometry.boundingBox.max.z >= originalBounds.min.z && 
+                             boxGeometry.boundingBox.min.z <= originalBounds.max.z;
+          
+          console.log(`      Intersection check: X=${intersectsX}, Y=${intersectsY}, Z=${intersectsZ}`);
+          
+          if (!intersectsX || !intersectsY || !intersectsZ) {
+            console.warn(`      ⚠️ WARNING: Box does not intersect with original geometry!`);
+          }
+        }
+        
+        cutGeometries.push(boxGeometry);
+      }
+      
+      // Fusionner toutes les géométries de découpe
+      let mergedCutGeometry: THREE.BufferGeometry;
+      if (cutGeometries.length > 1) {
+        mergedCutGeometry = BufferGeometryUtils.mergeGeometries(cutGeometries, false);
+      } else {
+        mergedCutGeometry = cutGeometries[0];
+      }
+      
+      // Appliquer la découpe à la géométrie
+      console.log(`  🔧 Applying CSG subtraction: ${notches.length} notch(es)`);
+      
+      // Calculer les bounding boxes pour vérifier l'intersection
+      geometry.computeBoundingBox();
+      mergedCutGeometry.computeBoundingBox();
+      
+      console.log(`    Original geometry bounds:`, 
+        `X[${geometry.boundingBox?.min.x.toFixed(1)}, ${geometry.boundingBox?.max.x.toFixed(1)}]`,
+        `Y[${geometry.boundingBox?.min.y.toFixed(1)}, ${geometry.boundingBox?.max.y.toFixed(1)}]`,
+        `Z[${geometry.boundingBox?.min.z.toFixed(1)}, ${geometry.boundingBox?.max.z.toFixed(1)}]`
+      );
+      console.log(`    Cut geometry bounds:`, 
+        `X[${mergedCutGeometry.boundingBox?.min.x.toFixed(1)}, ${mergedCutGeometry.boundingBox?.max.x.toFixed(1)}]`,
+        `Y[${mergedCutGeometry.boundingBox?.min.y.toFixed(1)}, ${mergedCutGeometry.boundingBox?.max.y.toFixed(1)}]`,
+        `Z[${mergedCutGeometry.boundingBox?.min.z.toFixed(1)}, ${mergedCutGeometry.boundingBox?.max.z.toFixed(1)}]`
+      );
+      
+      const originalBrush = new Brush(geometry);
+      originalBrush.updateMatrixWorld();
+      const cutBrush = new Brush(mergedCutGeometry);
+      cutBrush.updateMatrixWorld();
+      
+      console.log(`    Original geometry vertices: ${geometry.attributes.position.count}`);
+      console.log(`    Cut geometry vertices: ${mergedCutGeometry.attributes.position.count}`);
+      
+      const resultBrush = this.evaluator.evaluate(originalBrush, cutBrush, SUBTRACTION);
+      const resultGeometry = resultBrush.geometry;
+      
+      console.log(`    Result geometry vertices: ${resultGeometry.attributes.position.count}`);
+      console.log(`    Vertices change: ${resultGeometry.attributes.position.count - geometry.attributes.position.count}`);
+      
+      // Ajouter les informations de découpe à userData pour les outlines
+      if (!resultGeometry.userData.cuts) {
+        resultGeometry.userData.cuts = [];
+      }
+      
+      // Ajouter chaque encoche avec ses bounds
+      for (const notch of notches) {
+        // Créer un ID unique qui combine l'ID de la feature parent et l'index du notch
+        const notchIndex = notches.indexOf(notch);
+        const notchId = feature.id ? `${feature.id}_notch_${notchIndex}` : `notch_${notchIndex}`;
+        const cutInfo = {
+          id: notchId,  // ID unique pour la notch
+          parentFeatureId: feature.id,  // Garder une référence à la feature parent
+          type: 'notch',
+          face: face,
+          bounds: {
+            minX: -(dims.width + 20) / 2,           // Encoche traverse toute la largeur avec marge
+            maxX: (dims.width + 20) / 2,
+            minY: notch.yStart - profileHeight / 2,   // Position verticale de l'encoche
+            maxY: notch.yEnd - profileHeight / 2,
+            minZ: notch.xStart,                     // Position le long de la poutre
+            maxZ: notch.xEnd
+          }
+        };
+        resultGeometry.userData.cuts.push(cutInfo);
+        console.log(`  📐 Added cut info to userData:`, cutInfo);
+      }
+      
+      // Nettoyer
+      mergedCutGeometry.dispose();
+      
+      return {
+        success: true,
+        geometry: resultGeometry
+      };
+      
+    } catch (error) {
+      console.error('Error processing partial notches:', error);
+      return {
+        success: false,
+        error: `Failed to process partial notches: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+  
+  /**
+   * Extrait les encoches individuelles du contour complexe
+   * Analyse dynamiquement les points pour identifier les encoches M1002
+   */
+  private extractNotchesFromContour(
+    contourPoints: Array<[number, number]>,
+    dimensions: any
+  ): Array<{xStart: number, xEnd: number, yStart: number, yEnd: number}> {
+    const notches: Array<{xStart: number, xEnd: number, yStart: number, yEnd: number}> = [];
+    
+    if (contourPoints.length !== 9) {
+      return notches; // Pas le bon pattern
+    }
+    
+    // Analyser les points DSTV pour M1002
+    // Points: [(1912.15,18.6), (1912.15,232.8), (1842.1,232.8), (1842.1,251.4), (0,251.4), (0,0), (1842.1,0), (1842.1,18.6), (1912.15,18.6)]
+    
+    // Trouver les coordonnées clés
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    
+    for (const [x, y] of contourPoints) {
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+    
+    // Pour M1002: baseEndX = 1842.1, extensionX = 1912.15
+    const sortedX = Array.from(new Set(contourPoints.map(p => p[0]))).sort((a, b) => a - b);
+    const baseEndX = sortedX[sortedX.length - 2]; // Avant-dernière valeur X (1842.1)
+    const extensionX = maxX; // Dernière valeur X (1912.15)
+    
+    // Identifier les zones d'extension (où X = extensionX)
+    const extensionPoints = contourPoints.filter(([x, y]) => Math.abs(x - extensionX) < 0.1);
+    const extensionYValues = extensionPoints.map(([x, y]) => y).sort((a, b) => a - b);
+    
+    console.log(`  🔍 Extension analysis: baseX=${baseEndX}, extensionX=${extensionX}`);
+    console.log(`  🔍 Extension Y values:`, extensionYValues);
+    
+    // Pour M1002, les extensions sont aux extrémités Y
+    // Encoche haute: Y[0, 18.6] -> extension Y=18.6 mais pas à la base
+    // Encoche basse: Y[232.8, 251.4] -> extension Y=232.8 mais pas à la base
+    
+    if (extensionYValues.length >= 2) {
+      const topExtensionY = extensionYValues[0]; // 18.6
+      const bottomExtensionY = extensionYValues[extensionYValues.length - 1]; // 232.8
+      
+      // Encoche haute: de Y=0 (minY) à Y=topExtensionY
+      if (topExtensionY > minY) {
+        notches.push({
+          xStart: baseEndX,
+          xEnd: extensionX,
+          yStart: minY,
+          yEnd: topExtensionY
+        });
+        console.log(`  📐 Detected TOP notch: X[${baseEndX.toFixed(1)}, ${extensionX.toFixed(1)}] Y[${minY.toFixed(1)}, ${topExtensionY.toFixed(1)}]`);
+      }
+      
+      // Encoche basse: de Y=bottomExtensionY à Y=maxY (251.4)
+      if (bottomExtensionY < maxY) {
+        notches.push({
+          xStart: baseEndX,
+          xEnd: extensionX,
+          yStart: bottomExtensionY,
+          yEnd: maxY
+        });
+        console.log(`  📐 Detected BOTTOM notch: X[${baseEndX.toFixed(1)}, ${extensionX.toFixed(1)}] Y[${bottomExtensionY.toFixed(1)}, ${maxY.toFixed(1)}]`);
+      }
+    }
+    
+    return notches;
   }
   
   dispose(): void {

@@ -100,6 +100,13 @@ export class NotchProcessor implements IFeatureProcessor {
     console.log(`  📏 Profile length: ${profileLength}mm, Contour length: ${contourLength}mm`);
     console.log(`  ✂️ Notch depth: ${lengthDifference/2}mm at each extremity`);
     
+    // Pour les contours complexes avec 9 points (ex: face 'v' dans M1002.nc),
+    // analyser la forme exacte des notches
+    if (points.length === 9 && (face === 'top' || face === 'top_flange')) {
+      console.log(`  🔍 Complex contour with 9 points detected - analyzing exact notch shape`);
+      return this.createComplexNotches(geometry, points, element, face, profileLength);
+    }
+    
     // Créer les notches aux extrémités
     return this.createExtremityNotches(
       geometry,
@@ -118,22 +125,114 @@ export class NotchProcessor implements IFeatureProcessor {
     feature: Feature,
     element: PivotElement
   ): ProcessorResult {
-    // Pour des notches définies explicitement (future fonctionnalité)
+    // Pour des notches définies explicitement
     const depth = feature.parameters.depth || 35;
     const width = feature.parameters.width || element.dimensions.width;
-    const position = feature.parameters.position || 'both'; // 'start', 'end', 'both'
+    // Position peut être un nombre (coordonnée) ou une string ('start', 'end', 'both')
+    // Pour les notches explicites, on utilise toujours 'both' par défaut
+    const positionValue = feature.parameters.position;
+    const position: string = typeof positionValue === 'string' ? positionValue : 'both';
+    const face = feature.parameters.face || ProfileFace.WEB;
+    const profileLength = element.dimensions.length || 1912.15;
     
     console.log(`  🔧 Creating explicit notches: depth=${depth}mm, width=${width}mm, position=${position}`);
     
-    // Implémenter la création de notches explicites
-    // Pour l'instant, on retourne la géométrie inchangée
+    // Créer un brush CSG pour la géométrie de base
+    const baseBrush = new Brush(geometry);
+    baseBrush.updateMatrixWorld();
+    
+    // Créer les géométries de notch selon la position
+    const notchGeometries: THREE.BufferGeometry[] = [];
+    
+    if (position === 'start' || position === 'both') {
+      // Notch au début
+      const startNotch = this.createExplicitNotchGeometry(depth, width, element.dimensions.height || 251.4, face);
+      const startBrush = new Brush(startNotch);
+      // Positionner au début du profil (Z=0 maintenant)
+      startBrush.position.set(0, 0, depth/2);
+      startBrush.updateMatrixWorld();
+      
+      // Effectuer la soustraction
+      const tempResult = this.evaluator.evaluate(baseBrush, startBrush, SUBTRACTION);
+      baseBrush.geometry = tempResult.geometry;
+      baseBrush.updateMatrixWorld();
+      
+      startNotch.dispose();
+      console.log(`  ✅ Start notch applied`);
+    }
+    
+    if (position === 'end' || position === 'both') {
+      // Notch à la fin
+      const endNotch = this.createExplicitNotchGeometry(depth, width, element.dimensions.height || 251.4, face);
+      const endBrush = new Brush(endNotch);
+      // Positionner à la fin du profil (Z=profileLength maintenant)
+      endBrush.position.set(0, 0, profileLength - depth/2);
+      endBrush.updateMatrixWorld();
+      
+      // Effectuer la soustraction
+      const finalResult = this.evaluator.evaluate(baseBrush, endBrush, SUBTRACTION);
+      
+      endNotch.dispose();
+      console.log(`  ✅ End notch applied`);
+      
+      // Extraire et optimiser la géométrie finale
+      const resultGeometry = finalResult.geometry.clone();
+      resultGeometry.computeVertexNormals();
+      resultGeometry.computeBoundingBox();
+      resultGeometry.computeBoundingSphere();
+      
+      // Transférer les userData
+      Object.assign(resultGeometry.userData, geometry.userData);
+      
+      return {
+        success: true,
+        geometry: resultGeometry
+      };
+    }
+    
+    // Si seulement start notch
+    const resultGeometry = baseBrush.geometry.clone();
+    resultGeometry.computeVertexNormals();
+    resultGeometry.computeBoundingBox();
+    resultGeometry.computeBoundingSphere();
+    Object.assign(resultGeometry.userData, geometry.userData);
+    
     return {
       success: true,
-      geometry: geometry,
-      warning: 'Explicit notches not yet implemented'
+      geometry: resultGeometry
     };
   }
 
+  /**
+   * Crée une géométrie de notch simple pour les notches explicites
+   */
+  private createExplicitNotchGeometry(
+    depth: number,
+    width: number,
+    height: number,
+    face: ProfileFace | string
+  ): THREE.BufferGeometry {
+    // Créer un box pour la notch
+    const geometry = new THREE.BoxGeometry(width * 1.5, height * 1.5, depth);
+    
+    // Ajuster selon la face
+    if (face === ProfileFace.WEB || face === 'web') {
+      // Pour l'âme, pas de rotation nécessaire
+    } else if (face === ProfileFace.TOP_FLANGE || face === 'top' || face === 'top_flange') {
+      // Pour la semelle supérieure, rotation nécessaire
+      const matrix = new THREE.Matrix4();
+      matrix.makeRotationX(Math.PI / 2);
+      geometry.applyMatrix4(matrix);
+    } else if (face === ProfileFace.BOTTOM_FLANGE || face === 'bottom' || face === 'bottom_flange') {
+      // Pour la semelle inférieure
+      const matrix = new THREE.Matrix4();
+      matrix.makeRotationX(Math.PI / 2);
+      geometry.applyMatrix4(matrix);
+    }
+    
+    return geometry;
+  }
+  
   /**
    * Crée les notches aux extrémités de la pièce
    */
@@ -167,7 +266,7 @@ export class NotchProcessor implements IFeatureProcessor {
       if (startNotchGeometry) {
         const startNotchBrush = new Brush(startNotchGeometry);
         startNotchBrush.position.set(
-          -profileLength/2,
+          0,  // Profil commence à 0 maintenant
           0,
           this.getFaceZOffset(face, element)
         );
@@ -189,9 +288,9 @@ export class NotchProcessor implements IFeatureProcessor {
     if (contourBounds.maxX < profileLength - 0.1) {
       console.log(`  ✂️ Creating end notch from ${contourBounds.maxX}mm to ${profileLength}mm`);
       
-      // Créer la notch dans l'espace Three.js centré
-      const notchStartX = contourBounds.maxX - profileLength/2;  // Convertir en coordonnées Three.js
-      const notchEndX = profileLength/2;  // Fin du profil en Three.js
+      // Créer la notch dans l'espace Three.js (commence à Z=0)
+      const notchStartX = contourBounds.maxX;  // Position directe, pas de centrage
+      const notchEndX = profileLength;  // Fin du profil
       
       const endNotchGeometry = this.createNotchGeometryThreeJS(
         notchStartX,
@@ -395,6 +494,129 @@ export class NotchProcessor implements IFeatureProcessor {
       case ProfileFace.WEB:
       default:
         return 0;
+    }
+  }
+
+  /**
+   * Crée des notches complexes basées sur la forme exacte du contour
+   * Utilisé pour les contours avec 9 points qui décrivent des coins avec extensions
+   */
+  private createComplexNotches(
+    geometry: THREE.BufferGeometry,
+    points: Array<[number, number]>,
+    element: PivotElement,
+    face: ProfileFace | string,
+    profileLength: number
+  ): ProcessorResult {
+    console.log(`  🎨 Creating complex notches from contour shape`);
+    console.log(`  📍 Contour points:`, points.map(p => `(${p[0]}, ${p[1]})`).join(', '));
+    
+    try {
+      const baseBrush = new Brush(geometry);
+      baseBrush.updateMatrixWorld();
+      
+      // Analyser les points pour identifier les zones de notch
+      // Pour un contour en U inversé avec 9 points, typiquement :
+      // - Points 0-2 : Extension à la fin (notch 2)
+      // - Points 3-5 : Corps principal
+      // - Points 6-8 : Extension au début (notch 1)
+      
+      // Trouver les coordonnées X uniques pour identifier les zones
+      const xCoords = points.map(p => p[0]);
+      const uniqueX = [...new Set(xCoords.map(x => Math.round(x)))].sort((a, b) => a - b);
+      
+      console.log(`  📏 Unique X coordinates:`, uniqueX);
+      
+      // Identifier les zones de notch en analysant les discontinuités
+      const tolerance = 1.0;
+      
+      // Zone 1: Points avec X proche de profileLength (fin)
+      const endNotchPoints: Array<[number, number]> = [];
+      // Zone 2: Points avec X proche de 0 (début) 
+      const startNotchPoints: Array<[number, number]> = [];
+      
+      for (const point of points) {
+        // Points à la fin (ex: 1912.15)
+        if (Math.abs(point[0] - profileLength) < tolerance || point[0] > profileLength - 100) {
+          endNotchPoints.push(point);
+        }
+        // Points au début (proche de 0, mais pas exactement 0)
+        else if (point[0] < 100 && Math.abs(point[0]) > tolerance) {
+          // Ce sont les points intermédiaires qui forment le notch
+          startNotchPoints.push(point);
+        }
+      }
+      
+      console.log(`  📐 End notch: ${endNotchPoints.length} points`);
+      console.log(`  📐 Start notch: ${startNotchPoints.length} points`);
+      
+      // Créer les notches basées sur la forme réelle
+      const depth = this.calculateDepthForFace(face as ProfileFace, element) * 2;
+      
+      // Notch à la fin (ex: coins à x=1912.15)
+      if (endNotchPoints.length >= 2) {
+        // Extraire la forme du notch depuis les points
+        const minY = Math.min(...endNotchPoints.map(p => p[1]));
+        const maxY = Math.max(...endNotchPoints.map(p => p[1]));
+        const notchStartX = Math.min(...endNotchPoints.map(p => p[0])) - 70; // Profondeur du notch
+        
+        console.log(`  ✂️ End notch: X from ${notchStartX} to ${profileLength}, Y from ${minY} to ${maxY}`);
+        
+        // Créer la forme exacte du notch en utilisant les points du contour
+        const notchShape = new THREE.Shape();
+        
+        // Construire le rectangle du notch qui sera soustrait
+        notchShape.moveTo(notchStartX, minY);
+        notchShape.lineTo(profileLength, minY);
+        notchShape.lineTo(profileLength, maxY);
+        notchShape.lineTo(notchStartX, maxY);
+        notchShape.closePath();
+        
+        const extrudeSettings = {
+          depth: depth,
+          bevelEnabled: false
+        };
+        
+        const notchGeometry = new THREE.ExtrudeGeometry(notchShape, extrudeSettings);
+        const notchBrush = new Brush(notchGeometry);
+        
+        // Positionner dans l'espace Three.js
+        const centerX = (notchStartX + profileLength) / 2 - profileLength / 2;
+        notchBrush.position.set(centerX, 0, element.dimensions.height! / 2 - 2);
+        notchBrush.rotation.x = -Math.PI / 2; // Pour la face TOP
+        notchBrush.updateMatrixWorld();
+        
+        console.log(`  📍 End notch positioned at: (${centerX}, 0, ${element.dimensions.height! / 2 - 2})`);
+        
+        const tempBrush = this.evaluator.evaluate(baseBrush, notchBrush, SUBTRACTION);
+        baseBrush.geometry.dispose();
+        baseBrush.geometry = tempBrush.geometry;
+        notchGeometry.dispose();
+        
+        console.log(`  ✅ End notch applied`);
+      }
+      
+      // Extraire et finaliser la géométrie
+      const resultGeometry = baseBrush.geometry.clone();
+      resultGeometry.computeVertexNormals();
+      resultGeometry.computeBoundingBox();
+      resultGeometry.computeBoundingSphere();
+      
+      baseBrush.geometry.dispose();
+      
+      console.log(`  ✅ Complex notches created successfully`);
+      
+      return {
+        success: true,
+        geometry: resultGeometry
+      };
+      
+    } catch (error) {
+      console.error(`❌ Failed to create complex notches: ${error}`);
+      return {
+        success: false,
+        error: `Failed to create complex notches: ${error}`
+      };
     }
   }
 

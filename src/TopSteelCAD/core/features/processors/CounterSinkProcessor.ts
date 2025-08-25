@@ -10,17 +10,17 @@ import {
   ProcessorResult 
 } from '../types';
 import { PivotElement } from '@/types/viewer';
-import { PositionCalculator } from '../utils/PositionCalculator';
+import { PositionService } from '../../services/PositionService';
 
 export class CounterSinkProcessor implements IFeatureProcessor {
   private evaluator: Evaluator;
-  private positionCalculator: PositionCalculator;
+  private positionService: PositionService;
   
   constructor() {
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
-    this.positionCalculator = new PositionCalculator();
+    this.positionService = PositionService.getInstance();
   }
   
   process(
@@ -94,23 +94,24 @@ export class CounterSinkProcessor implements IFeatureProcessor {
       }
       
       // Calculer la position
-      const position3D = this.positionCalculator.calculateFeaturePosition(
+      const position3D = this.positionService.calculateFeaturePosition(
         element,
         feature.position,
-        feature.face
+        feature.face,
+        'dstv'
       );
       
       // Positionner le fraisage
       const sinkBrush = new Brush(sinkGeometry);
       sinkBrush.position.set(
-        position3D.position[0],
-        position3D.position[1],
-        position3D.position[2]
+        position3D.position.x,
+        position3D.position.y,
+        position3D.position.z
       );
       sinkBrush.rotation.set(
-        position3D.rotation[0],
-        position3D.rotation[1],
-        position3D.rotation[2]
+        position3D.rotation.x,
+        position3D.rotation.y,
+        position3D.rotation.z
       );
       
       sinkBrush.updateMatrixWorld();

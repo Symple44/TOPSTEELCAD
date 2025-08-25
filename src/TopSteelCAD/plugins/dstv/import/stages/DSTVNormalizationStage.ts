@@ -20,6 +20,7 @@ export enum NormalizedFeatureType {
   CUT = 'cut',
   CONTOUR = 'contour',
   NOTCH = 'notch',
+  CUT_WITH_NOTCHES = 'cut_with_notches',  // Nouveau type pour les coupes avec encoches partielles
   MARKING = 'marking',
   PUNCH = 'punch',
   WELD_PREP = 'weld_preparation',
@@ -115,7 +116,6 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   private normalizationConfig: DSTVNormalizationConfig;
   private featureCounter = 0;
   private currentProfileDimensions: { length: number; height: number; width: number } | null = null;
-  private profileDimensions: { length?: number; height?: number; width?: number } | null = null;
   private positionService: PositionService;
 
   constructor(config: any = {}) {
@@ -255,7 +255,9 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
 
       try {
         const normalizedFeatures = await this.normalizeBlockToFeatures(block, context);
-        features.push(...normalizedFeatures);
+        // Filtrer les features nulles (forme de base du profil)
+        const validFeatures = normalizedFeatures.filter(f => f !== null && f !== undefined);
+        features.push(...validFeatures);
       } catch (error) {
         this.log(context, 'warn', `Failed to normalize block ${block.type}: ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -512,6 +514,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
           face: hole.face || 'web'
         };
         
+        
         const standardPosition = this.positionService.convertPosition(
           { x: hole.x, y: hole.y, z: hole.z || 0 },
           'dstv',
@@ -523,6 +526,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
           y: standardPosition.position.y,
           z: standardPosition.position.z
         };
+        
         
         const feature: NormalizedFeature = {
           id: this.generateFeatureId('hole'),
@@ -583,6 +587,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       z: standardPosition.position.z
     };
     
+    
     const feature: NormalizedFeature = {
       id: this.generateFeatureId('hole'),
       type: NormalizedFeatureType.HOLE,
@@ -627,13 +632,84 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   private async normalizeAKBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
     const data = block.data;
     
-    // Analyser si ce sont des notches aux extrémités
-    const isNotch = this.detectNotchesFromContour(data.points, data.face);
+    // Vérifier si c'est un contour rectangulaire complet (forme de base du profil)
+    const isProfileShape = this.isProfileBaseShape(data.points, data.face);
     
-    if (isNotch) {
-      console.log(`  🔧 AK block detected as notches at extremities`);
+    if (isProfileShape) {
+      // Ne pas créer de feature pour la forme de base du profil
+      console.log(`  📐 AK block detected as profile base shape - skipping`);
+      return null as any; // Sera filtré plus tard
+    }
+    
+    // Analyser le type de contour avec la nouvelle méthode détaillée
+    console.log(`  🔍 Analyzing contour type for ${data.points?.length || 0} points on face ${data.face || 'unknown'}`);
+    const contourType = this.analyzeContourType(data.points, data.face);
+    console.log(`  🔍 Contour type result: ${contourType}`);
+    
+    if (contourType === 'CUT_WITH_NOTCHES') {
+      console.log(`  🔧 AK block detected as cut with partial notches (M1002 pattern)`);
       
-      // Créer une feature de type NOTCH au lieu de CONTOUR
+      // Créer une feature de type CUT_WITH_NOTCHES pour les encoches partielles
+      // Calculer les dimensions pour la conversion de coordonnées
+      const dims = this.currentProfileDimensions || {
+        length: 1912.15,
+        height: 251.4,
+        width: 146.1
+      };
+      
+      // Convertir le centre du contour vers le nouveau système
+      const contourCenter = this.calculateContourCenter(data.points);
+      const positionContext = {
+        profileType: 'I_PROFILE',
+        dimensions: dims,
+        face: data.face || 'web'
+      };
+      
+      const standardPosition = this.positionService.convertPosition(
+        contourCenter,
+        'dstv',
+        positionContext
+      );
+      
+      const standardCoords = {
+        x: standardPosition.position.x,
+        y: standardPosition.position.y,
+        z: standardPosition.position.z
+      };
+      
+      const feature: NormalizedFeature = {
+        id: this.generateFeatureId('cut-with-notches'),
+        type: NormalizedFeatureType.CUT_WITH_NOTCHES,
+        coordinates: standardCoords,
+        parameters: {
+          // Convertir les points pour le CutProcessor
+          points: data.points ? data.points.map((p: { x: number; y: number }) => [p.x, p.y] as [number, number]) : [],
+          closed: data.closed !== false,
+          contourType: 'outer',
+          interpolation: 'linear',
+          face: this.positionService.convertFace(data.face || 'web', 'dstv', positionContext),
+          // Informations spécifiques aux coupes avec encoches
+          cutType: 'partial_notches',
+          hasExtension: true,
+          source: 'contour_detection'
+        },
+        metadata: {
+          originalBlock: block.type,
+          workPlane: data.plane || 'E0',
+          processingOrder: this.getBlockProcessingPriority(block.type),
+          applyOnly: true,
+          face: this.positionService.convertFace(data.face || 'web', 'dstv', positionContext),
+          detectedAsCutWithNotches: true
+        }
+      };
+      
+      return feature;
+    }
+    
+    if (contourType === 'NOTCH') {
+      console.log(`  🔧 AK block detected as simple notches at extremities`);
+      
+      // Créer une feature de type NOTCH pour les notches simples
       // Calculer les dimensions pour la conversion de coordonnées
       const dims = this.currentProfileDimensions || {
         length: 1912.15,
@@ -667,10 +743,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
         coordinates: standardCoords,
         parameters: {
           // Convertir les points pour le NotchProcessor
-          points: data.points ? data.points.map((p: { x: number; y: number }) => {
-            console.debug(`🔄 Converting Point2D {x: ${p.x}, y: ${p.y}} → [${p.x}, ${p.y}]`);
-            return [p.x, p.y] as [number, number];
-          }) : [],
+          points: data.points ? data.points.map((p: { x: number; y: number }) => [p.x, p.y] as [number, number]) : [],
           closed: data.closed !== false,
           contourType: 'outer',
           interpolation: 'linear',
@@ -690,6 +763,26 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       };
       
       return feature;
+    }
+    
+    // Si c'est un contour de forme de base (plus court que le profil), ne pas créer de feature
+    if (contourType === 'CONTOUR') {
+      const profileLength = this.currentProfileDimensions?.length || 0;
+      
+      // Calculer les bounds du contour
+      let minX = Infinity;
+      let maxX = -Infinity;
+      for (const point of data.points) {
+        const x = point.x !== undefined ? point.x : point[0];
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+      }
+      const contourLength = maxX - minX;
+      
+      if (profileLength - contourLength > 1) {
+        console.log(`  📐 Skipping base shape contour: ${contourLength.toFixed(1)}mm < ${profileLength}mm`);
+        return null as any; // Ne pas créer de feature pour les formes de base
+      }
     }
     
     // Sinon, traiter comme un contour normal
@@ -727,10 +820,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       coordinates: standardCoords,
       parameters: {
         // Convertir Point2D[] vers Array<[number, number]> pour le ContourProcessor
-        points: data.points ? data.points.map((p: { x: number; y: number }) => {
-          console.debug(`🔄 Converting Point2D {x: ${p.x}, y: ${p.y}} → [${p.x}, ${p.y}]`);
-          return [p.x, p.y] as [number, number];
-        }) : [],
+        points: data.points ? data.points.map((p: { x: number; y: number }) => [p.x, p.y] as [number, number]) : [],
         closed: data.closed !== false,
         contourType: 'outer',
         interpolation: 'linear', // Par défaut, peut être 'spline' ou 'arc'
@@ -777,6 +867,8 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   private async normalizeSIBlock(block: DSTVParsedBlock): Promise<NormalizedFeature> {
     const data = block.data;
     
+    console.log('🎯 normalizeSIBlock - Input data:', data);
+    
     // Utiliser les dimensions stockées ou des valeurs par défaut
     const dims = this.currentProfileDimensions || {
       length: 1912.15,
@@ -784,24 +876,42 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
       width: 146.1
     };
     
-    // Utiliser le nouveau système de coordonnées
-    const positionContext = {
-      profileType: 'I_PROFILE',
-      dimensions: dims,
-      face: data.face || 'web'
-    };
+    // Pour un marquage sur la face 'v' (top flange), nous ne devons PAS convertir les coordonnées
+    // car elles sont déjà dans le bon système (X le long du profil, Y latéral sur l'aile)
+    // La conversion les transforme incorrectement
     
-    const standardPosition = this.positionService.convertPosition(
-      { x: data.x, y: data.y, z: data.z || 0 },
-      'dstv',
-      positionContext
-    );
+    let standardCoords;
     
-    const standardCoords = {
-      x: standardPosition.position.x,
-      y: standardPosition.position.y,
-      z: standardPosition.position.z
-    };
+    if (data.face === 'v' || data.face === 'u') {
+      // Pour les faces d'aile, garder les coordonnées DSTV directes
+      // car elles représentent déjà la bonne position
+      standardCoords = {
+        x: data.x,  // Position le long du profil
+        y: data.y,  // Position latérale sur l'aile
+        z: data.z || 0
+      };
+      console.log('🎯 Using direct DSTV coords for flange face:', standardCoords);
+    } else {
+      // Pour les autres faces, utiliser la conversion
+      const positionContext = {
+        profileType: 'I_PROFILE',
+        dimensions: dims,
+        face: data.face || 'web'
+      };
+      
+      const standardPosition = this.positionService.convertPosition(
+        { x: data.x, y: data.y, z: data.z || 0 },
+        'dstv',
+        positionContext
+      );
+      
+      standardCoords = {
+        x: standardPosition.position.x,
+        y: standardPosition.position.y,
+        z: standardPosition.position.z
+      };
+      console.log('🎯 Using converted coords for web/other face:', standardCoords);
+    }
     
     return {
       id: this.generateFeatureId('marking'),
@@ -1585,16 +1695,62 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   }
 
   /**
+   * Vérifie si un contour est la forme de base du profil (rectangle complet)
+   */
+  private isProfileBaseShape(points: any[], face?: StandardFace | string | undefined): boolean {
+    if (!points || points.length < 4) {
+      return false;
+    }
+    
+    const profileLength = this.currentProfileDimensions?.length || 0;
+    const profileWidth = this.currentProfileDimensions?.width || 0;
+    const profileHeight = this.currentProfileDimensions?.height || 0;
+    
+    // Analyser les dimensions du contour
+    const xs = points.map(p => p.x || p[0] || 0);
+    const ys = points.map(p => p.y || p[1] || 0);
+    
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    
+    const contourLength = maxX - minX;
+    const contourHeight = maxY - minY;
+    
+    // Vérifier si c'est un rectangle qui correspond aux dimensions du profil
+    const tolerance = 5; // 5mm de tolérance
+    
+    // Pour les faces web et bottom
+    // Vérifier si c'est une face où on s'attend à un contour rectangulaire
+    const isRelevantFace = (typeof face === 'string' && (face === 'web' || face === 'o' || face === 'bottom' || face === 'u')) ||
+                           face === StandardFace.WEB || face === StandardFace.BOTTOM_FLANGE;
+    
+    if (isRelevantFace) {
+      // Le contour devrait avoir la longueur et la largeur du profil
+      const isFullLength = Math.abs(contourLength - profileLength) < tolerance;
+      const isFullWidth = Math.abs(contourHeight - profileWidth) < tolerance;
+      
+      if (isFullLength && isFullWidth) {
+        console.log(`  📐 Profile base shape detected: ${contourLength}x${contourHeight} matches ${profileLength}x${profileWidth}`);
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
    * Détecte si un contour représente des notches aux extrémités
    * Analyse la différence entre la longueur du contour et la longueur du profil
    */
-  private detectNotchesFromContour(points: any[], face?: StandardFace | undefined): boolean {
+  private detectNotchesFromContour(points: any[], face?: StandardFace | string | undefined): boolean {
     if (!points || points.length < 3) {
       return false;
     }
     
     // Utiliser les dimensions du profil courant
-    const profileLength = this.currentProfileDimensions?.length || this.profileDimensions?.length || 0;
+    const profileLength = this.currentProfileDimensions?.length || 0;
     if (profileLength === 0) {
       return false;
     }
@@ -1622,5 +1778,79 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     }
     
     return false;
+  }
+
+  /**
+   * Analyse détaillée du type de contour pour détecter les coupes avec encoches
+   * Détecte les extensions et les encoches partielles (comme pour M1002)
+   */
+  private analyzeContourType(points: any[], face?: StandardFace | string | undefined): 'NOTCH' | 'CUT_WITH_NOTCHES' | 'CONTOUR' | null {
+    if (!points || points.length < 3) {
+      console.log(`  ❌ Invalid points: ${points?.length || 0} points`);
+      return null;
+    }
+    
+    const profileLength = this.currentProfileDimensions?.length || 0;
+    if (profileLength === 0) {
+      console.log(`  ❌ No profile length available`);
+      return null;
+    }
+    
+    console.log(`  🔍 Analyzing ${points.length} points on face ${face}, profile length=${profileLength}mm`);
+    
+    // Analyser les coordonnées du contour
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    
+    for (const point of points) {
+      const x = point.x !== undefined ? point.x : point[0];
+      const y = point.y !== undefined ? point.y : point[1];
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+    
+    const contourLength = maxX - minX;
+    const contourHeight = maxY - minY;
+    
+    console.log(`  📏 Contour bounds: X[${minX.toFixed(1)}, ${maxX.toFixed(1)}] = ${contourLength.toFixed(1)}mm`);
+    console.log(`  📏 Contour height: Y[${minY.toFixed(1)}, ${maxY.toFixed(1)}] = ${contourHeight.toFixed(1)}mm`);
+    
+    // Pour détecter les coupes avec encoches (M1002), analyser le pattern spécifique :
+    // - 9 points exactement
+    // - Contour qui dépasse la longueur habituelle (cas M1002: 1912.15 vs blocs standards de 1842.1)
+    // - Face 'top' ou 'bottom' (ailes)
+    
+    const isComplexContour = points.length === 9;
+    const isFlangeFace = (face === 'top' || face === 'v' || face === 'bottom' || face === 'u');
+    
+    // Pour M1002: détecter le pattern où le contour fait la longueur complète du profil
+    // alors que les autres blocs AK font seulement 1842.1mm
+    const isFullLengthContour = Math.abs(contourLength - profileLength) < 1.0; // Contour = longueur du profil
+    
+    console.log(`  🔧 Analysis: complex=${isComplexContour}, flange=${isFlangeFace}, fullLength=${isFullLengthContour}`);
+    console.log(`  🔧 ContourLength=${contourLength.toFixed(1)}mm vs ProfileLength=${profileLength}mm`);
+    
+    // Pattern M1002 : 9 points + aile + contour pleine longueur
+    if (isComplexContour && isFlangeFace && isFullLengthContour) {
+      console.log(`  🔧 Cut with notches detected (M1002 pattern): Points=${points.length}, Face=${face}`);
+      console.log(`  🔧 Contour: ${contourLength.toFixed(1)}x${contourHeight.toFixed(1)}mm`);
+      return 'CUT_WITH_NOTCHES';
+    }
+    
+    // Pour M1002, seules les faces avec extension (contour pleine longueur) créent des découpes
+    // Les autres faces (contour court) représentent juste la forme sans découpe
+    if (profileLength - contourLength > 1) {
+      console.log(`  📐 No cutting needed: Contour=${contourLength.toFixed(1)}mm < Profile=${profileLength}mm`);
+      console.log(`  📐 This represents the base shape without any cutting operation`);
+      return 'CONTOUR'; // Pas de découpe, juste la forme de base
+    }
+    
+    // Sinon c'est un contour normal
+    console.log(`  📐 Regular contour detected: ${contourLength.toFixed(1)}mm`);
+    return 'CONTOUR';
   }
 }

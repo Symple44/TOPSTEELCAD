@@ -125,10 +125,42 @@ export class CameraController {
    */
   public setView(
     direction: ViewDirection,
-    elements?: PivotElement[],
-    selectedId?: string | null,
-    animated: boolean = true
+    elementsOrDuration?: PivotElement[] | number,
+    selectedIdOrElements?: string | null | PivotElement[],
+    animatedOrSelectedId?: boolean | string | null,
+    animatedParam?: boolean
   ): void {
+    // Handle overloaded parameters
+    let elements: PivotElement[] | undefined;
+    let selectedId: string | null | undefined;
+    let animated: boolean = true;
+    let duration: number | undefined;
+    
+    // Overload 1: setView(direction, duration)
+    if (typeof elementsOrDuration === 'number') {
+      duration = elementsOrDuration;
+      elements = undefined;
+      selectedId = null;
+      animated = true;
+    }
+    // Overload 2: setView(direction, elements, selectedId, animated)
+    else {
+      elements = elementsOrDuration;
+      if (Array.isArray(selectedIdOrElements)) {
+        // setView(direction, undefined, elements)
+        elements = selectedIdOrElements;
+        selectedId = null;
+      } else {
+        selectedId = selectedIdOrElements as string | null;
+      }
+      if (typeof animatedOrSelectedId === 'boolean') {
+        animated = animatedOrSelectedId;
+      } else if (typeof animatedOrSelectedId === 'string') {
+        selectedId = animatedOrSelectedId;
+        animated = animatedParam ?? true;
+      }
+    }
+    
     const target = this.controls?.target || new THREE.Vector3();
     const distance = this.calculateOptimalDistance(elements, selectedId);
     
@@ -136,7 +168,7 @@ export class CameraController {
     const preset = this.getPresetForDirection(direction, target, distance);
     
     if (animated) {
-      this.animateToPreset(preset, elements, selectedId, direction);
+      this.animateToPreset(preset, elements, selectedId, direction, duration);
     } else {
       this.applyPreset(preset, elements, selectedId, direction);
     }
@@ -231,7 +263,8 @@ export class CameraController {
     preset: CameraPreset,
     elements?: PivotElement[],
     selectedId?: string | null,
-    direction?: ViewDirection
+    direction?: ViewDirection,
+    customDuration?: number
   ): void {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
@@ -242,7 +275,7 @@ export class CameraController {
     const startUp = this.activeCamera.up.clone();
     
     const startTime = Date.now();
-    const duration = this.config.animationDuration;
+    const duration = customDuration ?? this.config.animationDuration;
     
     const animate = () => {
       const elapsed = Date.now() - startTime;
@@ -776,6 +809,61 @@ export class CameraController {
     }
   }
   
+  /**
+   * Anime la caméra vers une position et une cible spécifiques
+   */
+  public animateToPosition(
+    position: THREE.Vector3,
+    target: THREE.Vector3,
+    duration: number = 500
+  ): void {
+    if (!this.controls) return;
+
+    const startPosition = this.activeCamera.position.clone();
+    const startTarget = this.controls.target.clone();
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth animation
+      const eased = progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+      
+      // Interpolate position and target
+      this.activeCamera.position.lerpVectors(startPosition, position, eased);
+      this.controls.target.lerpVectors(startTarget, target, eased);
+      this.activeCamera.lookAt(this.controls.target);
+      this.controls.update();
+      
+      if (progress < 1) {
+        this.animationFrame = requestAnimationFrame(animate);
+      } else {
+        this.animationFrame = null;
+        // Update orthographic zoom if needed
+        if (this.isOrthographic) {
+          this.updateOrthographicZoom();
+        }
+      }
+    };
+    
+    // Cancel any existing animation
+    if (this.animationFrame) {
+      cancelAnimationFrame(this.animationFrame);
+    }
+    
+    animate();
+  }
+
+  /**
+   * Retourne la caméra active
+   */
+  public getActiveCamera(): THREE.PerspectiveCamera | THREE.OrthographicCamera {
+    return this.activeCamera;
+  }
+
   /**
    * Nettoie les ressources
    */

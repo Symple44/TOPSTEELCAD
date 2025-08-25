@@ -52,16 +52,17 @@ class DSTVOriginTransform extends BaseTransformStage {
     const { length, height, width } = profileDimensions;
     
     // DSTV: origine au coin inférieur gauche
-    // Standard: origine au centre
+    // Standard: profil commence à Z=0 (plus de centrage)
     // X DSTV → Z Standard (le long du profil)
     // Y DSTV → dépend de la face
     // Z DSTV → rarement utilisé
     
     const newPosition = new THREE.Vector3(
       0,  // X standard sera déterminé par la face
-      data.current.y - height / 2,  // Centrage vertical
-      data.current.x - length / 2   // X DSTV devient Z standard
+      data.current.y - height / 2,  // Centrage vertical (on garde le centrage en Y)
+      data.current.x   // X DSTV devient Z standard - DIRECT: pas de centrage en Z - CORRIGÉ!
     );
+    
     
     data.current = newPosition;
     return data;
@@ -116,13 +117,13 @@ class DSTVFaceTransform extends BaseTransformStage {
         break;
         
       case StandardFace.FRONT:
-        // Face avant
-        data.current.z = -profileDimensions.length / 2;
+        // Face avant (début du profil)
+        data.current.z = 0;
         break;
         
       case StandardFace.BACK:
-        // Face arrière
-        data.current.z = profileDimensions.length / 2;
+        // Face arrière (fin du profil)
+        data.current.z = profileDimensions.length;
         break;
     }
     
@@ -208,6 +209,7 @@ export class DSTVCoordinateAdapter {
       dstvPosition.z || 0
     );
     
+    
     if (this.debugMode) {
       console.log('📍 DSTV → Standard conversion:', {
         input: dstvPosition,
@@ -239,7 +241,7 @@ export class DSTVCoordinateAdapter {
       context.dimensions
     );
     
-    return {
+    const result = {
       position: transformed.current,
       face: standardFace,
       metadata: {
@@ -250,6 +252,9 @@ export class DSTVCoordinateAdapter {
         normal
       }
     };
+    
+    
+    return result;
   }
   
   /**
@@ -283,7 +288,8 @@ export class DSTVCoordinateAdapter {
     
     // Conversion inverse : Standard → DSTV
     // Z Standard → X DSTV (position le long du profil)
-    let dstvX = position.z + dimensions.length / 2;
+    // Plus de centrage : Z standard commence à 0
+    let dstvX = position.z;  // Direct, car le profil commence à Z=0
     let dstvY = 0;
     let dstvZ = 0;
     

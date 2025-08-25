@@ -65,7 +65,8 @@ export enum CoordinateSystem {
   LOCAL = 'local',    // Relatif à l'élément
   GLOBAL = 'global',  // Relatif à la scène
   FACE = 'face',      // Relatif à une face spécifique
-  DSTV = 'DSTV'       // Système de coordonnées DSTV
+  DSTV = 'DSTV',      // Système de coordonnées DSTV
+  STANDARD = 'standard' // Système de coordonnées standard unifié
 }
 
 /**
@@ -310,9 +311,9 @@ export function arrayToPoints(array: [number, number][]): Point2D[] {
  * Mapping DSTV vers ProfileFace
  */
 export const DSTV_FACE_MAPPING: Record<string, ProfileFace> = {
-  'u': ProfileFace.TOP_FLANGE,    // Upper flange
-  'o': ProfileFace.BOTTOM_FLANGE, // Lower flange (o = under)
-  'v': ProfileFace.WEB,           // Vertical web
+  'v': ProfileFace.TOP_FLANGE,    // v = top flange (aile supérieure)
+  'u': ProfileFace.BOTTOM_FLANGE, // u = bottom flange (aile inférieure)
+  'o': ProfileFace.WEB,           // o = web (âme)
   'l': ProfileFace.LEFT_LEG,
   'r': ProfileFace.RIGHT_LEG,
 };

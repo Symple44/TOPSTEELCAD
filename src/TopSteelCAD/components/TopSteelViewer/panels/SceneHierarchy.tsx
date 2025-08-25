@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { PivotElement, MaterialType } from '@/types/viewer';
+import { PivotElement, MaterialType, SelectableFeature, FeatureType } from '@/types/viewer';
 import { ViewerStore } from '../types';
+import { EventBus } from '@/TopSteelCAD/core/EventBus';
 
 interface SceneHierarchyProps {
   store: ViewerStore;
   theme?: 'dark' | 'light';
   onElementSelect?: (id: string) => void;
   onElementVisibilityToggle?: (id: string, visible: boolean) => void;
+  onFeatureSelect?: (elementId: string, featureId: string) => void;
+  eventBus?: EventBus;
 }
 
 interface TreeNode {
@@ -26,6 +29,10 @@ interface FeatureNode {
   name: string;
   data: any;
   level: number;
+  elementId: string;
+  selectable?: boolean;
+  selected?: boolean;
+  highlighted?: boolean;
 }
 
 interface AssemblyNode {
@@ -43,12 +50,16 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
   store,
   theme: _theme = 'dark',
   onElementSelect,
-  onElementVisibilityToggle
+  onElementVisibilityToggle,
+  onFeatureSelect,
+  eventBus
 }) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<MaterialType | 'all'>('all');
   const [showHidden, setShowHidden] = useState(true);
+  const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(new Set());
+  const [hoveredFeature, setHoveredFeature] = useState<string | null>(null);
   // const [_groupBy, _setGroupBy] = useState<'none' | 'type' | 'material'>('type');
   
   // Thème moderne slate
@@ -66,18 +77,43 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
   
   // Générer le nom d'une feature
   const getFeatureName = (feature: any): string => {
-    switch (feature.type) {
-      case 'hole':
+    const type = feature.type?.toUpperCase() || feature.featureType;
+    
+    switch (type) {
+      case 'HOLE':
+      case FeatureType.HOLE:
         return `Perçage Ø${feature.diameter || 20}mm`;
-      case 'cutout':
+      case 'TAPPED_HOLE':
+      case FeatureType.TAPPED_HOLE:
+        return `Trou taraudé M${feature.diameter || 12}`;
+      case 'COUNTERSINK':
+      case FeatureType.COUNTERSINK:
+        return `Fraisage Ø${feature.diameter || 20}mm`;
+      case 'SLOT':
+      case FeatureType.SLOT:
+        return `Oblong ${feature.slottedLength || 30}x${feature.diameter || 10}mm`;
+      case 'CUTOUT':
+      case FeatureType.CUTOUT:
         return `Découpe ${feature.width || 20}x${feature.length || 20}mm`;
-      case 'slot':
-        return `Gravure laser ${feature.length || 10}x${feature.width || 4}mm`;
-      case 'text':
-      case 'marking':
+      case 'NOTCH':
+      case FeatureType.NOTCH:
+        return `Encoche ${feature.width || 15}x${feature.depth || 10}mm`;
+      case 'TEXT':
+      case 'MARKING':
+      case FeatureType.TEXT:
+      case FeatureType.MARKING:
         return `Marquage "${feature.text || 'TOPSTEEL'}"`;
+      case 'CHAMFER':
+      case FeatureType.CHAMFER:
+        return `Chanfrein ${feature.size || 5}mm`;
+      case 'BEVEL':
+      case FeatureType.BEVEL:
+        return `Biseau ${feature.angle || 45}°`;
+      case 'WELD':
+      case FeatureType.WELD:
+        return `Soudure ${feature.size || 'a5'}`;
       default:
-        return `Usinage ${feature.type}`;
+        return `Feature ${type}`;
     }
   };
   
@@ -103,16 +139,44 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
       const features: FeatureNode[] = [];
       const assemblies: AssemblyNode[] = [];
       
-      // Ajouter les features (perçages, découpes, laser)
-      if (element.metadata?.cuttingFeatures) {
-        const cuttingFeatures = element.metadata.cuttingFeatures as any[];
-        cuttingFeatures.forEach((feature, idx) => {
+      // Ajouter les features depuis la nouvelle structure
+      if (element.features) {
+        element.features.forEach((feature: SelectableFeature) => {
+          const isSelected = selectedFeatures.has(`${element.id}_${feature.id}`);
+          const isHovered = hoveredFeature === `${element.id}_${feature.id}`;
+          
           features.push({
-            id: `${element.id}-feature-${idx}`,
+            id: feature.id,
             type: feature.type,
             name: getFeatureName(feature),
             data: feature,
-            level: 1
+            level: 1,
+            elementId: element.id,
+            selectable: feature.selectable,
+            selected: isSelected,
+            highlighted: feature.highlighted || isHovered
+          });
+        });
+      }
+      
+      // Ajouter aussi les features legacy si présentes
+      if (element.metadata?.cuttingFeatures) {
+        const cuttingFeatures = element.metadata.cuttingFeatures as any[];
+        cuttingFeatures.forEach((feature, idx) => {
+          const featureId = `legacy-feature-${idx}`;
+          const isSelected = selectedFeatures.has(`${element.id}_${featureId}`);
+          const isHovered = hoveredFeature === `${element.id}_${featureId}`;
+          
+          features.push({
+            id: featureId,
+            type: feature.type,
+            name: getFeatureName(feature),
+            data: feature,
+            level: 1,
+            elementId: element.id,
+            selectable: true,
+            selected: isSelected,
+            highlighted: isHovered
           });
         });
       }
@@ -155,7 +219,55 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
     });
     
     return roots;
-  }, [store.elements, expandedNodes]);
+  }, [store.elements, expandedNodes, selectedFeatures, hoveredFeature]);
+  
+  // Gérer la sélection de feature
+  const handleFeatureClick = (elementId: string, featureId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    const featureKey = `${elementId}_${featureId}`;
+    const isCtrlPressed = event.ctrlKey || event.metaKey;
+    
+    if (isCtrlPressed) {
+      // Sélection multiple
+      const newSelected = new Set(selectedFeatures);
+      if (newSelected.has(featureKey)) {
+        newSelected.delete(featureKey);
+      } else {
+        newSelected.add(featureKey);
+      }
+      setSelectedFeatures(newSelected);
+    } else {
+      // Sélection simple
+      setSelectedFeatures(new Set([featureKey]));
+    }
+    
+    // Notifier via le callback ou l'EventBus
+    if (onFeatureSelect) {
+      onFeatureSelect(elementId, featureId);
+    }
+    
+    if (eventBus) {
+      eventBus.emit('feature:click', {
+        elementId,
+        featureId,
+        event: event.nativeEvent
+      });
+    }
+  };
+  
+  // Gérer le survol de feature
+  const handleFeatureHover = (elementId: string, featureId: string | null) => {
+    const featureKey = featureId ? `${elementId}_${featureId}` : null;
+    setHoveredFeature(featureKey);
+    
+    if (eventBus) {
+      eventBus.emit('feature:hover', {
+        elementId,
+        featureId
+      });
+    }
+  };
   
   // Toggle expansion
   const toggleExpand = (nodeId: string) => {
@@ -166,6 +278,59 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
       newExpanded.add(nodeId);
     }
     setExpandedNodes(newExpanded);
+  };
+  
+  // Icône pour les features
+  const getFeatureIcon = (type: string): React.JSX.Element => {
+    const iconProps = { className: "w-3 h-3", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" };
+    
+    switch (type?.toUpperCase()) {
+      case 'HOLE':
+      case FeatureType.HOLE:
+        return (
+          <svg {...iconProps} className="w-3 h-3 text-cyan-400">
+            <circle cx="12" cy="12" r="6" strokeWidth={2} />
+          </svg>
+        );
+      case 'SLOT':
+      case FeatureType.SLOT:
+        return (
+          <svg {...iconProps} className="w-3 h-3 text-purple-400">
+            <rect x="6" y="10" width="12" height="4" rx="2" strokeWidth={2} />
+          </svg>
+        );
+      case 'CUTOUT':
+      case FeatureType.CUTOUT:
+      case 'NOTCH':
+      case FeatureType.NOTCH:
+        return (
+          <svg {...iconProps} className="w-3 h-3 text-orange-400">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+          </svg>
+        );
+      case 'TEXT':
+      case 'MARKING':
+      case FeatureType.TEXT:
+      case FeatureType.MARKING:
+        return (
+          <svg {...iconProps} className="w-3 h-3 text-green-400">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        );
+      case 'WELD':
+      case FeatureType.WELD:
+        return (
+          <svg {...iconProps} className="w-3 h-3 text-yellow-400">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        );
+      default:
+        return (
+          <svg {...iconProps} className="w-3 h-3 text-gray-400">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m6 0a2 2 0 100-4m0 4a2 2 0 110-4" />
+          </svg>
+        );
+    }
   };
   
   // Icônes pour les types d'éléments
@@ -212,39 +377,6 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
     }
   };
   
-  // Icônes pour les features
-  const getFeatureIcon = (type: string): React.JSX.Element => {
-    const iconProps = { className: "w-3 h-3", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" };
-    
-    switch (type) {
-      case 'hole':
-        return (
-          <svg {...iconProps} className="w-3 h-3 text-red-400">
-            <circle cx="12" cy="12" r="8" strokeWidth={2} />
-          </svg>
-        );
-      case 'cutout':
-        return (
-          <svg {...iconProps} className="w-3 h-3 text-orange-400">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6h12v12H6V6z" />
-          </svg>
-        );
-      case 'slot':
-      case 'text':
-      case 'marking':
-        return (
-          <svg {...iconProps} className="w-3 h-3 text-yellow-400">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        );
-      default:
-        return (
-          <svg {...iconProps} className="w-3 h-3 text-gray-400">
-            <circle cx="12" cy="12" r="2" strokeWidth={2} />
-          </svg>
-        );
-    }
-  };
   
   // Icônes pour les assemblages
   const getAssemblyIcon = (type: string): React.JSX.Element => {
@@ -402,31 +534,36 @@ export const SceneHierarchy: React.FC<SceneHierarchyProps> = ({
                   {node.features!.map((feature) => (
                   <div
                     key={feature.id}
-                    className={`flex items-center px-2 py-1 text-xs ${themeClasses.feature} bg-slate-800/30 cursor-pointer hover:bg-slate-700/50 transition-colors`}
+                    className={`flex items-center px-2 py-1 text-xs cursor-pointer transition-colors ${
+                      feature.selected 
+                        ? 'bg-green-600/30 text-green-300 hover:bg-green-600/40'
+                        : feature.highlighted
+                        ? 'bg-yellow-600/20 text-yellow-300 hover:bg-yellow-600/30'
+                        : `${themeClasses.feature} bg-slate-800/30 hover:bg-slate-700/50`
+                    }`}
                     style={{ paddingLeft: `${(node.level + 1) * 16 + 8}px` }}
-                    onClick={() => {
-                      // Calculer la position absolue de la feature
-                      const absolutePosition: [number, number, number] = [
-                        element.position[0] + feature.data.position[0] - element.dimensions.length / 2,
-                        element.position[1] + feature.data.position[2], // Z devient Y
-                        element.position[2] + feature.data.position[1] - (element.dimensions.height || element.dimensions.width || 0) / 2  // Y devient Z
-                      ];
-                      focusOnElement(element.id, absolutePosition);
-                    }}
-                    title={`Cliquer pour zoomer sur ${feature.name}`}
+                    onClick={(e) => handleFeatureClick(feature.elementId, feature.id, e)}
+                    onMouseEnter={() => handleFeatureHover(feature.elementId, feature.id)}
+                    onMouseLeave={() => handleFeatureHover(feature.elementId, null)}
+                    title={`${feature.name} - ${feature.selected ? 'Sélectionné' : 'Cliquer pour sélectionner'} (Ctrl+clic pour sélection multiple)`}
                   >
                     <div className="mr-2 ml-5">
                       {getFeatureIcon(feature.type)}
                     </div>
                     <span className="flex-1">{feature.name}</span>
+                    {feature.selectable && (
+                      <span className="text-xs mr-2">
+                        {feature.selected && (
+                          <svg className="w-3 h-3 text-green-400 inline" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </span>
+                    )}
                     <span className="text-slate-500 text-xs">
                       {feature.data.position ? 
                         `(${Math.round(feature.data.position[0])}, ${Math.round(feature.data.position[1])}, ${Math.round(feature.data.position[2])})` : ''}
                     </span>
-                    {/* Indicateur de zoom */}
-                    <svg className="w-3 h-3 ml-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
                   </div>
                   ))}
                 </div>
