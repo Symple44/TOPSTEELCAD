@@ -72,6 +72,15 @@ export class MarkingProcessor implements IFeatureProcessor {
       const parsedText = this.parseMarkingText(text);
       console.log(`📝 Processing marking/scribbing: "${parsedText}" at position [${position.x}, ${position.y}, ${position.z}] with size ${size}mm`);
       
+      // Log rotation if provided
+      if (feature.rotation) {
+        console.log(`   🔄 Marking rotation provided:`, {
+          x: (feature.rotation.x * 180 / Math.PI) + '°',
+          y: (feature.rotation.y * 180 / Math.PI) + '°',
+          z: (feature.rotation.z * 180 / Math.PI) + '°'
+        });
+      }
+      
       // Pour l'instant, stocker juste les infos du marking sans faire de CSG
       // Le CSG semble avoir des problèmes avec les géométries de plaque
       if (!geometry.userData.markings) {
@@ -95,7 +104,7 @@ export class MarkingProcessor implements IFeatureProcessor {
         ],
         size,
         face: feature.parameters.face || feature.face || 'web',  // Use face from parameters or feature
-        rotation: [0, 0, 0],
+        rotation: feature.rotation ? [feature.rotation.x, feature.rotation.y, feature.rotation.z] : [0, 0, 0],
         type: text.includes('r') ? 'scribbing' : 'marking',
         centerOffset: existingCenterOffset, // Préserver le centerOffset
         isMirrored: isMirrored // Préserver le flag de miroir
@@ -115,7 +124,7 @@ export class MarkingProcessor implements IFeatureProcessor {
         element,
         position,
         feature.face,
-        'dstv'
+        feature.coordinateSystem || 'standard'  // Utiliser le système de coordonnées de la feature
       );
       
       // Créer une géométrie pour la gravure
@@ -153,12 +162,14 @@ export class MarkingProcessor implements IFeatureProcessor {
           position3D.position.z
         );
         
-        // Orienter selon la face
-        if (feature.face === ProfileFace.WEB) {
-          engravingBrush.rotation.y = Math.PI / 2;
-        } else if (feature.face === ProfileFace.BOTTOM) {
-          engravingBrush.rotation.x = Math.PI;
-        }
+        // Utiliser la rotation calculée par le PositionService pour être perpendiculaire à la face
+        engravingBrush.rotation.set(
+          position3D.rotation.x,
+          position3D.rotation.y,
+          position3D.rotation.z
+        );
+        
+        console.log(`🎯 Marking rotation for face ${feature.face}:`, position3D.rotation);
       }
       
       engravingBrush.updateMatrixWorld();

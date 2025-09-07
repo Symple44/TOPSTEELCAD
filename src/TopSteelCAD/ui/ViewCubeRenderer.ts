@@ -39,7 +39,7 @@ export class ViewCubeRenderer {
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
 
-  constructor(private container: HTMLElement, private size: number = 120) {
+  constructor(private container: HTMLElement, private size: number = 160) {  // Taille par défaut augmentée
     this.scene = new THREE.Scene();
     this.scene.background = null;
     
@@ -64,7 +64,7 @@ export class ViewCubeRenderer {
       preserveDrawingBuffer: true
     });
     this.renderer.setSize(size, size);
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setPixelRatio(window.devicePixelRatio);  // Utiliser le ratio natif de l'écran
     this.renderer.setClearColor(0x000000, 0);
     
     this.container.appendChild(this.renderer.domElement);
@@ -193,11 +193,11 @@ export class ViewCubeRenderer {
     });
     
     // Create edges
-    const edgeGeometry = new THREE.BoxGeometry(cubeSize * 1.02, edgeSize, edgeSize);  // Bords moins longs
+    const edgeGeometry = new THREE.BoxGeometry(cubeSize * 1.02, edgeSize, edgeSize);
     const edgeMaterial = new THREE.MeshPhongMaterial({
-      color: '#b0bec5',  // Couleur plus claire
+      color: '#7a7a7a',
       transparent: true,
-      opacity: 0.5  // Plus transparent
+      opacity: 0.7
     });
     
     // Horizontal edges
@@ -255,13 +255,11 @@ export class ViewCubeRenderer {
     });
     
     // Create corners
-    const cornerGeometry = new THREE.SphereGeometry(cornerSize, 12, 12);  // Plus de segments pour plus lisse
+    const cornerGeometry = new THREE.SphereGeometry(cornerSize, 12, 12);
     const cornerMaterial = new THREE.MeshPhongMaterial({
-      color: '#90a4ae',  // Couleur plus claire
+      color: '#8a8a8a',
       transparent: true,
-      opacity: 0.4,  // Beaucoup plus transparent
-      specular: 0x444444,
-      shininess: 30
+      opacity: 0.5
     });
     
     const cornerPositions = [
@@ -285,78 +283,55 @@ export class ViewCubeRenderer {
   }
 
   private addTextLabel(mesh: THREE.Mesh, text: string): void {
-    // Create canvas for text
+    // Create canvas for text texture
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
-    canvas.width = 1024;  // Haute résolution pour texte très net
+    canvas.width = 1024;
     canvas.height = 1024;
     
-    // Clear canvas with transparency
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear canvas with face color background
+    const faceColor = mesh.userData.data.color;
+    context.fillStyle = faceColor;
+    context.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Configuration pour meilleur contraste
-    const isOrangeFace = mesh.userData.data.color === '#fed7aa';  // Face orange/top/bottom
-    const isGreenFace = mesh.userData.data.color === '#dcfce7';  // Face verte/left/right
-    const isBlueFace = mesh.userData.data.color === '#e0f2fe';   // Face bleue/front/back
+    // Configuration pour le texte - toujours noir pour meilleur contraste sur fond clair
+    let textColor = '#000000';  // Noir pour les deux thèmes (fond toujours clair)
+    let strokeColor = '#ffffff';  // Contour blanc pour contraste
     
-    // Couleur de texte avec fort contraste selon la face
-    let textColor = '#000000';  // Noir par défaut pour fort contraste
-    if (this.theme === 'dark') {
-      textColor = '#ffffff';  // Blanc en mode sombre
-    } else {
-      // En mode clair, adapter selon la couleur de la face
-      if (isOrangeFace) textColor = '#7c2d12';  // Brun foncé sur orange
-      else if (isGreenFace) textColor = '#14532d';  // Vert foncé sur vert clair
-      else if (isBlueFace) textColor = '#075985';  // Bleu foncé sur bleu clair
-    }
-    
-    // Ombre pour meilleur contraste
-    context.shadowColor = this.theme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)';
-    context.shadowBlur = 8;
-    context.shadowOffsetX = 2;
-    context.shadowOffsetY = 2;
-    
-    // Police très grande et bold
-    context.fillStyle = textColor;
-    context.font = 'bold 96px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial';  // Plus grand
+    // Police grande et nette
+    context.font = 'bold 280px Arial, sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     
-    // Dessiner le texte deux fois pour plus de contraste
-    context.fillText(text, 512, 512);
-    context.shadowBlur = 0;  // Deuxième passage sans ombre
+    // Contour pour contraste
+    context.strokeStyle = strokeColor;
+    context.lineWidth = 16;
+    context.strokeText(text, 512, 512);
+    
+    // Texte principal
+    context.fillStyle = textColor;
     context.fillText(text, 512, 512);
     
     // Create texture from canvas
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+    texture.generateMipmaps = true;
     
-    // Create sprite
-    const spriteMaterial = new THREE.SpriteMaterial({ 
-      map: texture,
-      transparent: true,
-      opacity: 1,  // Complètement opaque pour maximum de lisibilité
-      depthTest: false,  // Toujours visible devant la face
-      sizeAttenuation: false  // Taille constante peu importe la distance
-    });
-    const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.scale.set(0.85, 0.85, 1);  // Encore plus grand pour le texte
-    sprite.position.z = 0.03;  // Plus en avant pour éviter tout z-fighting
-    
-    mesh.add(sprite);
+    // Remplacer le matériau de la face avec la texture texte
+    const material = mesh.material as THREE.MeshPhongMaterial;
+    material.map = texture;
+    material.needsUpdate = true;
   }
 
   public setTheme(theme: 'light' | 'dark'): void {
     this.theme = theme;
-    // Update text colors
-    this.cubeGroup.traverse((child) => {
-      if (child instanceof THREE.Sprite) {
-        // Recreate text with new theme
-        const parent = child.parent as THREE.Mesh;
-        if (parent && parent.userData.type === 'face') {
-          parent.remove(child);
-          this.addTextLabel(parent, parent.userData.data.label);
-        }
+    // Update text on all faces
+    this.faces.forEach(face => {
+      if (face.mesh) {
+        this.addTextLabel(face.mesh, face.label);
       }
     });
   }

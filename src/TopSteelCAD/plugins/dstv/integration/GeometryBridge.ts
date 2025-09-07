@@ -52,6 +52,16 @@ export class GeometryBridge {
    * Crée la géométrie de base pour un profil DSTV normalisé
    */
   async createProfileGeometry(profile: NormalizedProfile): Promise<THREE.BufferGeometry> {
+    console.log('📐 GeometryBridge.createProfileGeometry - profile:', {
+      id: profile.id,
+      type: profile.type,
+      name: profile.name,
+      dimensions: profile.dimensions
+    });
+    
+    console.log('🔧 GeometryBridge: Available generators:', Array.from(this.generators.keys()));
+    console.log('🎯 GeometryBridge: Looking for generator for type:', profile.type);
+    
     const profileType = profile.type;
     const generator = this.generators.get(profileType);
 
@@ -68,8 +78,11 @@ export class GeometryBridge {
    */
   private async generateWithExistingGenerator(generator: any, profile: NormalizedProfile): Promise<THREE.BufferGeometry> {
     try {
+      console.log(`🏭 GeometryBridge: Using generator ${generator?.getName?.() || 'unknown'} for profile ${profile.type}`);
+      
       // Préparer les paramètres selon le format attendu par vos générateurs
       const params = this.prepareGeneratorParams(profile);
+      console.log('📝 GeometryBridge: Prepared params:', params);
       
       // Les générateurs de profils attendent (dimensions, length) comme paramètres séparés
       // Extraire la longueur des paramètres
@@ -77,23 +90,36 @@ export class GeometryBridge {
       
       // Appeler la méthode generate du générateur avec les bons paramètres
       if (typeof generator.generate === 'function') {
-        // Vérifier si c'est un générateur de profil qui attend (dimensions, length)
-        if (generator.getName && generator.getName().includes('ProfileGenerator')) {
-          console.log(`Calling ${generator.getName()} with dimensions:`, dimensions, 'and length:', length);
-          return generator.generate(dimensions, length || 1000);
+        // Vérifier si c'est un générateur de profil ou de tube qui attend (dimensions, length)
+        if (generator.getName && (generator.getName().includes('ProfileGenerator') || generator.getName() === 'TubeGenerator' || generator.getName() === 'PlateGenerator')) {
+          console.log(`🔧 Calling ${generator.getName()} with dimensions:`, dimensions, 'and length:', length);
+          const result = generator.generate(dimensions, length || 1000);
+          console.log('✅ GeometryBridge: Generator returned geometry with vertices:', result?.attributes?.position?.count || 0);
+          return result;
         } else {
           // Autres générateurs qui attendent un seul objet params
-          return generator.generate(params);
+          console.log(`🔧 Calling ${generator.getName() || 'unknown'} with unified params:`, params);
+          const result = generator.generate(params);
+          console.log('✅ GeometryBridge: Generator returned geometry with vertices:', result?.attributes?.position?.count || 0);
+          return result;
         }
       } else if (typeof generator.createGeometry === 'function') {
-        return generator.createGeometry(params);
+        console.log(`🔧 Calling createGeometry on ${generator.getName() || 'unknown'}`);
+        const result = generator.createGeometry(params);
+        console.log('✅ GeometryBridge: Generator returned geometry with vertices:', result?.attributes?.position?.count || 0);
+        return result;
       }
       
       // Si pas de méthode connue, utiliser le fallback
+      console.warn(`⚠️ GeometryBridge: No valid method found on generator for ${profile.type}, using fallback`);
       return this.createFallbackGeometry(profile);
       
     } catch (error) {
-      console.error(`Error generating geometry for ${profile.type}:`, error);
+      console.error(`❌ GeometryBridge: Error generating geometry for ${profile.type}:`, error);
+      console.error('❌ GeometryBridge: Error details:', {
+        message: (error as Error).message,
+        stack: (error as Error).stack?.split('\n').slice(0, 5) // First 5 lines of stack
+      });
       return this.createFallbackGeometry(profile);
     }
   }
@@ -141,7 +167,8 @@ export class GeometryBridge {
       case 'UPE':
         params.webThickness = validateDimension(crossSection.webThickness, 8, 'webThickness');
         params.flangeThickness = validateDimension(crossSection.flangeThickness, 12, 'flangeThickness');
-        params.legHeight = validateDimension(crossSection.legHeight || params.width, params.width, 'legHeight');
+        // Pour un profil U, legHeight est la hauteur de l'âme (pas la largeur des ailes!)
+        params.legHeight = validateDimension(crossSection.legHeight || params.height, params.height, 'legHeight');
         break;
 
       case 'L_PROFILE':
@@ -152,10 +179,19 @@ export class GeometryBridge {
 
       case 'TUBE_RECT':
       case 'TUBE_ROUND':
-        params.wallThickness = validateDimension(crossSection.wallThickness, 5, 'wallThickness');
-        params.outerRadius = validateDimension(crossSection.outerRadius || params.width / 2, params.width / 2, 'outerRadius');
-        params.innerRadius = Math.max(0, params.outerRadius - params.wallThickness);
-        params.isRound = profile.type === 'TUBE_ROUND';
+        // Pour les tubes, 'thickness' et 'wallThickness' peuvent être utilisés indifféremment
+        const thickness = crossSection.thickness || crossSection.wallThickness;
+        params.wallThickness = validateDimension(thickness, 5, 'wallThickness');
+        params.thickness = params.wallThickness; // Alias pour compatibilité avec TubeGenerator
+        
+        if (profile.type === 'TUBE_ROUND') {
+          params.outerRadius = validateDimension(crossSection.outerRadius || params.width / 2, params.width / 2, 'outerRadius');
+          params.innerRadius = Math.max(0, params.outerRadius - params.wallThickness);
+          params.isRound = true;
+        } else {
+          // Tube rectangulaire
+          params.isRound = false;
+        }
         break;
 
       case 'T_PROFILE':

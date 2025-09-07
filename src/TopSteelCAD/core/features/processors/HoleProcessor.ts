@@ -66,6 +66,26 @@ export class HoleProcessor implements IFeatureProcessor {
       console.log(`    → Position Vector3:`, position3D.position.x, position3D.position.y, position3D.position.z);
       console.log(`    → Rotation Euler:`, position3D.rotation.x, position3D.rotation.y, position3D.rotation.z);
       
+      // IMPORTANT: Utiliser la profondeur de la feature, pas celle du positionService
+      // Si depth=0, c'est un trou traversant
+      const holeDepth = feature.parameters.depth || 0;
+      
+      // Calculer l'épaisseur de la zone à percer selon la face
+      let zoneThickness = 10; // Valeur par défaut
+      if (feature.face === ProfileFace.WEB || (feature.face as any) === 'web' || (feature.face as any) === 'v') {
+        // Pour l'âme, utiliser l'épaisseur de l'âme (webThickness)
+        zoneThickness = element.dimensions?.webThickness || element.dimensions?.thickness || 10;
+        console.log(`  - Web face detected, webThickness: ${element.dimensions?.webThickness}mm, using: ${zoneThickness}mm`);
+      } else if (feature.face === ProfileFace.TOP_FLANGE || feature.face === ProfileFace.BOTTOM_FLANGE ||
+                 (feature.face as any) === 'top_flange' || (feature.face as any) === 'bottom_flange' || 
+                 (feature.face as any) === 'o' || (feature.face as any) === 'u') {
+        // Pour les semelles, utiliser l'épaisseur de la semelle (flangeThickness)
+        zoneThickness = element.dimensions?.flangeThickness || element.dimensions?.thickness || 15;
+        console.log(`  - Flange face detected, flangeThickness: ${element.dimensions?.flangeThickness}mm, using: ${zoneThickness}mm`);
+      }
+      
+      console.log(`  - Hole depth from feature: ${holeDepth}mm (0 = through hole)`);
+      
       // Créer la géométrie du trou selon son type
       const holeType = feature.parameters.holeType || 'round';
       let holeGeometry: THREE.BufferGeometry;
@@ -75,21 +95,22 @@ export class HoleProcessor implements IFeatureProcessor {
           feature.parameters.diameter!,
           feature.parameters.slottedLength || 0,
           feature.parameters.slottedAngle || 0,
-          position3D.depth
+          holeDepth  // Utiliser la profondeur de la feature
         );
         console.log(`  - Created slotted hole: diameter=${feature.parameters.diameter}, length=${feature.parameters.slottedLength}, angle=${feature.parameters.slottedAngle}°`);
       } else if (holeType === 'rectangular') {
         holeGeometry = this.createRectangularHoleGeometry(
           feature.parameters.width || feature.parameters.diameter!,
           feature.parameters.height || feature.parameters.diameter!,
-          position3D.depth
+          holeDepth  // Utiliser la profondeur de la feature
         );
         console.log(`  - Created rectangular hole: ${feature.parameters.width}x${feature.parameters.height}`);
       } else {
         holeGeometry = this.createHoleGeometry(
           feature.parameters.diameter!,
-          position3D.depth,
-          feature.face
+          holeDepth,  // Utiliser la profondeur de la feature
+          feature.face,
+          zoneThickness  // Passer l'épaisseur de la zone pour les trous traversants
         );
         console.log(`  - Created round hole: diameter=${feature.parameters.diameter}`);
       }
@@ -98,11 +119,26 @@ export class HoleProcessor implements IFeatureProcessor {
       const holeBrush = new Brush(holeGeometry);
       
       // Appliquer la position
-      holeBrush.position.set(
-        position3D.position.x,
-        position3D.position.y,
-        position3D.position.z
-      );
+      // IMPORTANT: Pour les trous traversants, ajuster la position selon la rotation
+      // pour que le cylindre parte de la face et traverse le matériau
+      let adjustedPosition = position3D.position.clone();
+      
+      // Calculer la profondeur réelle pour les ajustements
+      const actualDepth = (holeDepth <= 0.1) 
+        ? zoneThickness * 2  // Doubler l'épaisseur de la zone pour garantir la traversée
+        : holeDepth * 1.5;
+      console.log(`  🔍 Hole depth calculation: feature.depth=${holeDepth}, zoneThickness=${zoneThickness}, actualDepth=${actualDepth}, isThrough=${holeDepth <= 0.1}`);
+      
+      // Pour les trous traversants, ne pas ajuster la position
+      // Le cylindre est créé avec 2x l'épaisseur de la zone et sera centré sur la position
+      // Cela garantit qu'il traverse complètement la zone concernée
+      if (holeDepth <= 0.1) {
+        console.log(`  - Through hole detected (depth=${holeDepth}), using centered position with ${actualDepth}mm depth`);
+        console.log(`  - Position: X=${adjustedPosition.x}, Y=${adjustedPosition.y}, Z=${adjustedPosition.z}`);
+        console.log(`  - Rotation: X=${position3D.rotation.x}, Y=${position3D.rotation.y}, Z=${position3D.rotation.z}`);
+      }
+      
+      holeBrush.position.copy(adjustedPosition);
       
       // Appliquer la rotation pour que le trou soit perpendiculaire à la surface
       holeBrush.rotation.set(
@@ -133,10 +169,15 @@ export class HoleProcessor implements IFeatureProcessor {
       resultGeometry.computeBoundingSphere();
       
       // Transférer tous les userData existants
-      Object.assign(resultGeometry.userData, geometry.userData);
+      if (!resultGeometry.userData) {
+        resultGeometry.userData = {};
+      }
+      if (geometry.userData) {
+        Object.assign(resultGeometry.userData, geometry.userData);
+      }
       
       // Transférer les informations des trous existants
-      if (geometry.userData.holes) {
+      if (geometry.userData?.holes) {
         resultGeometry.userData.holes = [...geometry.userData.holes];
       } else {
         resultGeometry.userData.holes = [];
@@ -148,6 +189,10 @@ export class HoleProcessor implements IFeatureProcessor {
         ? feature.position 
         : [feature.position.x, feature.position.y, feature.position.z || 0];
       
+      // Utiliser la profondeur de la feature, pas celle de position3D
+      const featureDepth = feature.parameters.depth || 0;
+      const holeDataDepth = (featureDepth <= 0.1) ? 1000 : featureDepth;
+      
       // Utiliser la position du brush qui est la position réelle du trou dans la géométrie centrée
       resultGeometry.userData.holes.push({
         id: feature.id,  // Ajouter l'ID de la feature DSTV
@@ -157,7 +202,7 @@ export class HoleProcessor implements IFeatureProcessor {
         type: feature.parameters.holeType || 'round',
         face: position3D.face,
         rotation: position3D.rotation,
-        depth: position3D.depth,  // Ajouter la profondeur
+        depth: holeDataDepth,  // Utiliser la profondeur correcte
         slottedLength: feature.parameters.slottedLength
       });
       
@@ -222,11 +267,13 @@ export class HoleProcessor implements IFeatureProcessor {
     return errors;
   }
   
-  private createHoleGeometry(diameter: number, depth: number, face?: ProfileFace | undefined): THREE.BufferGeometry {
+  private createHoleGeometry(diameter: number, depth: number, face?: ProfileFace | undefined, zoneThickness?: number): THREE.BufferGeometry {
     // Créer un cylindre pour le trou
-    // Ajouter 50% de longueur pour s'assurer de traverser complètement
-    // CORRECTION: Augmenter la profondeur pour assurer la visibilité des trous
-    const actualDepth = depth * 1.5;
+    // Si depth = 0 ou très petit, c'est un trou traversant -> utiliser l'épaisseur de la zone
+    // Pour un trou traversant, ajouter une marge pour garantir la traversée complète
+    const actualDepth = (depth <= 0.1) 
+      ? (zoneThickness || 10) * 2  // Doubler l'épaisseur pour garantir la traversée
+      : depth * 1.5; // Pour les trous non traversants, utiliser la profondeur spécifiée
     const radius = diameter / 2;
     
     // Augmenter le nombre de segments pour des trous plus ronds
@@ -423,6 +470,34 @@ export class HoleProcessor implements IFeatureProcessor {
         position.y >= -margin && position.y <= width + margin &&
         Math.abs(position.z) <= thickness + margin
       );
+    }
+    
+    // Pour les faces FRONT/BACK (face avant/arrière du profil)
+    // Ces faces sont perpendiculaires à l'axe Z (longueur)
+    if (face === ProfileFace.FRONT || face === ProfileFace.BACK) {
+      // Sur la face avant/arrière, les coordonnées X,Y définissent la position sur la face
+      // Pour L-profiles: origine au coin, donc X et Y peuvent être positifs jusqu'à width/height
+      // Pour I-profiles: origine centrée, donc X et Y sont dans [-width/2, width/2] et [-height/2, height/2]
+      
+      // Détection du type de profil basée sur les dimensions
+      // Les L-profiles ont généralement width ≈ height (profils équilatéraux)
+      const isLProfile = Math.abs(width - height) < 10; // Tolérance de 10mm pour L-profiles équilatéraux
+      
+      if (isLProfile) {
+        // L-profile: origine au coin, coordonnées positives
+        return (
+          position.x >= -margin && position.x <= width + margin &&
+          position.y >= -margin && position.y <= height + margin &&
+          position.z >= -margin && position.z <= length + margin
+        );
+      } else {
+        // I-profile ou autre: origine centrée
+        return (
+          position.x >= -width/2 - margin && position.x <= width/2 + margin &&
+          position.y >= -height/2 - margin && position.y <= height/2 + margin &&
+          position.z >= -margin && position.z <= length + margin
+        );
+      }
     }
     
     // Validation par défaut avec le nouveau système de coordonnées

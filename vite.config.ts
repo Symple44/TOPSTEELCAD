@@ -44,48 +44,74 @@ export default defineConfig(({ mode }) => {
         }
       }
     } : {
-      chunkSizeWarningLimit: 600,
+      chunkSizeWarningLimit: 800, // Augmenté légèrement pour éviter les warnings inutiles
       rollupOptions: {
         input: {
           main: resolve(__dirname, 'index.html')
         },
         output: {
-          manualChunks: {
-            // Three.js et dépendances 3D
-            'vendor-three': ['three'],
-            'vendor-react': ['react', 'react-dom'],
-            
+          manualChunks: (id) => {
+            // Vendor libraries
+            if (id.includes('node_modules')) {
+              if (id.includes('three')) {
+                return 'vendor-three';
+              }
+              if (id.includes('react')) {
+                return 'vendor-react';
+              }
+              if (id.includes('three-bvh-csg')) {
+                return 'vendor-csg';
+              }
+              return 'vendor-other';
+            }
+
+            // DSTV Plugin and Cut System (heavy components)
+            if (id.includes('plugins/dstv') || id.includes('processors/cut')) {
+              return 'dstv-system';
+            }
+
+            // Feature processors
+            if (id.includes('core/features/processors') && !id.includes('processors/cut')) {
+              return 'feature-processors';
+            }
+
+            // WebWorkers
+            if (id.includes('workers') || id.includes('WebWorker')) {
+              return 'webworkers';
+            }
+
+            // 3D Library components
+            if (id.includes('3DLibrary/geometry-generators')) {
+              return 'geometry-generators';
+            }
+            if (id.includes('3DLibrary/database')) {
+              return 'profile-database';
+            }
+
+            // UI components
+            if (id.includes('/ui/') || id.includes('components/')) {
+              return 'ui-components';
+            }
+
+            // Tools
+            if (id.includes('/tools/')) {
+              return 'tools';
+            }
+
+            // Themes and plugins (non-DSTV)
+            if (id.includes('/themes/') || (id.includes('/plugins/') && !id.includes('dstv'))) {
+              return 'themes-plugins';
+            }
+
             // Core engine
-            'core': [
-              './src/TopSteelCAD/core/ViewerEngine',
-              './src/TopSteelCAD/core/SceneManager',
-              './src/TopSteelCAD/core/RenderingPipeline',
-              './src/TopSteelCAD/core/EventBus'
-            ],
-            
-            // 3D Library - Générateurs
-            'geometry-generators': [
-              './src/TopSteelCAD/3DLibrary/geometry-generators/GeometryGeneratorFactory',
-              './src/TopSteelCAD/3DLibrary/geometry-generators/generators/IProfileGenerator',
-              './src/TopSteelCAD/3DLibrary/geometry-generators/generators/UProfileGenerator',
-              './src/TopSteelCAD/3DLibrary/geometry-generators/generators/LProfileGenerator',
-              './src/TopSteelCAD/3DLibrary/geometry-generators/generators/TubeGenerator'
-            ],
-            
-            // Base de données de profils
-            'profile-database': [
-              './src/TopSteelCAD/3DLibrary/database/ProfileDatabase',
-              './src/TopSteelCAD/3DLibrary/database/UnifiedMaterialsDatabase'
-            ],
-            
-            // Outils
-            'tools': [
-              './src/TopSteelCAD/tools/MeasurementTool',
-              './src/TopSteelCAD/tools/IsolateTool',
-              './src/TopSteelCAD/tools/ExplodeTool',
-              './src/TopSteelCAD/tools/SectionTool',
-              './src/TopSteelCAD/tools/VisibilityTool'
-            ]
+            if (id.includes('core/') && 
+                (id.includes('ViewerEngine') || id.includes('SceneManager') || 
+                 id.includes('RenderingPipeline') || id.includes('EventBus'))) {
+              return 'core';
+            }
+
+            // Default chunk for main entry point and uncategorized modules
+            return 'main';
           },
           chunkFileNames: (chunkInfo) => {
             const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : '';
@@ -99,9 +125,24 @@ export default defineConfig(({ mode }) => {
       minify: 'terser',
       terserOptions: {
         compress: {
-          drop_console: true,
+          drop_console: false, // Garder console.log pour le debug mais optimiser
           drop_debugger: true,
-          pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace']
+          pure_funcs: ['console.debug', 'console.trace'], // Supprimer seulement debug/trace
+          passes: 2, // Double passe pour meilleure compression
+          toplevel: true,
+          unsafe: true,
+          unsafe_arrows: true,
+          unsafe_methods: true,
+          unsafe_proto: true
+        },
+        mangle: {
+          safari10: true,
+          properties: {
+            regex: /^_/ // Mangle les propriétés privées commençant par _
+          }
+        },
+        format: {
+          comments: false // Supprimer les commentaires
         }
       }
     },

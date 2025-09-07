@@ -54,18 +54,26 @@ export class FileExporter {
     options: ExportOptions
   ): Promise<ExportResult> {
     try {
-      // Filtrer les éléments sélectionnés si demandé
-      const elementsToExport = options.selectedOnly 
-        ? elements.filter(el => el.selected)
-        : elements;
+      console.log('📥 FileExporter.exportScene appelé avec:', {
+        elementsCount: elements?.length,
+        format: options.format,
+        options
+      });
+      
+      // Les éléments sont déjà filtrés par ProfessionalViewer si nécessaire
+      // On utilise directement les éléments passés
+      const elementsToExport = elements;
 
-      if (elementsToExport.length === 0) {
+      if (!elementsToExport || elementsToExport.length === 0) {
+        console.error('❌ FileExporter: Aucun élément à exporter');
         return {
           success: false,
           error: 'Aucun élément à exporter'
         };
       }
 
+      console.log(`✅ FileExporter: ${elementsToExport.length} éléments à exporter en format ${options.format}`);
+      
       // Générer le nom de fichier par défaut
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
       const defaultFileName = `TopSteelCAD_${timestamp}`;
@@ -171,6 +179,12 @@ export class FileExporter {
    * Déclenche le téléchargement d'un blob
    */
   private static downloadBlob(blob: Blob, fileName: string) {
+    // Vérifier si on est dans un environnement de test
+    if (typeof window === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      console.log('📥 Mode test détecté - téléchargement simulé pour:', fileName);
+      return;
+    }
+    
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

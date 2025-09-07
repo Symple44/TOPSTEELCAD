@@ -27,6 +27,7 @@ export interface DSTVContext {
     width: number;
     webThickness?: number;
     flangeThickness?: number;
+    thickness?: number;
   };
   face?: string;
   position?: { x: number; y: number; z?: number };
@@ -46,23 +47,72 @@ class DSTVOriginTransform extends BaseTransformStage {
   }
   
   process(data: TransformData): TransformData {
-    const { profileDimensions } = data.metadata;
+    const { profileDimensions, profileType } = data.metadata;
     if (!profileDimensions) return data;
     
     const { length, height, width } = profileDimensions;
     
     // DSTV: origine au coin inférieur gauche
-    // Standard: profil commence à Z=0 (plus de centrage)
+    // Standard: dépend du type de profil
     // X DSTV → Z Standard (le long du profil)
-    // Y DSTV → dépend de la face
+    // Y DSTV → Y Standard (avec ajustement selon le profil)
     // Z DSTV → rarement utilisé
     
-    const newPosition = new THREE.Vector3(
-      0,  // X standard sera déterminé par la face
-      data.current.y - height / 2,  // Centrage vertical (on garde le centrage en Y)
-      data.current.x   // X DSTV devient Z standard - DIRECT: pas de centrage en Z - CORRIGÉ!
-    );
+    // Sauvegarder les coordonnées originales
+    data.metadata.originalDSTVCoords = {
+      x: data.current.x,
+      y: data.current.y,
+      z: data.current.z
+    };
     
+    // Pour les profils I, centrer verticalement selon la face
+    // DSTV Y=0 est au bas du profil, Standard Y=0 est au centre
+    // Pour les profils L, garder l'origine au coin
+    let yAdjustment = data.current.y;
+    const face = data.metadata.face;
+    console.log(`🔴 DSTVOriginTransform: profileType=${profileType}, face=${face}, Y=${data.current.y}, height=${height}`);
+    
+    let newPosition: THREE.Vector3;
+    
+    if (profileType === 'PLATE') {
+      // Pour une plaque horizontale (posée à plat) :
+      // - X DSTV reste X (longueur)
+      // - Y DSTV devient Z (position sur la largeur)
+      // - Z DSTV devient Y (profondeur dans l'épaisseur, 0 = surface supérieure)
+      newPosition = new THREE.Vector3(
+        data.current.x,  // X DSTV reste X (position le long de la longueur)
+        data.current.z || 0,  // Z DSTV devient Y (profondeur, 0 = surface supérieure)
+        data.current.y   // Y DSTV devient Z (position sur la largeur)
+      );
+      console.log(`🔲 PLATE: Converting coords: DSTV(X=${data.current.x},Y=${data.current.y},Z=${data.current.z}) → 3D(X=${newPosition.x},Y=${newPosition.y},Z=${newPosition.z})`);
+    } else if (profileType === 'I_PROFILE' || profileType === 'I') {
+      // DSTV: Y=0 au bas, Y=height au sommet
+      // Standard: Y=-height/2 au bas, Y=+height/2 au sommet
+      // Conversion standard : Y_standard = Y_dstv - height/2
+      yAdjustment = data.current.y - height / 2;
+      console.log(`🔴 I-PROFILE: Converting Y from ${data.current.y} to ${yAdjustment} (height=${height}, face=${face})`);
+      newPosition = new THREE.Vector3(
+        data.current.y,  // Conserver temporairement Y DSTV dans X, sera ajusté par DSTVFaceTransform
+        yAdjustment,  // Y ajusté selon le type de profil
+        data.current.x   // X DSTV devient Z standard
+      );
+    } else if (profileType === 'U_PROFILE' || profileType === 'U') {
+      // Pour profil U: même logique que I
+      yAdjustment = data.current.y - height / 2;
+      console.log(`🔴 U-PROFILE: Converting Y from ${data.current.y} to ${yAdjustment} (height=${height}, face=${face})`);
+      newPosition = new THREE.Vector3(
+        data.current.y,  // Conserver temporairement Y DSTV dans X, sera ajusté par DSTVFaceTransform
+        yAdjustment,  // Y ajusté selon le type de profil
+        data.current.x   // X DSTV devient Z standard
+      );
+    } else {
+      // Pour profil L et autres, pas de centrage (origine au coin)
+      newPosition = new THREE.Vector3(
+        data.current.y,  // Conserver temporairement Y DSTV dans X, sera ajusté par DSTVFaceTransform
+        yAdjustment,  // Y sans ajustement
+        data.current.x   // X DSTV devient Z standard
+      );
+    }
     
     data.current = newPosition;
     return data;
@@ -85,45 +135,98 @@ class DSTVFaceTransform extends BaseTransformStage {
     const { face, profileDimensions, profileType } = data.metadata;
     if (!profileDimensions || !face) return data;
     
-    const { width, height } = profileDimensions;
+    const dimensions = profileDimensions as DSTVContext['dimensions'];
+    const { width, height } = dimensions;
     const standardFace = this.faceManager.resolveDSTVFace(face, profileType);
     
     // Ajuster X selon la face
     switch (standardFace) {
       case StandardFace.WEB:
-        // L'âme est au centre en X
-        data.current.x = 0;
-        // Y représente la position verticale sur l'âme
-        // Déjà centré dans DSTVOriginTransform
+        // Pour l'âme/web
+        if (profileType === 'L_PROFILE') {
+          // Pour profil L, la face 'v' est une des ailes
+          // X Three.js reste à 0 (sur l'aile)
+          data.current.x = 0;
+        } else if (profileType === 'I_PROFILE' || profileType === 'I') {
+          // Pour profil I, 'v' est l'âme centrale
+          // X Three.js = 0 (centre de l'âme)
+          data.current.x = 0;
+          // Y et Z sont déjà corrects depuis DSTVOriginTransform
+        } else if (profileType === 'U_PROFILE' || profileType === 'U') {
+          // Pour profil U, 'v' est l'âme verticale
+          // X Three.js = 0 (sur l'âme)
+          data.current.x = 0;
+          // Y DSTV est la position verticale sur l'âme (déjà ajustée dans DSTVOriginTransform)
+          // Z est la position longitudinale (déjà correcte)
+        }
         break;
         
       case StandardFace.TOP_FLANGE:
         // Semelle supérieure
-        data.current.y = height / 2;
-        // Pour les semelles, Y DSTV original représente la position latérale
-        // Récupérer la valeur Y originale depuis les métadonnées
-        if (data.metadata.originalData?.y !== undefined) {
-          data.current.x = data.metadata.originalData.y - width / 2;
+        if (profileType === 'U_PROFILE' || profileType === 'U') {
+          // Pour profil U, aile supérieure horizontale
+          // Y DSTV dans les métadonnées = position verticale sur l'aile (depuis le bas du profil)
+          // X DSTV est toujours la position longitudinale (conservée dans Z)
+          // La coordonnée X temporaire contient Y DSTV depuis DSTVOriginTransform
+          const flangeThickness = dimensions.flangeThickness || 15;
+          data.current.y = height / 2 - flangeThickness / 2;  // Position de l'aile supérieure
+          data.current.x = data.current.x - width / 2;  // Position latérale sur l'aile (Y DSTV devient X 3D)
+        } else {
+          // Pour profil I
+          data.current.y = height / 2;
+          // Pour les semelles, Y DSTV original représente la position latérale
+          // Récupérer la valeur Y originale depuis les métadonnées
+          if (data.metadata.originalData?.y !== undefined) {
+            data.current.x = data.metadata.originalData.y - width / 2;
+          }
         }
         break;
         
       case StandardFace.BOTTOM_FLANGE:
         // Semelle inférieure
-        data.current.y = -height / 2;
-        // Position latérale
-        if (data.metadata.originalData?.y !== undefined) {
-          data.current.x = data.metadata.originalData.y - width / 2;
+        if (profileType === 'U_PROFILE' || profileType === 'U') {
+          // Pour profil U, aile inférieure horizontale
+          const flangeThickness = dimensions.flangeThickness || 15;
+          data.current.y = -height / 2 + flangeThickness / 2;  // Position de l'aile inférieure
+          data.current.x = data.current.x - width / 2;  // Position latérale sur l'aile (Y DSTV devient X 3D)
+        } else {
+          // Pour profil I
+          data.current.y = -height / 2;
+          // Position latérale
+          if (data.metadata.originalData?.y !== undefined) {
+            data.current.x = data.metadata.originalData.y - width / 2;
+          }
         }
         break;
         
       case StandardFace.FRONT:
-        // Face avant (début du profil)
-        data.current.z = 0;
+        // Face avant (début du profil) - 'h' en DSTV
+        // Pour les faces avant/arrière, les coordonnées DSTV sont sur le plan YZ
+        if (data.metadata.originalDSTVCoords) {
+          // X DSTV → Z Three.js (position le long du profil)
+          data.current.z = data.metadata.originalDSTVCoords.x;
+          
+          // Y DSTV → Y Three.js 
+          // Pour profil L, pas de centrage additionnel (déjà fait dans DSTVOriginTransform)
+          // Les coordonnées Y sont déjà correctes
+          // Ne pas modifier Y qui a déjà été ajusté dans DSTVOriginTransform
+          
+          // X Three.js est la profondeur depuis la face (0 pour la face avant)
+          data.current.x = 0;
+        } else {
+          data.current.z = 0;
+        }
         break;
         
       case StandardFace.BACK:
         // Face arrière (fin du profil)
-        data.current.z = profileDimensions.length;
+        if (data.metadata.originalData) {
+          // Similaire à FRONT mais décalé à la fin du profil
+          data.current.z = profileDimensions.length - (data.metadata.originalData.x || 0);
+          data.current.x = 0;
+        } else {
+          data.current.z = profileDimensions.length;
+        }
         break;
     }
     
@@ -199,7 +302,7 @@ export class DSTVCoordinateAdapter {
    * Convertit une position DSTV vers le format standard
    */
   toStandardPosition(
-    dstvPosition: { x: number; y: number; z?: number },
+    dstvPosition: { x: number; y: number; z?: number; featureType?: string },
     context: DSTVContext
   ): StandardPosition {
     // Créer le vecteur 3D
@@ -213,7 +316,11 @@ export class DSTVCoordinateAdapter {
     if (this.debugMode) {
       console.log('📍 DSTV → Standard conversion:', {
         input: dstvPosition,
-        context
+        context,
+        profileType: context.profileType,
+        face: context.face,
+        dimensions: context.dimensions,
+        featureType: dstvPosition.featureType || (context as any).featureType
       });
     }
     
@@ -224,7 +331,8 @@ export class DSTVCoordinateAdapter {
       profileDimensions: context.dimensions,
       face: context.face,
       originalData: dstvPosition,
-      blockType: context.blockType
+      blockType: context.blockType,
+      featureType: dstvPosition.featureType || (context as any).featureType || 'unknown'
     };
     
     // Appliquer le pipeline de transformation
@@ -253,6 +361,14 @@ export class DSTVCoordinateAdapter {
       }
     };
     
+    if (this.debugMode) {
+      console.log('📍 DSTV Conversion result:', {
+        originalDSTV: dstvPosition,
+        transformedStandard: transformed.current,
+        face: standardFace,
+        appliedTransformations: transformed.transformations.length
+      });
+    }
     
     return result;
   }

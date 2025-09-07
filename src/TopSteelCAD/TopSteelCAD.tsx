@@ -8,6 +8,7 @@ import { ViewerEngine } from './core/ViewerEngine';
 import { EventBus } from './core/EventBus';
 import { SimpleMeasurementTool } from './tools/SimpleMeasurementTool';
 import { ViewCube } from './ui/ViewCube';
+import { preloadCSGWorkers } from './workers';
 
 /**
  * Props du composant TopSteelCAD
@@ -194,6 +195,11 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
             logarithmicDepthBuffer: true, // Anti Z-fighting
             precision: 'highp', // Haute précision
             powerPreference: 'high-performance'
+          });
+
+          // Préchargement optimisé des WebWorkers CSG après l'initialisation du viewer
+          preloadCSGWorkers().catch(err => {
+            console.debug('CSG WebWorkers preload warning:', err);
           });
           
           // Expose references for tools (ProfessionalViewer)

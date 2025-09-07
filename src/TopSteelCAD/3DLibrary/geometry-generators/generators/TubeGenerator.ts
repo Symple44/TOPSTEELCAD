@@ -2,7 +2,9 @@
  * Générateur de géométries pour tous les tubes (rectangulaires, carrés, circulaires)
  */
 
-import { Shape, ExtrudeGeometry, BufferGeometry } from '../../../lib/three-exports';
+// Import direct de Three.js pour éviter les mocks
+import * as THREE from 'three';
+import { BufferGeometry } from '../../../lib/three-exports';
 import { ProfileType, ProfileDimensions } from '../../types/profile.types';
 import { BaseProfileGenerator } from '../interfaces/ProfileGeometryGenerator';
 
@@ -12,7 +14,9 @@ export class TubeGenerator extends BaseProfileGenerator {
     super([
       ProfileType.TUBE_RECTANGULAR,
       ProfileType.TUBE_SQUARE,
-      ProfileType.TUBE_CIRCULAR
+      ProfileType.TUBE_CIRCULAR,
+      ProfileType.TUBE_RECT, // Alias for TUBE_RECTANGULAR
+      ProfileType.TUBE_ROUND // Alias for TUBE_CIRCULAR
     ]);
   }
 
@@ -21,31 +25,55 @@ export class TubeGenerator extends BaseProfileGenerator {
   }
 
   generate(dimensions: ProfileDimensions, length: number): BufferGeometry {
+    console.log('🔧 TubeGenerator.generate called with:', { dimensions, length });
+    
     const { thickness } = dimensions;
 
     // Validation commune
     if (!thickness || thickness <= 0) {
+      console.error('❌ TubeGenerator: Invalid thickness:', thickness);
       throw new Error(`Épaisseur manquante ou invalide pour tube: ${thickness}`);
     }
 
     if (length <= 0) {
+      console.error('❌ TubeGenerator: Invalid length:', length);
       throw new Error(`Longueur invalide: ${length}`);
     }
 
     // Déterminer le type de profil pour générer la bonne géométrie
     const profileType = this.determineProfileType(dimensions);
+    console.log('🎯 TubeGenerator: Determined profile type:', profileType);
 
+    let geometry: BufferGeometry;
+    
     switch (profileType) {
       case ProfileType.TUBE_CIRCULAR:
-        return this.generateCircularTube(dimensions, length);
+      case ProfileType.TUBE_ROUND: // Alias
+        console.log('🔄 TubeGenerator: Generating circular tube');
+        geometry = this.generateCircularTube(dimensions, length);
+        break;
         
       case ProfileType.TUBE_RECTANGULAR:
       case ProfileType.TUBE_SQUARE:
-        return this.generateRectangularTube(dimensions, length);
+      case ProfileType.TUBE_RECT: // Alias
+        console.log('🔄 TubeGenerator: Generating rectangular tube');
+        geometry = this.generateRectangularTube(dimensions, length);
+        break;
         
       default:
+        console.error('❌ TubeGenerator: Unsupported profile type:', profileType);
         throw new Error(`Type de tube non supporté: ${profileType}`);
     }
+    
+    console.log('✅ TubeGenerator: Generated geometry with:', {
+      vertices: geometry?.attributes?.position?.count || 0,
+      faces: geometry?.index?.count ? geometry.index.count / 3 : 0,
+      hasPosition: !!geometry?.attributes?.position,
+      hasIndex: !!geometry?.index,
+      geometryType: geometry?.constructor?.name || 'unknown'
+    });
+    
+    return geometry;
   }
 
   /**
@@ -92,7 +120,7 @@ export class TubeGenerator extends BaseProfileGenerator {
       curveSegments: 32
     };
 
-    const geometry = new ExtrudeGeometry(profile, extrudeSettings);
+    const geometry = new THREE.ExtrudeGeometry(profile, extrudeSettings);
 
     // Rotation pour avoir la longueur selon Z
     geometry.rotateX(Math.PI / 2);
@@ -105,14 +133,14 @@ export class TubeGenerator extends BaseProfileGenerator {
   /**
    * Crée le profil 2D d'un tube circulaire
    */
-  private createCircularTubeProfile(outerRadius: number, innerRadius: number): Shape {
+  private createCircularTubeProfile(outerRadius: number, innerRadius: number): THREE.Shape {
     // Cercle extérieur
-    const outerShape = new Shape();
+    const outerShape = new THREE.Shape();
     outerShape.moveTo(outerRadius, 0);
     outerShape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
     
     // Cercle intérieur (trou)
-    const innerShape = new Shape();
+    const innerShape = new THREE.Shape();
     innerShape.moveTo(innerRadius, 0);
     innerShape.absarc(0, 0, innerRadius, 0, Math.PI * 2, false);
     
@@ -126,19 +154,25 @@ export class TubeGenerator extends BaseProfileGenerator {
    * Génère un tube rectangulaire ou carré (RHS/SHS)
    */
   private generateRectangularTube(dimensions: ProfileDimensions, length: number): BufferGeometry {
+    console.log('🏗️ TubeGenerator.generateRectangularTube called with:', { dimensions, length });
+    
     const { height, width, thickness, outerRadius = 0 } = dimensions;
+    console.log('📏 Tube dimensions extracted:', { height, width, thickness, outerRadius });
 
     if (!height || !width) {
+      console.error('❌ TubeGenerator: Missing dimensions:', { height, width });
       throw new Error('Hauteur et largeur manquantes pour tube rectangulaire');
     }
 
     // Créer le profil 2D
+    console.log('🎨 Creating rectangular tube profile...');
     const profile = this.createRectangularTubeProfile({
       height,
       width,
       thickness: thickness || 5, // Valeur par défaut si undefined
       outerRadius
     });
+    console.log('✅ Profile created:', profile);
 
     // Extruder
     const extrudeSettings = {
@@ -147,10 +181,59 @@ export class TubeGenerator extends BaseProfileGenerator {
       steps: 1,
       curveSegments: outerRadius > 0 ? 8 : 1
     };
+    console.log('⚙️ Extrude settings:', extrudeSettings);
 
-    const geometry = new ExtrudeGeometry(profile, extrudeSettings);
+    console.log('🔨 Creating ExtrudeGeometry...');
+    console.log('🔍 Profile validation before ExtrudeGeometry:');
+    console.log('  - Profile type:', profile?.constructor?.name || 'unknown');
+    console.log('  - Profile holes:', profile?.holes?.length || 0);
+    console.log('  - Profile is Shape:', profile instanceof THREE.Shape);
+    
+    const geometry = new THREE.ExtrudeGeometry(profile, extrudeSettings);
+    
+    console.log('📊 Raw ExtrudeGeometry created:', {
+      vertices: geometry?.attributes?.position?.count || 0,
+      faces: geometry?.index?.count ? geometry.index.count / 3 : 0,
+      hasPosition: !!geometry?.attributes?.position,
+      hasIndex: !!geometry?.index,
+      type: geometry?.constructor?.name || 'unknown'
+    });
+    
+    // Log détaillé des attributs
+    if (geometry.attributes?.position) {
+      console.log('📍 Position details:', {
+        itemSize: geometry.attributes.position.itemSize,
+        count: geometry.attributes.position.count,
+        arrayType: geometry.attributes.position.array?.constructor?.name || 'unknown'
+      });
+      
+      // Afficher quelques vertices pour debug si count > 3
+      if (geometry.attributes.position.count > 3) {
+        console.log('🔍 First few vertices:');
+        const positions = geometry.attributes.position.array;
+        for (let i = 0; i < Math.min(6, positions.length / 3); i++) {
+          const x = positions[i * 3];
+          const y = positions[i * 3 + 1]; 
+          const z = positions[i * 3 + 2];
+          console.log(`  Vertex ${i}: (${x?.toFixed(2) || 'N/A'}, ${y?.toFixed(2) || 'N/A'}, ${z?.toFixed(2) || 'N/A'})`);
+        }
+      } else {
+        console.warn('⚠️ Only 3 vertices detected - this is the problem!');
+      }
+    } else {
+      console.error('❌ No position attribute found in geometry!');
+    }
 
+    // GARDONS L'ORIENTATION ORIGINALE SUR L'AXE Z
+    // ExtrudeGeometry extrude le long de l'axe Z par défaut - c'est ce qu'on veut
+    console.log('📍 Keeping geometry on Z-axis (original orientation)');
+    
+    // Centrer la géométrie si nécessaire
     this.centerGeometry(geometry, length);
+    console.log('📊 Centered geometry:', {
+      vertices: geometry?.attributes?.position?.count || 0,
+      faces: geometry?.index?.count ? geometry.index.count / 3 : 0
+    });
 
     return geometry;
   }
@@ -163,7 +246,9 @@ export class TubeGenerator extends BaseProfileGenerator {
     width: number;
     thickness: number;
     outerRadius: number;
-  }): Shape {
+  }): THREE.Shape {
+    console.log('🎨 createRectangularTubeProfile called with:', params);
+    
     const { height, width, thickness, outerRadius } = params;
     
     const h = height;
@@ -171,8 +256,17 @@ export class TubeGenerator extends BaseProfileGenerator {
     const t = thickness;
     const r = outerRadius;
     
+    console.log('📐 Profile parameters:', { h, w, t, r });
+    
     // Contour extérieur
-    const outerShape = new Shape();
+    console.log('🔲 Creating outer shape...');
+    const outerShape = new THREE.Shape();
+    console.log('🔍 Outer shape created:', {
+      type: outerShape?.constructor?.name || 'unknown',
+      isShape: outerShape instanceof THREE.Shape,
+      hasMoveTo: typeof outerShape?.moveTo === 'function',
+      hasLineTo: typeof outerShape?.lineTo === 'function'
+    });
     
     if (r > 0) {
       // Avec rayons arrondis
@@ -195,7 +289,7 @@ export class TubeGenerator extends BaseProfileGenerator {
     }
     
     // Contour intérieur (trou)
-    const innerShape = new Shape();
+    const innerShape = new THREE.Shape();
     const innerW = w - 2 * t;
     const innerH = h - 2 * t;
     const innerR = Math.max(0, r - t);
@@ -222,8 +316,14 @@ export class TubeGenerator extends BaseProfileGenerator {
       }
       
       // Ajouter le trou au profil
+      console.log('🕳️ Adding inner hole to outer shape');
       outerShape.holes.push(innerShape);
     }
+    
+    console.log('✅ Rectangular tube profile completed:', {
+      hasShape: !!outerShape,
+      holes: outerShape.holes.length
+    });
     
     return outerShape;
   }

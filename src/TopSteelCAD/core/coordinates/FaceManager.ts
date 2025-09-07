@@ -40,11 +40,11 @@ export class FaceManager {
   
   // Mapping standard unifié pour DSTV
   private readonly DSTV_FACE_MAPPING: Record<string, StandardFace> = {
-    // Mapping correct selon la norme DSTV pour profils I
-    'v': StandardFace.TOP_FLANGE,    // v = Semelle supérieure (Vorderseite/top)
-    'o': StandardFace.WEB,           // o = Âme (Oben/web) 
-    'u': StandardFace.BOTTOM_FLANGE, // u = Semelle inférieure (Unten/bottom)
-    'h': StandardFace.FRONT,         // h = Face avant (Hinten/front)
+    // Mapping CORRECT selon la norme DSTV pour profils I
+    'v': StandardFace.WEB,           // v = Vorderseite = Âme (face avant de l'âme)
+    'o': StandardFace.TOP_FLANGE,    // o = Oben = Semelle supérieure (dessus)
+    'u': StandardFace.BOTTOM_FLANGE, // u = Unten = Semelle inférieure (dessous)
+    'h': StandardFace.FRONT,         // h = Hinten = Face arrière
     
     // Mappings secondaires pour compatibilité
     'top': StandardFace.TOP_FLANGE,
@@ -53,7 +53,11 @@ export class FaceManager {
     'front': StandardFace.FRONT,
     'back': StandardFace.BACK,
     'left': StandardFace.LEFT,
-    'right': StandardFace.RIGHT
+    'right': StandardFace.RIGHT,
+    
+    // Mappings pour les valeurs enum StandardFace (identité)
+    'top_flange': StandardFace.TOP_FLANGE,
+    'bottom_flange': StandardFace.BOTTOM_FLANGE
   };
   
   constructor(debugMode: boolean = false) {

@@ -143,7 +143,7 @@ export class DSTVPlugin extends BaseFormatPlugin {
    * Crée le pipeline d'exportation DSTV
    */
   createExportPipeline(): ExportPipeline {
-    return new DSTVExportPipeline() as any;
+    return new DSTVExportPipeline(this.config) as any;
   }
 
   // ================================

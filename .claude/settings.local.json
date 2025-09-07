@@ -28,9 +28,35 @@
       "Bash(grep:*)",
       "Bash(findstr:*)",
       "Bash(npx tsc:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(npm run test:*)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/M1002.nc npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts)",
+      "Bash(set DSTV_TEST_FILE=test-files/dstv/M1002.nc)",
+      "Bash(set DSTV_TEST_FILE=test-files/dstv/F1003.nc)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/F1003.nc npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/T1.NC1 npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/h5004.nc1 npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/U101.nc1 npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts --reporter=verbose)",
+      "Bash(set DSTV_TEST_FILE=test-files/dstv/U101.nc1)",
+      "Bash(set DSTV_TEST_FILE=test-files/dstv/h5004.nc1)",
+      "Bash(del test-profile-type-detection.js test-improved-detection.js)",
+      "Bash(del test-h5004.js)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/h5004.nc1 npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts --reporter=verbose)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/h5004.nc1 DSTV_LOG_LEVEL=DEBUG npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts --reporter=verbose)",
+      "Bash(set DSTV_LOG_LEVEL=DEBUG)",
+      "Bash(dir:*)",
+      "Bash(del test-import.html test-page.html)",
+      "Bash(del fix-cut-imports.js)",
+      "Read(D:\\/**)",
+      "Bash(ls:*)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/h5004.nc1 npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVCutFlowDebug.test.ts --reporter=verbose)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/h5004.nc1 DSTV_LOG_LEVEL=DEBUG npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVCutFlowDebug.test.ts --reporter=verbose)",
+      "Bash(DSTV_TEST_FILE=test-files/dstv/M1002.nc npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts --reporter=verbose)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "D:\\"
+    ]
   }
 }

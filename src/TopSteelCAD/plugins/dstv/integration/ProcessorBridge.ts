@@ -6,7 +6,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, CoordinateSystem, ProfileFace } from '../../../core/features/types';
+import { Feature, FeatureType, CoordinateSystem, ProfileFace, mapDSTVFaceToProfileFace } from '../../../core/features/types';
 import { FeatureProcessorFactory } from '../../../core/features/processors/FeatureProcessorFactory';
 import { PivotElement } from '@/types/viewer';
 import { NormalizedFeature, NormalizedFeatureType } from '../import/stages/DSTVNormalizationStage';
@@ -16,6 +16,7 @@ import { IKBlockData } from '../import/blocks/IKBlockParser';
 import { SIBlockData } from '../import/blocks/SIBlockParser';
 import { SCBlockData } from '../import/blocks/SCBlockParser';
 import { StandardFace } from '../../../core/coordinates/types';
+import { dstvFeaturePriority, DSTVPriority } from '../import/DSTVFeaturePriority';
 
 /**
  * Convertit StandardFace en ProfileFace
@@ -59,6 +60,34 @@ export class ProcessorBridge {
   ): Promise<THREE.BufferGeometry> {
     console.log(`🔧 ProcessorBridge: Applying normalized feature ${normalizedFeature.id} of type ${normalizedFeature.type}`);
     
+    // VÉRIFICATION CRITIQUE : État de la géométrie d'entrée
+    console.log('🔍 ProcessorBridge: Input geometry state:', {
+      isNull: geometry === null,
+      isUndefined: geometry === undefined,
+      hasAttributes: !!geometry?.attributes,
+      hasPositions: !!geometry?.attributes?.position,
+      vertexCount: geometry?.attributes?.position?.count || 0,
+      geometryType: geometry?.constructor?.name || 'unknown'
+    });
+    
+    if (!geometry || !geometry.attributes || !geometry.attributes.position) {
+      console.error('❌ ProcessorBridge: GEOMETRY IS NULL/INVALID - this is the root cause!');
+      console.error('❌ ProcessorBridge: Cannot process feature on invalid geometry');
+      return geometry; // Return the invalid geometry as-is to avoid further errors
+    }
+    
+    // VÉRIFICATION SPÉCIFIQUE M1002: Log détaillé pour debug
+    if (normalizedFeature.id.includes('M1002') || 
+        (normalizedFeature.parameters?.points && 
+         Array.isArray(normalizedFeature.parameters.points) && 
+         normalizedFeature.parameters.points.length === 9)) {
+      console.log('🎯 M1002 DEBUGGING in ProcessorBridge:');
+      console.log('  Feature type:', normalizedFeature.type);
+      console.log('  Feature coordinates:', normalizedFeature.coordinates);
+      console.log('  Feature points count:', normalizedFeature.parameters?.points?.length || 0);
+      console.log('  Element dimensions:', element.dimensions);
+    }
+    
     // Convertir la feature normalisée vers le format des processeurs existants
     const feature = this.convertToProcessorFeature(normalizedFeature);
     
@@ -87,6 +116,7 @@ export class ProcessorBridge {
     });
     
     if (result.success && result.geometry) {
+      console.log('✅ ProcessorBridge: Feature processed successfully, returning new geometry with', result.geometry.attributes?.position?.count || 0, 'vertices');
       return result.geometry;
     }
     
@@ -234,11 +264,24 @@ export class ProcessorBridge {
     // Log the raw SI data to debug
     console.log('🎯 ProcessorBridge.applySIBlock - Raw SI data:', siData);
     
+    // Convert StandardFace to ProfileFace
+    const profileFace = standardFaceToProfileFace(siData.face as StandardFace) || ProfileFace.WEB;
+    
+    // Calculate proper rotation for marking to lie flat on the face
+    // Note: We don't have direct access to element type here, so we'll keep it simple for now
+    const rotation = this.calculateMarkingRotationForFace(profileFace);
+    
+    console.log(`🎯 ProcessorBridge.applySIBlock - Calculated rotation for face ${profileFace}:`, {
+      x: rotation.x / Math.PI * 180 + '°',
+      y: rotation.y / Math.PI * 180 + '°', 
+      z: rotation.z / Math.PI * 180 + '°'
+    });
+    
     const feature: Feature = {
       type: siData.text.length > 1 ? FeatureType.TEXT : FeatureType.MARKING,
       id: `marking_${Date.now()}_${Math.random()}`,
       position: new THREE.Vector3(siData.x, siData.y, 0),
-      rotation: new THREE.Euler(0, 0, 0),
+      rotation: rotation,
       coordinateSystem: CoordinateSystem.DSTV,
       parameters: {
         text: siData.text,
@@ -247,7 +290,7 @@ export class ProcessorBridge {
         angle: siData.angle || 0,
         font: siData.font || 'Arial',
         markingMethod: siData.markingMethod || 'engrave',
-        face: standardFaceToProfileFace(siData.face) || ProfileFace.WEB  // Convert StandardFace to ProfileFace
+        face: profileFace
       }
     };
 
@@ -301,9 +344,11 @@ export class ProcessorBridge {
    * Convertit une feature normalisée vers le format des processeurs
    */
   private convertToProcessorFeature(normalizedFeature: NormalizedFeature): Feature | null {
+    console.log(`🚀 NEW ProcessorBridge.convertToProcessorFeature called for ${normalizedFeature.id}`);
     const typeMapping: Record<NormalizedFeatureType, FeatureType> = {
       [NormalizedFeatureType.HOLE]: FeatureType.HOLE,
-      [NormalizedFeatureType.CUT]: FeatureType.CUTOUT,
+      [NormalizedFeatureType.CUT]: FeatureType.CUT,  // CORRIGÉ: router vers CutProcessor pour coupes droites
+      [NormalizedFeatureType.END_CUT]: FeatureType.END_CUT,  // Coupe droite d'extrémité (pas un contour)
       [NormalizedFeatureType.CONTOUR]: FeatureType.CONTOUR,
       [NormalizedFeatureType.NOTCH]: FeatureType.NOTCH,
       [NormalizedFeatureType.CUT_WITH_NOTCHES]: FeatureType.CUT,  // Router vers CutProcessor
@@ -355,29 +400,175 @@ export class ProcessorBridge {
       console.log(`✅ Converted points result:`, parameters.points);
     }
     
+    // Map the DSTV face indicator to ProfileFace enum
+    const rawFace = normalizedFeature.parameters.face || normalizedFeature.metadata?.face;
+    
+    // Les coordonnées sont déjà ajustées dans DSTVNormalizationStage
+    // Pas besoin d'ajustement supplémentaire ici
+    let adjustedZ = normalizedFeature.coordinates.z || 0;
+    const isMarking = normalizedFeature.type === NormalizedFeatureType.MARKING;
+    
+    // Log pour vérification
+    if (isMarking) {
+      console.log(`📍 Marking position: X=${normalizedFeature.coordinates.x}, Y=${normalizedFeature.coordinates.y}, Z=${adjustedZ} on face ${rawFace}`);
+    }
+    
     const position = new THREE.Vector3(
       normalizedFeature.coordinates.x,
       normalizedFeature.coordinates.y,
-      normalizedFeature.coordinates.z || 0
+      adjustedZ
     );
     
-    console.log(`🔄 ProcessorBridge - Creating feature position:`, {
+    // Pour les plaques, adapter le mapping des faces
+    // 'v' sur une plaque = face supérieure (TOP), pas web
+    let mappedFace = rawFace ? mapDSTVFaceToProfileFace(rawFace) : undefined;
+    
+    // Si c'est une plaque, remapper les faces correctement
+    if (normalizedFeature.metadata?.profileType === 'PLATE') {
+      if (rawFace === 'v' || rawFace === 'web') {
+        mappedFace = ProfileFace.TOP_FLANGE; // Surface supérieure de la plaque
+        console.log(`🔲 PLATE face remapped: ${rawFace} → TOP_FLANGE`);
+      } else if (rawFace === 'u') {
+        mappedFace = ProfileFace.BOTTOM_FLANGE; // Surface inférieure de la plaque
+      }
+    }
+    
+    // Remove face from parameters to avoid confusion
+    if (parameters.face) {
+      delete parameters.face;
+    }
+    
+    console.log(`🔄 ProcessorBridge - Feature mapping:`, {
       featureId: normalizedFeature.id,
       featureType: normalizedFeature.type,
       inputCoords: normalizedFeature.coordinates,
       outputPosition: { x: position.x, y: position.y, z: position.z },
-      face: parameters.face || normalizedFeature.metadata?.face
+      rawFace: rawFace,
+      mappedFace: mappedFace,
+      timestamp: Date.now()
     });
+    
+    // Calculate rotation based on face and feature type
+    // Holes need to be perpendicular to the face (traverse through)
+    // Markings/Text need to be parallel to the face (lie on the surface)
+    const isMarkingType = featureType === FeatureType.MARKING || featureType === FeatureType.TEXT;
+    const rotation = isMarkingType 
+      ? this.calculateMarkingRotationForFace(mappedFace)
+      : this.calculateRotationForFace(mappedFace);
     
     return {
       type: featureType,
       id: normalizedFeature.id,
       position: position,
-      rotation: new THREE.Euler(0, 0, 0), // Rotation par défaut
+      rotation: rotation,
       coordinateSystem: CoordinateSystem.STANDARD, // Les coordonnées sont déjà converties en standard dans DSTVNormalizationStage
-      face: parameters.face || normalizedFeature.metadata?.face, // Ajouter la face au niveau racine
+      face: mappedFace, // Use the mapped ProfileFace enum value
       parameters
     };
+  }
+
+  /**
+   * Calculate rotation based on face to ensure holes are perpendicular to the face
+   */
+  private calculateRotationForFace(face?: ProfileFace): THREE.Euler {
+    if (!face) {
+      return new THREE.Euler(0, 0, 0);
+    }
+    
+    // Based on ProfileFace enum, calculate the rotation needed
+    // CylinderGeometry in Three.js is created vertical (along Y axis) by default
+    switch (face) {
+      case ProfileFace.WEB:
+        // For I-profiles: web is vertical (YZ plane), hole must traverse along X axis
+        // Rotate 90° around Z to orient cylinder along X axis
+        console.log(`  → WEB face: rotation (0, 0, π/2) - hole through web along X axis`);
+        return new THREE.Euler(0, 0, Math.PI / 2);
+        
+      case ProfileFace.TOP_FLANGE:
+      case ProfileFace.BOTTOM_FLANGE:
+        // Hole must traverse along Y axis (perpendicular to flanges)
+        // No rotation needed as cylinder is already vertical
+        console.log(`  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange`);
+        return new THREE.Euler(0, 0, 0);
+        
+      case ProfileFace.FRONT:
+      case ProfileFace.BACK:
+        // For L-profiles: FRONT face is perpendicular to X axis
+        // Hole must traverse along X axis to go through the face
+        // Rotate 90° around Z axis to orient cylinder along X
+        console.log(`  → FRONT/BACK face: rotation (0, 0, π/2) - hole perpendicular to face`);
+        return new THREE.Euler(0, 0, Math.PI / 2);
+        
+      case ProfileFace.LEFT:
+      case ProfileFace.RIGHT:
+        // Hole must traverse along Z axis
+        // Rotate 90° around X axis to orient cylinder along Z
+        console.log(`  → LEFT/RIGHT face: rotation (π/2, 0, 0) - hole perpendicular to face`);
+        return new THREE.Euler(Math.PI / 2, 0, 0);
+        
+      default:
+        return new THREE.Euler(0, 0, 0);
+    }
+  }
+
+  /**
+   * Calculate rotation for markings/text to be ON the face (parallel to surface)
+   */
+  private calculateMarkingRotationForFace(face?: ProfileFace, profileType?: string): THREE.Euler {
+    if (!face) {
+      return new THREE.Euler(0, 0, 0);
+    }
+    
+    // Markings need to lie ON the face, not go through it
+    // Text geometry in Three.js is created facing the camera (in XY plane, facing +Z)
+    // We need to rotate it to lie flat on each face
+    switch (face) {
+      case ProfileFace.WEB:
+        // WEB orientation depends on profile type:
+        // - For L-profiles: vertical face (ZY plane at X=0), rotate -90° around Y
+        // - For I-profiles: vertical central web, no rotation needed (text faces forward)
+        if (profileType === 'L_PROFILE' || profileType === 'angle') {
+          console.log(`  → WEB marking (L-profile): rotation (0, -π/2, 0) - text on vertical web face`);
+          return new THREE.Euler(0, -Math.PI / 2, 0);
+        } else {
+          console.log(`  → WEB marking (I-profile): rotation (0, 0, 0) - text on web face`);
+          return new THREE.Euler(0, 0, 0);
+        }
+        
+      case ProfileFace.TOP_FLANGE:
+        // Text on top flange - rotate to lie flat facing up
+        console.log(`  → TOP_FLANGE marking: rotation (-π/2, 0, 0) - text flat on top`);
+        return new THREE.Euler(-Math.PI / 2, 0, 0);
+        
+      case ProfileFace.BOTTOM_FLANGE:
+        // Text on bottom flange - rotate to lie flat facing down
+        console.log(`  → BOTTOM_FLANGE marking: rotation (π/2, 0, 0) - text flat on bottom`);
+        return new THREE.Euler(Math.PI / 2, 0, 0);
+        
+      case ProfileFace.FRONT:
+        // For L-profiles: FRONT is the vertical face (YZ plane at X=0)
+        // Text needs to rotate 90° around Y to face along X axis
+        console.log(`  → FRONT marking: rotation (0, π/2, 0) - text on vertical front face`);
+        return new THREE.Euler(0, Math.PI / 2, 0);
+        
+      case ProfileFace.BACK:
+        // Text on back face - rotate to face backward
+        console.log(`  → BACK marking: rotation (0, -π/2, 0) - text on back face`);
+        return new THREE.Euler(0, -Math.PI / 2, 0);
+        
+      case ProfileFace.LEFT:
+        // Text on left side face
+        console.log(`  → LEFT marking: rotation (0, 0, 0) - text on left face`);
+        return new THREE.Euler(0, 0, 0);
+        
+      case ProfileFace.RIGHT:
+        // Text on right side face - rotate 180° to face opposite direction
+        console.log(`  → RIGHT marking: rotation (0, π, 0) - text on right face`);
+        return new THREE.Euler(0, Math.PI, 0);
+        
+      default:
+        return new THREE.Euler(0, 0, 0);
+    }
   }
 
   /**
@@ -448,6 +639,7 @@ export class ProcessorBridge {
 
   /**
    * Applique un batch de features en utilisant les processeurs existants
+   * avec optimisation par priorité DSTV
    */
   async applyFeatureBatch(
     geometry: THREE.BufferGeometry,
@@ -456,23 +648,88 @@ export class ProcessorBridge {
   ): Promise<THREE.BufferGeometry> {
     let currentGeometry = geometry;
     
-    // Trier les features par ordre de traitement
-    const sortedFeatures = [...features].sort((a, b) => 
-      (a.metadata.processingOrder || 999) - (b.metadata.processingOrder || 999)
-    );
-
-    for (const normalizedFeature of sortedFeatures) {
-      const newGeometry = await this.applyNormalizedFeature(
-        currentGeometry,
-        normalizedFeature,
-        element
-      );
+    // Les features sont déjà triées par priorité dans DSTVSceneBuildingStage
+    // mais on peut optimiser davantage par groupes
+    const priorityGroups = dstvFeaturePriority.groupFeaturesByPriority(features);
+    
+    console.log(`🎯 Processing ${features.length} features in ${priorityGroups.size} priority groups`);
+    
+    for (const [priority, groupFeatures] of priorityGroups) {
+      const priorityInfo = dstvFeaturePriority.getFeaturePriorityInfo(groupFeatures[0]);
+      console.log(`\n📦 Processing priority group ${priority} (${priorityInfo.blockType}): ${groupFeatures.length} features`);
       
-      if (newGeometry !== currentGeometry) {
-        if (currentGeometry !== geometry) {
-          currentGeometry.dispose();
+      // Traiter les features du groupe
+      if (priorityInfo.canBatch && groupFeatures.length > 1) {
+        // Traitement optimisé par batch pour les trous et marquages
+        console.log(`  ⚡ Batch processing ${groupFeatures.length} ${priorityInfo.blockType} features`);
+        currentGeometry = await this.processBatchOptimized(
+          currentGeometry,
+          groupFeatures,
+          element,
+          priority
+        );
+      } else {
+        // Traitement séquentiel pour les coupes et contours (ordre important)
+        for (const normalizedFeature of groupFeatures) {
+          console.log(`  🔧 Processing ${normalizedFeature.type} feature ${normalizedFeature.id}`);
+          const newGeometry = await this.applyNormalizedFeature(
+            currentGeometry,
+            normalizedFeature,
+            element
+          );
+          
+          if (newGeometry !== currentGeometry) {
+            if (currentGeometry !== geometry) {
+              currentGeometry.dispose();
+            }
+            currentGeometry = newGeometry;
+          }
         }
-        currentGeometry = newGeometry;
+      }
+    }
+    
+    return currentGeometry;
+  }
+  
+  /**
+   * Traitement optimisé par batch pour les features qui peuvent être groupées
+   */
+  private async processBatchOptimized(
+    geometry: THREE.BufferGeometry,
+    features: NormalizedFeature[],
+    element: PivotElement,
+    priority: number
+  ): Promise<THREE.BufferGeometry> {
+    let currentGeometry = geometry;
+    
+    // Grouper par face pour minimiser les changements de contexte
+    const byFace = new Map<string, NormalizedFeature[]>();
+    
+    for (const feature of features) {
+      const face = (feature.parameters?.face || 'default') as string;
+      if (!byFace.has(face)) {
+        byFace.set(face, []);
+      }
+      byFace.get(face)!.push(feature);
+    }
+    
+    // Traiter par groupe de face
+    for (const [face, faceFeatures] of byFace) {
+      console.log(`    📐 Processing ${faceFeatures.length} features on face ${face}`);
+      
+      for (const normalizedFeature of faceFeatures) {
+        const newGeometry = await this.applyNormalizedFeature(
+          currentGeometry,
+          normalizedFeature,
+          element
+        );
+        
+        if (newGeometry !== currentGeometry) {
+          if (currentGeometry !== geometry) {
+            currentGeometry.dispose();
+          }
+          currentGeometry = newGeometry;
+        }
       }
     }
     

@@ -97,6 +97,14 @@ export class FeatureOutlineRenderer {
     const cuts = geometry.userData.cuts || [];
     const meshYOffset = geometry.userData.yOffset || 0;
     
+    console.log(`🔍 FeatureOutlineRenderer processing element ${element.id}:`);
+    console.log(`  📊 Geometry userData:`, {
+      hasUserData: !!geometry.userData,
+      holes: holes.length,
+      cuts: cuts.length,
+      userDataKeys: geometry.userData ? Object.keys(geometry.userData) : 'no userData'
+    });
+    
     // IMPORTANT: Les outlines sont dans le même groupe que le mesh
     // Le mesh a un yOffset appliqué pour positionner le bas à y=0
     // Les positions des trous sont en coordonnées absolues
@@ -133,10 +141,26 @@ export class FeatureOutlineRenderer {
       }
       
       // Enrichir les données du trou avec les bonnes épaisseurs selon la face
+      // For L-profiles: thickness is the material thickness (typically 8mm)
+      // For I-profiles: use webThickness for web, flangeThickness for flanges
+      let actualDepth = hole.depth;
+      if (!actualDepth || actualDepth > 10) {
+        // Need to determine actual thickness based on face
+        if (hole.face === 'front' || hole.face === 'h' || hole.face === 'back') {
+          // For L-profiles FRONT/BACK faces, use the profile thickness
+          actualDepth = webThickness; // For L-profiles, this is the actual thickness (8mm)
+        } else if (hole.face === 'web' || hole.face === 'o') {
+          actualDepth = webThickness;
+        } else {
+          actualDepth = flangeThickness;
+        }
+      }
+      
       const enrichedHole = {
         ...hole,
         id: featureId,
-        depth: hole.depth || (hole.face === 'web' || hole.face === 'o' ? webThickness : flangeThickness),
+        depth: actualDepth,
+        actualThickness: webThickness, // Pass the actual material thickness
         profileLength: profileLength
       };
       
@@ -202,6 +226,10 @@ export class FeatureOutlineRenderer {
       }
     });
     
+    // NOTE: Réactivé uniquement pour les features qui ne sont PAS dans userData
+    // Les cuts passent par userData.cuts, mais d'autres features peuvent avoir besoin de ce traitement
+    // this.processDSTVFeatures(element, group, meshYOffset);
+    
     // Ajouter/remplacer les features pour la hiérarchie
     // Si des features CUT_WITH_NOTCHES existent, les remplacer par les notches individuelles
     if (element.features && element.features.length > 0) {
@@ -221,7 +249,8 @@ export class FeatureOutlineRenderer {
           const featureId = cut.id;
           const feature: SelectableFeature = {
             id: featureId,
-            type: cut.type === 'notch' ? FeatureType.NOTCH : FeatureType.CUT,
+            type: cut.type === 'notch' ? FeatureType.NOTCH : 
+                cut.type === 'END_CUT' ? FeatureType.END_CUT : FeatureType.CUT,
             elementId: element.id,
             position: [cut.bounds?.minZ || 0, cut.bounds?.minY || 0, 0] as [number, number, number],
             boundingBox: cut.bounds || {},
@@ -242,7 +271,8 @@ export class FeatureOutlineRenderer {
       cuts.forEach((cut: any) => {
         const feature: SelectableFeature = {
           id: cut.id,
-          type: cut.type === 'notch' ? FeatureType.NOTCH : FeatureType.CUT,
+          type: cut.type === 'notch' ? FeatureType.NOTCH : 
+                cut.type === 'END_CUT' ? FeatureType.END_CUT : FeatureType.CUT,
           elementId: element.id,
           position: [cut.bounds?.minZ || 0, cut.bounds?.minY || 0, 0] as [number, number, number],
           boundingBox: cut.bounds || {},
@@ -323,9 +353,19 @@ export class FeatureOutlineRenderer {
     const originalPos = hole.originalPosition || hole.originalDSTVCoords || hole.position || [0, 0, 0];
     const position = hole.position || [0, 0, 0];
     const rotation = hole.rotation || [0, 0, 0];
-    const depth = hole.depth || hole.thickness || 10;
     const face = hole.face || 'web';
     const profileLength = hole.profileLength || 1912.15;
+    
+    // Use the depth that was calculated in createFeatureOutlines based on actual profile dimensions
+    // This should already be the correct material thickness (8mm for L-profiles)
+    const depth = hole.depth || hole.actualThickness || 8;
+    
+    console.log(`🔵 Hole outline depth calculation:`, {
+      hole_depth: hole.depth,
+      hole_thickness: hole.thickness,
+      final_depth: depth,
+      face
+    });
     
     // IMPORTANT: NE PAS convertir la position Z !
     // Les positions des trous sont DÉJÀ en coordonnées Three.js
@@ -352,78 +392,108 @@ export class FeatureOutlineRenderer {
     outlineGroup.name = `HoleOutline_${index}`;
     
     // Créer un contour en ligne (LineLoop) au lieu d'un anneau plein
-    const radius = diameter / 2 + 5; // Plus grand pour être plus visible
+    const radius = diameter / 2; // Diamètre exact du trou
     const segments = 32;
     
     // Créer DEUX cercles : un à l'entrée et un à la sortie du trou
     const colors = [0xffff00, 0xffff00]; // Jaune pour les deux côtés (plus visible)
     
-    // Déterminer l'orientation du trou selon la face
+    // Déterminer l'orientation du trou selon la rotation
+    // La rotation indique comment le cylindre est orienté
+    // rotation[2] = π/2 signifie rotation de 90° autour de Z (cylindre selon X)
+    // rotation[0] = π/2 signifie rotation de 90° autour de X (cylindre selon Z)
+    // rotation = [0,0,0] signifie cylindre vertical (selon Y)
     let positions: THREE.Vector3[];
+    const halfDepth = depth / 2;
     
-    if (face === 'web' || face === 'o') {
-      // Trou sur l'âme - traverse selon X
-      // IMPORTANT: Pour les trous sur l'âme, ils sont centrés en X=0
-      // La profondeur du trou correspond à l'épaisseur de l'âme
-      // Les anneaux doivent être positionnés de part et d'autre du centre
-      const halfWebThickness = depth / 2; // Demi-épaisseur de l'âme
-      
+    // Check rotation to determine hole direction
+    const isRotatedAroundZ = Math.abs(rotation[2] - Math.PI/2) < 0.01 || Math.abs(rotation[2] + Math.PI/2) < 0.01;
+    const isRotatedAroundX = Math.abs(rotation[0] - Math.PI/2) < 0.01 || Math.abs(rotation[0] + Math.PI/2) < 0.01;
+    
+    if (isRotatedAroundZ || face === 'h' || face === 'front' || face === 'back') {
+      // Hole traverses along X axis (rotation around Z)
+      // For FRONT face holes on L-profiles: 
+      // - The hole should go from X=0 (outer face) to X=depth (inner face)
+      // - The hole position might be adjusted, but outline should show actual extent
       positions = [
         new THREE.Vector3(
-          -halfWebThickness, // X: entrée du trou (-demi-épaisseur de l'âme)
-          correctedPosition[1] + yAdjustment, // Y: position verticale
-          correctedPosition[2]  // Z: position le long du profil (corrigée)
-        ), // Entrée
+          0, // X: outer face at X=0 for FRONT face
+          correctedPosition[1] + yAdjustment, // Y: vertical position
+          correctedPosition[2]  // Z: position along profile
+        ), // Entry
         new THREE.Vector3(
-          halfWebThickness, // X: sortie du trou (+demi-épaisseur de l'âme)
-          correctedPosition[1] + yAdjustment, // Y: position verticale
-          correctedPosition[2]  // Z: position le long du profil (corrigée)
-        ) // Sortie
+          depth, // X: inner face at X=thickness
+          correctedPosition[1] + yAdjustment, // Y: vertical position
+          correctedPosition[2]  // Z: position along profile
+        ) // Exit
       ];
-    } else if (face === 'vertical_leg' || Math.abs(rotation[2] + Math.PI/2) < 0.01) {
-      // Trou sur l'aile verticale d'une cornière
-      const halfThickness = depth / 2;
-      
+    } else if (face === 'web' || face === 'o') {
+      // WEB holes for I-profiles - centered at X=0
       positions = [
         new THREE.Vector3(
-          correctedPosition[0] - halfThickness, // X: décalé pour l'entrée
-          correctedPosition[1] + yAdjustment, // Y: position du trou ajustée
-          correctedPosition[2]  // Z: position le long du profil (corrigée)
-        ), // Entrée
+          -depth/2, // X: entry point
+          correctedPosition[1] + yAdjustment, // Y: vertical position
+          correctedPosition[2]  // Z: position along profile
+        ), // Entry
         new THREE.Vector3(
-          correctedPosition[0] + halfThickness, // X: décalé pour la sortie
-          correctedPosition[1] + yAdjustment, // Y: position du trou ajustée
-          correctedPosition[2]  // Z: position le long du profil (corrigée)
-        ) // Sortie
+          depth/2, // X: exit point
+          correctedPosition[1] + yAdjustment, // Y: vertical position
+          correctedPosition[2]  // Z: position along profile
+        ) // Exit
+      ];
+    } else if (isRotatedAroundX) {
+      // Hole traverses along Z axis (rotation around X)
+      positions = [
+        new THREE.Vector3(
+          correctedPosition[0], // X
+          correctedPosition[1] + yAdjustment, // Y
+          correctedPosition[2] - halfDepth  // Z: entry point
+        ), // Entry
+        new THREE.Vector3(
+          correctedPosition[0], // X
+          correctedPosition[1] + yAdjustment, // Y
+          correctedPosition[2] + halfDepth  // Z: exit point
+        ) // Exit
       ];
     } else {
-      // Trou vertical par défaut (ailes supérieure/inférieure)
+      // Hole traverses along Y axis (no rotation or vertical)
       positions = [
-        new THREE.Vector3(correctedPosition[0], correctedPosition[1] + yAdjustment, correctedPosition[2]), // Entrée
         new THREE.Vector3(
-          correctedPosition[0],
-          correctedPosition[1] + depth + yAdjustment, 
-          correctedPosition[2]
-        ) // Sortie
+          correctedPosition[0], // X
+          correctedPosition[1] - halfDepth + yAdjustment, // Y: entry point
+          correctedPosition[2]  // Z
+        ), // Entry
+        new THREE.Vector3(
+          correctedPosition[0], // X
+          correctedPosition[1] + halfDepth + yAdjustment, // Y: exit point
+          correctedPosition[2]  // Z
+        ) // Exit
       ];
     }
     
     positions.forEach((pos, idx) => {
       const points = [];
       
-      // Créer les points du cercle selon l'orientation du trou
+      // Créer les points du cercle selon l'orientation du trou (basé sur la rotation)
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
         
-        if (face === 'web' || face === 'o' || face === 'vertical_leg') {
+        if (isRotatedAroundZ || face === 'h' || face === 'front' || face === 'back' || face === 'web' || face === 'o') {
           // Pour les trous traversant selon X, créer le cercle dans le plan YZ
           points.push(new THREE.Vector3(
             0,                           // X 
             Math.cos(angle) * radius,    // Y
             Math.sin(angle) * radius     // Z
           ));
+        } else if (isRotatedAroundX) {
+          // Pour les trous traversant selon Z, créer le cercle dans le plan XY
+          points.push(new THREE.Vector3(
+            Math.cos(angle) * radius,    // X
+            Math.sin(angle) * radius,    // Y
+            0                            // Z
+          ));
         } else {
-          // Pour les trous verticaux (selon Y), créer le cercle dans le plan XZ
+          // Pour les trous traversant selon Y (verticaux), créer le cercle dans le plan XZ
           points.push(new THREE.Vector3(
             Math.cos(angle) * radius,    // X
             0,                           // Y 
@@ -458,19 +528,32 @@ export class FeatureOutlineRenderer {
     });
     
     // Ajouter une ligne reliant les deux cercles pour visualiser l'axe du trou
+    // L'axe suit la rotation du trou
     let axisPoints: THREE.Vector3[];
-    if (face === 'web' || face === 'o' || face === 'vertical_leg') {
-      // Axe selon X - pour les trous sur l'âme
-      // L'axe doit être centré en X=0 et traverser l'épaisseur de l'âme
+    if (isRotatedAroundZ || face === 'h' || face === 'front' || face === 'back') {
+      // Axe selon X - trou traverse selon X (L-profiles)
+      // From outer face to inner face
+      axisPoints = [
+        new THREE.Vector3(0, correctedPosition[1] + yAdjustment, correctedPosition[2]),
+        new THREE.Vector3(depth, correctedPosition[1] + yAdjustment, correctedPosition[2])
+      ];
+    } else if (face === 'web' || face === 'o') {
+      // Axe selon X - trou traverse selon X (I-profiles WEB)
       axisPoints = [
         new THREE.Vector3(-depth/2, correctedPosition[1] + yAdjustment, correctedPosition[2]),
         new THREE.Vector3(depth/2, correctedPosition[1] + yAdjustment, correctedPosition[2])
       ];
-    } else {
-      // Axe selon Y - pour les trous sur les semelles
+    } else if (isRotatedAroundX) {
+      // Axe selon Z - trou traverse selon Z
       axisPoints = [
-        new THREE.Vector3(correctedPosition[0], correctedPosition[1] + yAdjustment, correctedPosition[2]),
-        new THREE.Vector3(correctedPosition[0], correctedPosition[1] + depth + yAdjustment, correctedPosition[2])
+        new THREE.Vector3(correctedPosition[0], correctedPosition[1] + yAdjustment, correctedPosition[2] - halfDepth),
+        new THREE.Vector3(correctedPosition[0], correctedPosition[1] + yAdjustment, correctedPosition[2] + halfDepth)
+      ];
+    } else {
+      // Axe selon Y - trou traverse selon Y (vertical)
+      axisPoints = [
+        new THREE.Vector3(correctedPosition[0], correctedPosition[1] - halfDepth + yAdjustment, correctedPosition[2]),
+        new THREE.Vector3(correctedPosition[0], correctedPosition[1] + halfDepth + yAdjustment, correctedPosition[2])
       ];
     }
     const axisGeometry = new THREE.BufferGeometry().setFromPoints(axisPoints);
@@ -482,10 +565,7 @@ export class FeatureOutlineRenderer {
       depthTest: false   // Toujours visible
     });
     const axisLine = new THREE.Line(axisGeometry, axisMaterial);
-    // Pour les trous sur l'âme, l'axe est déjà positionné correctement dans axisPoints
-    if (!(face === 'web' || face === 'o')) {
-      axisLine.position.set(correctedPosition[0], correctedPosition[1] + yAdjustment, correctedPosition[2]);
-    }
+    // L'axe est déjà positionné correctement dans axisPoints
     // Pas de rotation nécessaire - l'axe est déjà orienté correctement
     outlineGroup.add(axisLine);
     
@@ -717,6 +797,247 @@ export class FeatureOutlineRenderer {
   }
   
   /**
+   * Traite spécifiquement les features DSTV pour créer leurs outlines
+   */
+  private processDSTVFeatures(element: PivotElement, group: THREE.Group, meshYOffset: number): void {
+    if (!element.features || element.features.length === 0) {
+      return;
+    }
+    
+    console.log(`🎯 Processing ${element.features.length} DSTV features for element ${element.id}`);
+    
+    element.features.forEach((feature: any, index: number) => {
+      // Normaliser le type en majuscules
+      const featureType = (feature.type || '').toUpperCase();
+      
+      // SKIP HOLES - ils sont déjà traités dans geometry.userData.holes
+      if (featureType === 'HOLE') {
+        console.log(`⏭️ Skipping HOLE feature ${feature.id} - already processed from geometry.userData.holes`);
+        return;
+      }
+      if (featureType !== 'END_CUT' && featureType !== 'NOTCH' && featureType !== 'CUT_WITH_NOTCHES') {
+        console.log(`⏭️ Skipping feature ${feature.id} with type ${feature.type} (${featureType})`);
+        return;
+      }
+      
+      console.log(`🔹 Creating outline for DSTV cut feature: ${feature.id} (${feature.type})`);
+      
+      let outline: THREE.Object3D | null = null;
+      
+      if (featureType === 'END_CUT') {
+        // Créer un outline pour une coupe d'extrémité
+        outline = this.createDSTVEndCutOutline(feature, meshYOffset, element);
+      } else if (featureType === 'NOTCH' || featureType === 'CUT_WITH_NOTCHES') {
+        // Créer un outline pour une encoche
+        outline = this.createDSTVNotchOutline(feature, meshYOffset, element);
+      }
+      
+      if (outline) {
+        // Ajouter des données utilisateur pour l'interaction
+        outline.userData = {
+          featureId: feature.id,
+          featureType: feature.type.toLowerCase(),
+          elementId: element.id,
+          selectable: true
+        };
+        
+        // Stocker la référence pour la sélection
+        this.featureOutlines.get(element.id)!.set(feature.id, outline);
+        
+        group.add(outline);
+        
+        console.log(`✅ Added outline for DSTV feature: ${feature.id}`);
+      }
+    });
+  }
+  
+  /**
+   * Crée un outline pour un trou DSTV
+   */
+  private createDSTVHoleOutline(feature: any, meshYOffset: number, element: PivotElement): THREE.Object3D | null {
+    // La position peut être un tableau [x, y, z] ou un objet {x, y, z}
+    const position = feature.position;
+    const params = feature.metadata || feature.parameters;
+    
+    if (!position) {
+      console.warn(`⚠️ Missing position for DSTV hole: ${feature.id}`);
+      return null;
+    }
+    
+    // Gérer position comme tableau ou objet
+    const posX = Array.isArray(position) ? position[0] : (position.x || 0);
+    const posY = Array.isArray(position) ? position[1] : (position.y || 0);
+    const posZ = Array.isArray(position) ? (position[2] || 0) : (position.z || 0);
+    
+    const diameter = params?.diameter || 17.5; // Diamètre par défaut depuis les logs DSTV
+    const radius = diameter / 2;
+    
+    // Créer un cercle pour représenter le trou
+    const geometry = new THREE.RingGeometry(radius - 0.5, radius + 0.5, 16);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: 0x00ff00, 
+      transparent: true, 
+      opacity: 0.8,
+      side: THREE.DoubleSide
+    });
+    
+    const circle = new THREE.Mesh(geometry, material);
+    
+    // Positionner le cercle
+    circle.position.set(
+      posX,
+      posY - meshYOffset,
+      posZ
+    );
+    
+    // Orienter selon la face
+    const face = feature.face || params?.face;
+    if (face === 'top_flange' || face === 'bottom_flange') {
+      circle.rotation.x = Math.PI / 2;
+    }
+    
+    return circle;
+  }
+  
+  /**
+   * Crée un outline pour une coupe d'extrémité DSTV
+   */
+  private createDSTVEndCutOutline(feature: any, meshYOffset: number, element: PivotElement): THREE.Object3D | null {
+    try {
+      // END_CUT features have parameters in metadata
+      const params = feature.metadata || feature.parameters;
+      if (!params) {
+        console.warn(`[FeatureOutlineRenderer] END_CUT feature ${feature.id} missing parameters/metadata`);
+        return null;
+      }
+
+      const chamferLength = params.chamferLength || 50; // Default from DSTV logs
+      const angle = params.angle || 0;
+      const cutPosition = params.position || params.cutPosition || 'start';
+      
+      // Position peut être un tableau ou un objet
+      const position = feature.position;
+      if (!position) {
+        console.warn(`[FeatureOutlineRenderer] END_CUT feature ${feature.id} missing position`);
+        return null;
+      }
+      
+      // Gérer position comme tableau ou objet
+      const posX = Array.isArray(position) ? position[0] : (position.x || 0);
+      const posY = Array.isArray(position) ? position[1] : (position.y || 0);
+      const posZ = Array.isArray(position) ? (position[2] || 0) : (position.z || 0);
+
+      // Create a simple chamfer visualization at the cut position
+      const geometry = new THREE.PlaneGeometry(chamferLength, chamferLength * 0.5);
+      
+      const material = new THREE.MeshBasicMaterial({ 
+        color: 0xff4444,
+        transparent: true,
+        opacity: 0.6,
+        side: THREE.DoubleSide
+      });
+
+      const outline = new THREE.Mesh(geometry, material);
+      
+      // Position the outline at the feature position
+      outline.position.set(
+        posX,
+        posY + meshYOffset,
+        posZ
+      );
+
+      // Rotate based on the cut angle
+      if (angle !== 0) {
+        outline.rotation.z = (angle * Math.PI) / 180;
+      }
+
+      outline.userData = { 
+        type: 'dstv-end-cut-outline',
+        featureId: feature.id,
+        elementId: element.id,
+        chamferLength,
+        angle,
+        cutPosition
+      };
+
+      return outline;
+
+    } catch (error) {
+      console.error(`[FeatureOutlineRenderer] Error creating DSTV END_CUT outline for feature ${feature.id}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Crée un outline pour une encoche DSTV (NOTCH ou CUT_WITH_NOTCHES)
+   */
+  private createDSTVNotchOutline(feature: any, meshYOffset: number, element: PivotElement): THREE.Object3D | null {
+    try {
+      const params = feature.metadata || feature.parameters;
+      if (!params) {
+        console.warn(`[FeatureOutlineRenderer] NOTCH feature ${feature.id} missing parameters/metadata`);
+        return null;
+      }
+
+      // Position peut être un tableau ou un objet
+      const position = feature.position;
+      if (!position) {
+        console.warn(`[FeatureOutlineRenderer] NOTCH feature ${feature.id} missing position`);
+        return null;
+      }
+      
+      // Gérer position comme tableau ou objet
+      const posX = Array.isArray(position) ? position[0] : (position.x || 0);
+      const posY = Array.isArray(position) ? position[1] : (position.y || 0);
+      const posZ = Array.isArray(position) ? (position[2] || 0) : (position.z || 0);
+
+      // Dimensions par défaut pour une encoche
+      const width = params.width || 100;
+      const height = params.height || 50;
+      
+      // Créer une forme d'encoche simple
+      const shape = new THREE.Shape();
+      shape.moveTo(-width/2, 0);
+      shape.lineTo(-width/2, height);
+      shape.lineTo(width/2, height);
+      shape.lineTo(width/2, 0);
+      shape.lineTo(-width/2, 0);
+      
+      const geometry = new THREE.ShapeGeometry(shape);
+      
+      const material = new THREE.MeshBasicMaterial({ 
+        color: 0xffaa00,
+        transparent: true,
+        opacity: 0.6,
+        side: THREE.DoubleSide
+      });
+
+      const outline = new THREE.Mesh(geometry, material);
+      
+      // Position the outline at the feature position
+      outline.position.set(
+        posX,
+        posY + meshYOffset,
+        posZ
+      );
+
+      outline.userData = { 
+        type: 'dstv-notch-outline',
+        featureId: feature.id,
+        elementId: element.id,
+        width,
+        height
+      };
+
+      return outline;
+
+    } catch (error) {
+      console.error(`[FeatureOutlineRenderer] Error creating DSTV NOTCH outline for feature ${feature.id}:`, error);
+      return null;
+    }
+  }
+  
+  /**
    * Nettoie les ressources
    */
   dispose(): void {
@@ -767,40 +1088,168 @@ export class FeatureOutlineRenderer {
     // Récupérer les coordonnées de la découpe
     const bounds = cut.bounds || cut;
     const face = cut.face || 'top_flange';
+    const cutType = cut.type || 'cut';
+    
+    // Déterminer la couleur selon le type de découpe
+    let outlineColor = 0xffff00; // Jaune par défaut pour les découpes
+    if (cutType === 'notch') {
+      outlineColor = 0xff8800; // Orange pour les notches
+    } else if (cutType === 'END_CUT') {
+      outlineColor = 0x00ffff; // Cyan pour les coupes d'extrémité
+    } else if (cutType === 'angle_cut' || cut.cutType === 'partial_notches') {
+      outlineColor = 0xff0088; // Rose pour les coupes d'angle
+    }
     
     // Si on a des bounds explicites
     if (bounds.minX !== undefined && bounds.maxX !== undefined) {
-      // Créer un rectangle basé sur les bounds
-      const width = bounds.maxX - bounds.minX;
-      const height = bounds.maxY - bounds.minY;
-      const depth = bounds.maxZ - bounds.minZ;
-      
-      // Créer les lignes du cadre
-      const edges = new THREE.EdgesGeometry(
-        new THREE.BoxGeometry(width || 10, height || 10, depth || 10)
-      );
-      
-      const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0xffff00,  // Jaune pour les découpes
-        linewidth: 3,
-        transparent: true,
-        opacity: 0.8,
-        depthTest: false
-      });
-      
-      const lineSegments = new THREE.LineSegments(edges, lineMaterial);
-      
-      // Positionner au centre de la découpe
-      const centerX = (bounds.minX + bounds.maxX) / 2;
-      const centerY = (bounds.minY + bounds.maxY) / 2 + meshYOffset;
-      const centerZ = (bounds.minZ + bounds.maxZ) / 2;
-      
-      lineSegments.position.set(centerX, centerY, centerZ);
-      
-      console.log(`  -> Cut outline at: [${centerX.toFixed(1)}, ${centerY.toFixed(1)}, ${centerZ.toFixed(1)}]`);
-      console.log(`  -> Dimensions: ${width.toFixed(1)} x ${height.toFixed(1)} x ${depth.toFixed(1)}`);
-      
-      outlineGroup.add(lineSegments);
+      // Traitement spécial pour END_CUT sur tubes
+      if (cutType === 'END_CUT') {
+        const isHSSProfile = element.metadata?.profileName?.includes('HSS') || 
+                             element.metadata?.profileType === 'TUBE_RECT';
+        
+        if (isHSSProfile) {
+          // Pour les tubes HSS, créer un plan qui représente la coupe d'extrémité
+          const tubeWidth = element.dimensions?.width || 50.8;
+          const tubeHeight = element.dimensions?.height || 50.8;
+          const angle = cut.angle || 90; // Angle de la coupe
+          const position = cut.position || 'end'; // 'start' ou 'end'
+          
+          // Créer un contour qui suit la section du tube
+          const shape = new THREE.Shape();
+          const halfW = tubeWidth / 2;
+          const halfH = tubeHeight / 2;
+          
+          // Dessiner le rectangle du tube
+          shape.moveTo(-halfW, -halfH);
+          shape.lineTo(halfW, -halfH);
+          shape.lineTo(halfW, halfH);
+          shape.lineTo(-halfW, halfH);
+          shape.closePath();
+          
+          // Créer juste les bords (pas de surface pleine)
+          const points = shape.getPoints(50);
+          const lineGeometry = new THREE.BufferGeometry().setFromPoints(
+            points.map(p => new THREE.Vector3(p.x, p.y, 0))
+          );
+          
+          const lineMaterial = new THREE.LineBasicMaterial({
+            color: outlineColor,
+            linewidth: 5,
+            transparent: true,
+            opacity: 1.0,
+            depthTest: false,
+            depthWrite: false
+          });
+          
+          const outline = new THREE.Line(lineGeometry, lineMaterial);
+          
+          // Positionner à l'extrémité du tube
+          // Pour les tubes sur l'axe Z, utiliser la position exacte depuis les bounds
+          // Les bounds.minX et maxX ont la même valeur pour END_CUT (c'est un plan)
+          const cutZ = bounds.minX;  // Position exacte de la coupe sur l'axe Z
+          
+          outline.position.set(0, meshYOffset, cutZ);
+          
+          // Si la coupe est angulaire, faire pivoter l'outline
+          // L'angle DSTV est depuis la verticale, convertir pour Three.js
+          // Doit correspondre exactement à la rotation dans CutProcessor
+          if (angle !== 90) {
+            let rotationAngle;
+            if (position === 'start') {
+              // Au début : même rotation que dans CutProcessor
+              rotationAngle = -angle * Math.PI / 180;  // Négatif pour pencher vers l'avant
+            } else {
+              // À la fin : même rotation que dans CutProcessor
+              rotationAngle = -angle * Math.PI / 180;  // Négatif comme le début (miroir)
+            }
+            outline.rotation.y = rotationAngle;
+          }
+          
+          console.log(`  -> END_CUT outline at Z: ${cutZ.toFixed(1)}, position: ${position}, angle: ${angle}° (rotation: ${outline.rotation.y.toFixed(3)} rad)`);
+          
+          outlineGroup.add(outline);
+        } else {
+          // Pour les autres profils, utiliser l'ancien code
+          const width = bounds.maxX - bounds.minX;
+          const height = bounds.maxY - bounds.minY;
+          const depth = bounds.maxZ - bounds.minZ;
+          
+          const edges = new THREE.EdgesGeometry(
+            new THREE.BoxGeometry(width || 10, height || 10, depth || 10)
+          );
+          
+          const lineMaterial = new THREE.LineBasicMaterial({
+            color: outlineColor,
+            linewidth: 3,
+            transparent: true,
+            opacity: 0.8,
+            depthTest: false,
+            depthWrite: false
+          });
+          
+          const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+          const centerX = (bounds.minX + bounds.maxX) / 2;
+          const centerY = (bounds.minY + bounds.maxY) / 2 + meshYOffset;
+          const centerZ = (bounds.minZ + bounds.maxZ) / 2;
+          lineSegments.position.set(centerX, centerY, centerZ);
+          outlineGroup.add(lineSegments);
+        }
+      } else {
+        // Code original pour les autres types de coupes
+        const width = bounds.maxX - bounds.minX;
+        const height = bounds.maxY - bounds.minY;
+        const depth = bounds.maxZ - bounds.minZ;
+        
+        // Pour les tubes HSS et les coupes angulaires, créer un cadre plus visible
+        const isHSSProfile = element.metadata?.profileName?.includes('HSS') || 
+                             element.metadata?.profileType === 'TUBE_RECT';
+        const linewidth = isHSSProfile ? 5 : 3;
+        const opacity = isHSSProfile ? 1.0 : 0.8;
+        
+        // Créer les lignes du cadre
+        const edges = new THREE.EdgesGeometry(
+          new THREE.BoxGeometry(width || 10, height || 10, depth || 10)
+        );
+        
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: outlineColor,
+          linewidth: linewidth,
+          transparent: true,
+          opacity: opacity,
+          depthTest: false,
+          depthWrite: false
+        });
+        
+        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+        
+        // Positionner au centre de la découpe
+        const centerX = (bounds.minX + bounds.maxX) / 2;
+        const centerY = (bounds.minY + bounds.maxY) / 2 + meshYOffset;
+        const centerZ = (bounds.minZ + bounds.maxZ) / 2;
+        
+        lineSegments.position.set(centerX, centerY, centerZ);
+        
+        console.log(`  -> Cut outline at: [${centerX.toFixed(1)}, ${centerY.toFixed(1)}, ${centerZ.toFixed(1)}]`);
+        console.log(`  -> Dimensions: ${width.toFixed(1)} x ${height.toFixed(1)} x ${depth.toFixed(1)}`);
+        console.log(`  -> Type: ${cutType}, Color: 0x${outlineColor.toString(16)}`);
+        
+        // Ajouter un indicateur visuel supplémentaire pour les coupes d'angle
+        if (cutType === 'angle_cut' || cut.cutType === 'partial_notches') {
+          // Créer un marqueur diagonal pour indiquer une coupe d'angle
+          const diagonalGeometry = new THREE.BufferGeometry();
+          const diagonalPoints = [
+            new THREE.Vector3(-width/2, -height/2, 0),
+            new THREE.Vector3(width/2, height/2, 0)
+          ];
+          diagonalGeometry.setFromPoints(diagonalPoints);
+          
+          const diagonalLine = new THREE.Line(diagonalGeometry, lineMaterial);
+          diagonalLine.position.set(centerX, centerY, centerZ);
+          outlineGroup.add(diagonalLine);
+        }
+        
+        outlineGroup.add(lineSegments);
+      }
     }
     // Si on a des points de contour
     else if (cut.points && cut.points.length > 0) {

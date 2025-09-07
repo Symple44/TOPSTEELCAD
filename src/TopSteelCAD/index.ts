@@ -71,33 +71,103 @@ export type {
 } from './3DLibrary';
 
 // ========================================
-// FEATURE PROCESSORS - Processeurs de features
+// FEATURE PROCESSORS - Processeurs de features (lazy loaded)
 // ========================================
-export { 
-  HoleProcessor,
-  SlotProcessor,
-  NotchProcessor,
-  MarkingProcessor,
-  TextProcessor,
-  CopingProcessor,
-  BevelProcessor,
-  CutoutProcessor,
-  DrillPatternProcessor,
-  WeldProcessor,
-  ChamferProcessor,
-  ContourProcessor,
-  CounterSinkProcessor,
-  TappedHoleProcessor
-} from './core/features/processors';
+// Processeurs chargés à la demande pour optimiser le bundle initial
+export const FeatureProcessors = {
+  async loadHoleProcessor() {
+    const module = await import('./core/features/processors');
+    return module.HoleProcessor;
+  },
+  async loadSlotProcessor() {
+    const module = await import('./core/features/processors');
+    return module.SlotProcessor;
+  },
+  async loadNotchProcessor() {
+    const module = await import('./core/features/processors');
+    return module.NotchProcessor;
+  },
+  async loadMarkingProcessor() {
+    const module = await import('./core/features/processors');
+    return module.MarkingProcessor;
+  },
+  async loadTextProcessor() {
+    const module = await import('./core/features/processors');
+    return module.TextProcessor;
+  },
+  async loadCopingProcessor() {
+    const module = await import('./core/features/processors');
+    return module.CopingProcessor;
+  },
+  async loadBevelProcessor() {
+    const module = await import('./core/features/processors');
+    return module.BevelProcessor;
+  },
+  async loadCutoutProcessor() {
+    const module = await import('./core/features/processors');
+    return module.CutoutProcessor;
+  },
+  async loadDrillPatternProcessor() {
+    const module = await import('./core/features/processors');
+    return module.DrillPatternProcessor;
+  },
+  async loadWeldProcessor() {
+    const module = await import('./core/features/processors');
+    return module.WeldProcessor;
+  },
+  async loadChamferProcessor() {
+    const module = await import('./core/features/processors');
+    return module.ChamferProcessor;
+  },
+  async loadContourProcessor() {
+    const module = await import('./core/features/processors');
+    return module.ContourProcessor;
+  },
+  async loadCounterSinkProcessor() {
+    const module = await import('./core/features/processors');
+    return module.CounterSinkProcessor;
+  },
+  async loadTappedHoleProcessor() {
+    const module = await import('./core/features/processors');
+    return module.TappedHoleProcessor;
+  },
+  
+  // Helper pour charger tous les processeurs à la fois
+  async loadAll() {
+    const module = await import('./core/features/processors');
+    return {
+      HoleProcessor: module.HoleProcessor,
+      SlotProcessor: module.SlotProcessor,
+      NotchProcessor: module.NotchProcessor,
+      MarkingProcessor: module.MarkingProcessor,
+      TextProcessor: module.TextProcessor,
+      CopingProcessor: module.CopingProcessor,
+      BevelProcessor: module.BevelProcessor,
+      CutoutProcessor: module.CutoutProcessor,
+      DrillPatternProcessor: module.DrillPatternProcessor,
+      WeldProcessor: module.WeldProcessor,
+      ChamferProcessor: module.ChamferProcessor,
+      ContourProcessor: module.ContourProcessor,
+      CounterSinkProcessor: module.CounterSinkProcessor,
+      TappedHoleProcessor: module.TappedHoleProcessor
+    };
+  }
+};
 
 // Export du système de features
 export { FeatureSystem } from './core/features/FeatureSystem';
 export type * from './core/features/types';
 
 // ========================================
-// PARSERS - Parseurs de fichiers
+// PARSERS - Parseurs de fichiers (lazy loaded)
 // ========================================
-export { DSTVPlugin } from './plugins/dstv/DSTVPlugin';
+// DSTVPlugin chargé à la demande pour réduire le bundle initial
+export const DSTVPlugin = {
+  async load() {
+    const module = await import('./plugins/dstv/DSTVPlugin');
+    return module.DSTVPlugin;
+  }
+};
 // TODO: Parsers à implémenter
 // export { IFCParser } from './parsers/IFCParser';
 // export { STEPParser } from './parsers/STEPParser';
@@ -131,6 +201,11 @@ export type { ViewerModeConfig, ModeConfig } from './modes/types';
 // ========================================
 export { useViewer } from './hooks/useViewer';
 export type { UseViewerReturn } from './hooks/useViewer';
+
+// ========================================
+// WEBWORKERS - Système de WebWorkers (lazy loaded)
+// ========================================
+export { CSGWorkerSystem, preloadCSGWorkers } from './workers';
 
 // ========================================
 // COMPONENTS - Composant viewer principal

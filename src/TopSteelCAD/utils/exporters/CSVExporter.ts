@@ -104,8 +104,8 @@ export class CSVExporter {
     const row = [
       element.id,
       `"${element.name}"`,
-      element.materialType,
-      element.material?.grade || 'S355',
+      element.profile || element.materialType || element.type || 'BEAM',
+      element.material?.grade || element.material || 'S355',
       Math.round(length),
       Math.round(width),
       Math.round(height || 0),
@@ -150,7 +150,7 @@ export class CSVExporter {
    */
   private static calculateVolume(element: PivotElement): number {
     const { length, width, height, thickness } = element.dimensions;
-    const type = element.materialType.toUpperCase();
+    const type = (element.materialType || element.type || 'BEAM').toUpperCase();
     
     // Conversion mm -> m
     const l = length / 1000;
@@ -209,7 +209,7 @@ export class CSVExporter {
    */
   private static calculateSurface(element: PivotElement): number {
     const { length, width, height } = element.dimensions;
-    const type = element.materialType.toUpperCase();
+    const type = (element.materialType || element.type || 'BEAM').toUpperCase();
     
     // Conversion mm -> m
     const l = length / 1000;

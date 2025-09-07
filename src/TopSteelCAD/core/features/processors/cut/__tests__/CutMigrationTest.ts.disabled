@@ -1,0 +1,356 @@
+/**
+ * CutMigrationTest.ts - Test de migration avec fichiers DSTV réels
+ * Teste M1002.nc et h5004.nc1 avec la nouvelle architecture
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
+import * as THREE from 'three';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+
+// Import de la nouvelle architecture
+import { 
+  getCutHandlerFactory,
+  getCutProcessorAdapter,
+  AdapterMode,
+  CutLogger,
+  LogLevel,
+  initializeCutSystem
+} from '../index';
+
+// Import du parser DSTV
+import { DSTVParser } from '../../../../plugins/dstv/DSTVParser';
+import { PivotElement } from '@/types/viewer';
+import { Feature, FeatureType } from '../../../types';
+
+describe('Cut Architecture Migration Tests', () => {
+  let parser: DSTVParser;
+  let logger: CutLogger;
+  
+  beforeAll(() => {
+    // Initialiser le système de coupe
+    initializeCutSystem({
+      enableLogging: true,
+      logLevel: 'debug'
+    });
+    
+    // Initialiser le logger
+    logger = new CutLogger();
+    logger.setLevel(LogLevel.DEBUG);
+    
+    // Initialiser le parser DSTV
+    parser = new DSTVParser();
+  });
+  
+  afterAll(() => {
+    // Cleanup si nécessaire
+  });
+  
+  /**
+   * Fonction utilitaire pour parser un fichier DSTV
+   */
+  async function parseDSTVFile(filename: string): Promise<{
+    element: PivotElement;
+    features: Feature[];
+  }> {
+    const filePath = path.join(__dirname, '../../../../../../test-files/dstv', filename);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    
+    // Parser le fichier
+    const result = await parser.parse(content);
+    
+    // Extraire l'élément et les features
+    const element = result.element as PivotElement;
+    const features = result.features || [];
+    
+    return { element, features };
+  }
+  
+  /**
+   * Test avec M1002.nc - Cas de référence pour les encoches partielles
+   */
+  describe('M1002.nc - Partial Notches', () => {
+    let element: PivotElement;
+    let features: Feature[];
+    let cutFeatures: Feature[];
+    
+    beforeAll(async () => {
+      const result = await parseDSTVFile('M1002.nc');
+      element = result.element;
+      features = result.features;
+      
+      // Filtrer les features de coupe
+      cutFeatures = features.filter(f => 
+        f.type === FeatureType.CUT || 
+        f.type === FeatureType.NOTCH
+      );
+      
+      console.log(`\n📄 M1002.nc loaded:`);
+      console.log(`  - Total features: ${features.length}`);
+      console.log(`  - Cut features: ${cutFeatures.length}`);
+    });
+    
+    it('should detect correct cut types', () => {
+      const factory = getCutHandlerFactory();
+      
+      cutFeatures.forEach((feature, index) => {
+        const handler = factory.findBestHandler(feature);
+        expect(handler).toBeDefined();
+        
+        console.log(`  Feature ${index}: ${feature.type} -> Handler: ${handler?.name}`);
+        
+        // M1002 devrait utiliser principalement PartialNotchHandler
+        if (feature.type === FeatureType.NOTCH) {
+          expect(handler?.name).toMatch(/PartialNotchHandler|NotchHandler/);
+        }
+      });
+    });
+    
+    it('should process cuts with new architecture', async () => {
+      const adapter = getCutProcessorAdapter({
+        mode: AdapterMode.NEW_ONLY,
+        enableLogging: true
+      });
+      
+      const results: any[] = [];
+      
+      for (const feature of cutFeatures) {
+        const result = await adapter.process(feature, element);
+        results.push(result);
+        
+        expect(result.success).toBe(true);
+        if (result.geometry) {
+          expect(result.geometry).toBeInstanceOf(THREE.BufferGeometry);
+          
+          // Vérifier que la géométrie a des vertices
+          const positions = result.geometry.attributes.position;
+          expect(positions).toBeDefined();
+          expect(positions.count).toBeGreaterThan(0);
+        }
+      }
+      
+      console.log(`  ✅ Processed ${results.length} cuts successfully`);
+    });
+    
+    it('should match legacy processor results', async () => {
+      const legacyAdapter = getCutProcessorAdapter({
+        mode: AdapterMode.LEGACY_ONLY
+      });
+      
+      const newAdapter = getCutProcessorAdapter({
+        mode: AdapterMode.NEW_ONLY
+      });
+      
+      for (const feature of cutFeatures) {
+        const legacyResult = await legacyAdapter.process(feature, element);
+        const newResult = await newAdapter.process(feature, element);
+        
+        // Les deux devraient réussir
+        expect(newResult.success).toBe(legacyResult.success);
+        
+        // Si les deux ont une géométrie, comparer les bounds
+        if (legacyResult.geometry && newResult.geometry) {
+          const legacyBox = new THREE.Box3().setFromObject(
+            new THREE.Mesh(legacyResult.geometry)
+          );
+          const newBox = new THREE.Box3().setFromObject(
+            new THREE.Mesh(newResult.geometry)
+          );
+          
+          // Les dimensions devraient être similaires (tolérance de 1mm)
+          const legacySize = new THREE.Vector3();
+          const newSize = new THREE.Vector3();
+          legacyBox.getSize(legacySize);
+          newBox.getSize(newSize);
+          
+          expect(Math.abs(newSize.x - legacySize.x)).toBeLessThan(1);
+          expect(Math.abs(newSize.y - legacySize.y)).toBeLessThan(1);
+          expect(Math.abs(newSize.z - legacySize.z)).toBeLessThan(1);
+        }
+      }
+    });
+  });
+  
+  /**
+   * Test avec h5004.nc1 - Cas complexe avec multiples types de coupes
+   */
+  describe('h5004.nc1 - Complex Cuts', () => {
+    let element: PivotElement;
+    let features: Feature[];
+    let cutFeatures: Feature[];
+    
+    beforeAll(async () => {
+      const result = await parseDSTVFile('h5004.nc1');
+      element = result.element;
+      features = result.features;
+      
+      // Filtrer les features de coupe
+      cutFeatures = features.filter(f => 
+        f.type === FeatureType.CUT || 
+        f.type === FeatureType.NOTCH
+      );
+      
+      console.log(`\n📄 h5004.nc1 loaded:`);
+      console.log(`  - Total features: ${features.length}`);
+      console.log(`  - Cut features: ${cutFeatures.length}`);
+    });
+    
+    it('should handle AK blocks correctly', () => {
+      const factory = getCutHandlerFactory();
+      
+      // h5004 contient des blocks AK (contour extérieur)
+      const akFeatures = cutFeatures.filter(f => {
+        const params = f.parameters as any;
+        return params.dstvBlock === 'AK' || params.blockType === 'AK';
+      });
+      
+      expect(akFeatures.length).toBeGreaterThan(0);
+      
+      akFeatures.forEach((feature, index) => {
+        const handler = factory.findBestHandler(feature);
+        expect(handler).toBeDefined();
+        
+        console.log(`  AK Feature ${index}: Handler: ${handler?.name}`);
+        
+        // Les blocks AK devraient utiliser ExteriorCutHandler ou EndCutHandler
+        expect(handler?.name).toMatch(/ExteriorCutHandler|EndCutHandler|AngleCutHandler/);
+      });
+    });
+    
+    it('should process all cut types', async () => {
+      const adapter = getCutProcessorAdapter({
+        mode: AdapterMode.NEW_ONLY,
+        enableLogging: true
+      });
+      
+      const handlerStats = new Map<string, number>();
+      const results: any[] = [];
+      
+      for (const feature of cutFeatures) {
+        const factory = getCutHandlerFactory();
+        const handler = factory.findBestHandler(feature);
+        
+        if (handler) {
+          const count = handlerStats.get(handler.name) || 0;
+          handlerStats.set(handler.name, count + 1);
+        }
+        
+        const result = await adapter.process(feature, element);
+        results.push(result);
+        
+        expect(result.success).toBe(true);
+      }
+      
+      // Afficher les statistiques
+      console.log('\n  📊 Handler usage statistics:');
+      handlerStats.forEach((count, name) => {
+        console.log(`    - ${name}: ${count} cuts`);
+      });
+      
+      // h5004 devrait utiliser plusieurs handlers différents
+      expect(handlerStats.size).toBeGreaterThan(1);
+    });
+    
+    it('should handle hybrid mode correctly', async () => {
+      const adapter = getCutProcessorAdapter({
+        mode: AdapterMode.HYBRID,
+        fallbackToLegacy: true,
+        enableLogging: true
+      });
+      
+      let newArchCount = 0;
+      let legacyCount = 0;
+      
+      for (const feature of cutFeatures) {
+        const result = await adapter.process(feature, element);
+        expect(result.success).toBe(true);
+        
+        // Vérifier quelle architecture a été utilisée
+        if (result.metadata?.processor === 'new') {
+          newArchCount++;
+        } else if (result.metadata?.processor === 'legacy') {
+          legacyCount++;
+        }
+      }
+      
+      console.log(`\n  🔄 Hybrid mode statistics:`);
+      console.log(`    - New architecture: ${newArchCount} cuts`);
+      console.log(`    - Legacy fallback: ${legacyCount} cuts`);
+      
+      // En mode hybride, on devrait avoir un mix
+      expect(newArchCount).toBeGreaterThan(0);
+    });
+  });
+  
+  /**
+   * Test de performance comparative
+   */
+  describe('Performance Comparison', () => {
+    it('should perform similarly or better than legacy', async () => {
+      const { element, features } = await parseDSTVFile('M1002.nc');
+      const cutFeatures = features.filter(f => 
+        f.type === FeatureType.CUT || f.type === FeatureType.NOTCH
+      );
+      
+      // Mesurer le temps avec l'ancienne architecture
+      const legacyAdapter = getCutProcessorAdapter({
+        mode: AdapterMode.LEGACY_ONLY
+      });
+      
+      const legacyStart = performance.now();
+      for (const feature of cutFeatures) {
+        await legacyAdapter.process(feature, element);
+      }
+      const legacyTime = performance.now() - legacyStart;
+      
+      // Mesurer le temps avec la nouvelle architecture
+      const newAdapter = getCutProcessorAdapter({
+        mode: AdapterMode.NEW_ONLY
+      });
+      
+      const newStart = performance.now();
+      for (const feature of cutFeatures) {
+        await newAdapter.process(feature, element);
+      }
+      const newTime = performance.now() - newStart;
+      
+      console.log('\n  ⚡ Performance comparison:');
+      console.log(`    - Legacy: ${legacyTime.toFixed(2)}ms`);
+      console.log(`    - New: ${newTime.toFixed(2)}ms`);
+      console.log(`    - Ratio: ${(newTime / legacyTime).toFixed(2)}x`);
+      
+      // La nouvelle architecture ne devrait pas être plus de 2x plus lente
+      expect(newTime).toBeLessThan(legacyTime * 2);
+    });
+  });
+  
+  /**
+   * Test de compatibilité des métadonnées
+   */
+  describe('Metadata Compatibility', () => {
+    it('should generate compatible metadata', async () => {
+      const { element, features } = await parseDSTVFile('M1002.nc');
+      const cutFeatures = features.filter(f => f.type === FeatureType.NOTCH);
+      
+      const adapter = getCutProcessorAdapter({
+        mode: AdapterMode.NEW_ONLY
+      });
+      
+      for (const feature of cutFeatures.slice(0, 3)) { // Test first 3
+        const result = await adapter.process(feature, element);
+        
+        expect(result.metadata).toBeDefined();
+        expect(result.metadata.cutType).toBeDefined();
+        expect(result.metadata.handler).toBeDefined();
+        expect(result.metadata.bounds).toBeDefined();
+        
+        console.log(`\n  📋 Metadata for ${feature.id}:`, {
+          cutType: result.metadata.cutType,
+          handler: result.metadata.handler,
+          face: result.metadata.face,
+          isPartial: result.metadata.isPartial
+        });
+      }
+    });
+  });
+});

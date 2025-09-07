@@ -1,0 +1,4036 @@
+
+[7m[1m[36m RUN [39m[22m[27m [36mv0.34.6[39m [90mD:/GitHub/TOPSTEELCAD[39m
+
+[90mstderr[2m | unknown test[22m[39m
+WARNING: Multiple instances of Three.js being imported.
+
+[90mstderr[2m | unknown test[22m[39m
+<empty line>
+[90mstdout[2m | unknown test[22m[39m
+
+
+📚 UTILISATION:
+============================================================
+1. Pour tester avec un fichier spécifique:
+   DSTV_TEST_FILE=chemin/vers/fichier.nc npm test DSTVImportWithLogs
+
+2. Pour exécuter directement:
+   npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts
+
+3. Avec un fichier spécifique:
+   DSTV_TEST_FILE=test-files/F1001.nc npx vitest run DSTVImportWithLogs
+============================================================
+
+
+
+[90mstdout[2m | src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts[2m > [22m[2mDSTV Import avec logs complets[2m > [22m[2mImport avec logs détaillés[2m > [22m[2mdevrait importer le fichier et afficher tous les logs[22m[39m
+
+
+================================================================================
+🚀 DÉBUT DE L'IMPORT DSTV AVEC LOGS COMPLETS
+================================================================================
+📁 Fichier: test-files/dstv/h5004.nc1
+================================================================================
+
+
+📄 CONTENU DU FICHIER:
+----------------------------------------
+  001 | ST
+  002 | ** h5004.nc1
+  003 |   P2201
+  004 |   h5004
+  005 |   1
+  006 |   h5004
+  007 |   350W
+  008 |   1
+  009 |   HSS51X51X4.8
+  010 |   M
+  011 |     2259.98
+  012 |       50.80
+  013 |       50.80
+  014 |        4.78
+  015 |        4.78
+  016 |        9.56
+  017 |       6.450
+  018 |       0.187
+  019 |     -29.202
+  020 |      60.798
+  021 |       0.000
+  022 |       0.000
+  023 | 
+  024 | 
+  025 | 
+  026 | 
+  027 | AK
+  028 |   v       0.00o      0.00       0.00       0.00       0.00       0.00       0.00
+  029 |        2259.98       0.00       0.00       0.00       0.00       0.00       0.00
+  030 |        2169.09      50.80       0.00       0.00       0.00       0.00       0.00
+  031 |          28.39      50.80       0.00       0.00       0.00       0.00       0.00
+  032 |           0.00       0.00       0.00       0.00       0.00       0.00       0.00
+  033 | AK
+  034 |   o      25.72s      0.00       0.00      29.20       0.00       0.00       0.00
+  035 |          25.72      50.80       0.00       0.00       0.00       0.00       0.00
+  036 |        2177.64      50.80       0.00      60.80       0.00       0.00       0.00
+  037 |        2177.64       0.00       0.00       0.00       0.00       0.00       0.00
+  038 |          25.72       0.00       0.00       0.00       0.00       0.00       0.00
+  039 | AK
+  040 |   u       0.00s      0.00       0.00       0.00       0.00       0.00       0.00
+  041 |        2259.98       0.00       0.00     -60.80       4.78       0.00       0.00
+  042 |        2259.98      50.80       0.00       0.00       0.00       0.00       0.00
+  043 |           0.00      50.80       0.00     -29.20       4.78       0.00       0.00
+  044 |           0.00       0.00       0.00       0.00       0.00       0.00       0.00
+  045 | AK
+  046 |   h       0.00u      0.00       0.00       0.00       0.00       0.00       0.00
+  047 |          28.39      50.80       0.00       0.00       0.00       0.00       0.00
+  048 |        2169.09      50.80       0.00       0.00       0.00       0.00       0.00
+  049 |        2259.98       0.00       0.00       0.00       0.00       0.00       0.00
+  050 |           0.00       0.00       0.00       0.00       0.00       0.00       0.00
+  051 | BO
+  052 |   o      89.01s     25.40      17.50
+  053 |   o     174.93s     25.40      17.50
+  054 |   o     260.85s     25.40      17.50
+  055 |   o     346.77s     25.40      17.50
+  056 |   o     432.69s     25.40      17.50
+  057 |   o     518.61s     25.40      17.50
+  058 |   o     604.53s     25.40      17.50
+  059 |   o     690.45s     25.40      17.50
+  060 |   o     776.37s     25.40      17.50
+  061 |   o     862.29s     25.40      17.50
+  062 |   o     948.21s     25.40      17.50
+  063 |   o    1034.13s     25.40      17.50
+  064 |   o    1120.05s     25.40      17.50
+  065 |   o    1205.97s     25.40      17.50
+  066 |   o    1291.89s     25.40      17.50
+  067 |   o    1377.81s     25.40      17.50
+  068 |   o    1463.73s     25.40      17.50
+  069 |   o    1549.65s     25.40      17.50
+  070 |   o    1635.57s     25.40      17.50
+  071 |   o    1721.49s     25.40      17.50
+  072 |   o    1807.41s     25.40      17.50
+  073 |   o    1893.33s     25.40      17.50
+  074 |   o    1979.25s     25.40      17.50
+  075 |   o    2065.17s     25.40      17.50
+  076 |   o    2151.09s     25.40      17.50
+  077 | BO
+  078 |   u      61.98s     25.40      17.50
+  079 |   u     147.90s     25.40      17.50
+  080 |   u     233.82s     25.40      17.50
+  081 |   u     319.74s     25.40      17.50
+  082 |   u     405.66s     25.40      17.50
+  083 |   u     491.58s     25.40      17.50
+  084 |   u     577.50s     25.40      17.50
+  085 |   u     663.42s     25.40      17.50
+  086 |   u     749.34s     25.40      17.50
+  087 |   u     835.26s     25.40      17.50
+  088 |   u     921.18s     25.40      17.50
+  089 |   u    1007.10s     25.40      17.50
+  090 |   u    1093.02s     25.40      17.50
+  091 |   u    1178.94s     25.40      17.50
+  092 |   u    1264.86s     25.40      17.50
+  093 |   u    1350.78s     25.40      17.50
+  094 |   u    1436.70s     25.40      17.50
+  095 |   u    1522.62s     25.40      17.50
+  096 |   u    1608.54s     25.40      17.50
+  097 |   u    1694.46s     25.40      17.50
+  098 |   u    1780.38s     25.40      17.50
+  099 |   u    1866.30s     25.40      17.50
+  100 |   u    1952.22s     25.40      17.50
+  101 |   u    2038.14s     25.40      17.50
+  102 |   u    2124.06s     25.40      17.50
+  103 |   u    2209.98s     25.40      17.50
+  104 | EN
+  105 | 
+----------------------------------------
+
+
+🔧 DÉBUT DU PIPELINE D'IMPORT
+========================================
+[Pipeline] Processing context initialized {
+  file: [90mundefined[39m,
+  fileSize: [90mundefined[39m,
+  options: [ [32m'config'[39m, [32m'startTime'[39m ]
+}
+[Pipeline] Starting pipeline execution: dstv-import-pipeline { stageCount: [33m5[39m, middlewareCount: [33m0[39m }
+[dstv-lexical-analysis] Starting stage: dstv-lexical-analysis { stageIndex: [33m1[39m, totalStages: [33m5[39m }
+[dstv-lexical-analysis] Starting stage: dstv-lexical-analysis {
+  description: [32m'DSTV Lexical Analysis - Tokenizes DSTV file according to official grammar'[39m,
+  estimatedDuration: [32m'100ms'[39m
+}
+[dstv-lexical-analysis] [dstv-lexical-analysis] Starting lexical analysis { fileSize: [33m3854[39m, contentLength: [33m3854[39m }
+[dstv-lexical-analysis] [dstv-lexical-analysis] Lexical analysis completed { tokensGenerated: [33m478[39m, duration: [32m'1.51ms'[39m, blocksDetected: [33m8[39m }
+[dstv-lexical-analysis] Completed stage: dstv-lexical-analysis { duration: [32m'2.08ms'[39m, outputType: [32m'Object'[39m }
+[dstv-lexical-analysis] Completed stage: dstv-lexical-analysis { duration: [32m'2.93ms'[39m }
+[dstv-syntax-analysis] Starting stage: dstv-syntax-analysis { stageIndex: [33m2[39m, totalStages: [33m5[39m }
+[dstv-syntax-analysis] Starting stage: dstv-syntax-analysis {
+  description: [32m'DSTV Syntax Analysis - Builds AST from tokens according to DSTV grammar'[39m,
+  estimatedDuration: [32m'200ms'[39m
+}
+[dstv-syntax-analysis] [dstv-syntax-analysis] Starting syntax analysis { totalTokens: [33m478[39m, blocksDetected: [33m8[39m }
+🚀 parseBlock called, headerToken: ST
+🎯 parseBlockData called with blockType="ST", DSTVBlockType.ST="ST", equal=true
+🏭 Getting factory...
+🏭 Getting parser for ST...
+🏭 Got parser for ST, rawData: [
+  [32m'P2201'[39m,        [32m'h5004'[39m,
+  [32m'1'[39m,            [32m'h5004'[39m,
+  [32m'350'[39m,          [32m'1'[39m,
+  [32m'HSS51X51X4.8'[39m, [32m'M'[39m,
+  [32m'2259.98'[39m,      [32m'50.80'[39m,
+  [32m'50.80'[39m,        [32m'4.78'[39m,
+  [32m'4.78'[39m,         [32m'9.56'[39m,
+  [32m'6.450'[39m,        [32m'0.187'[39m,
+  [32m'-29.202'[39m,      [32m'60.798'[39m,
+  [32m'0.000'[39m,        [32m'0.000'[39m
+]
+🔍 ST Block raw input:
+  [0]: "P2201"
+  [1]: "h5004"
+  [2]: "1"
+  [3]: "h5004"
+  [4]: "350"
+  [5]: "1"
+  [6]: "HSS51X51X4.8"
+  [7]: "M"
+  [8]: "2259.98"
+  [9]: "50.80"
+  [10]: "50.80"
+  [11]: "4.78"
+  [12]: "4.78"
+  [13]: "9.56"
+  [14]: "6.450"
+📐 Parsing dimensions from index 8 for type TUBE_RECT
+  Raw values: [8]="2259.98", [9]="50.80", [10]="50.80"
+🎯 Detected profileType: "TUBE_RECT" for profile "HSS51X51X4.8"
+📊 Parsed dimensions: L=2259.98, H=50.8, W=50.8
+🚀 parseBlock called, headerToken: AK
+🎯 parseBlockData called with blockType="AK", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for AK...
+🏭 Got parser for AK, rawData: [
+  [32m'v'[39m,       [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'2259.98'[39m, [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'2169.09'[39m,
+  [32m'50.80'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'28.39'[39m, [32m'50.80'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m
+]
+🔍 AKBlockParser - Input (36 fields): [
+  [32m'v'[39m,       [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'2259.98'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m
+]
+🔍 AKBlockParser - ALL Input: [
+  [32m'v'[39m,       [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'2259.98'[39m, [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'2169.09'[39m,
+  [32m'50.80'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'28.39'[39m, [32m'50.80'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m, [32m'0.00'[39m,  [32m'0.00'[39m
+]
+🔍 isLegacyFaceIndicatorFormat - Checking 36 fields
+🔍 First field: "v", length: 1
+🔍 Format legacy détecté: première lettre = v
+🔍 AK Format: LEGACY with face indicators
+🔍 AK Format detection: faces=1, numeric=35, zeros=30, total=36
+🔍 Detected MATRIX_7 format (high zero ratio: 30/36)
+🔍 Parsing MATRIX format with 36 fields
+🔄 AK Block: mapping face indicator 'v' → web
+🔍 Face extraite: v → web
+✅ AK Point parsed (MATRIX): [0, 0] from line starting at 1
+✅ AK Point parsed (MATRIX): [2259.98, 0] from line starting at 8
+✅ AK Point parsed (MATRIX): [2169.09, 50.8] from line starting at 15
+✅ AK Point parsed (MATRIX): [28.39, 50.8] from line starting at 22
+✅ AK Point parsed (MATRIX): [0, 0] from line starting at 29
+🔍 MATRIX format extracted 5 points, face=web
+🔍 AK Legacy parsing result: 5 points, face=web
+🚀 parseBlock called, headerToken: AK
+🎯 parseBlockData called with blockType="AK", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for AK...
+🏭 Got parser for AK, rawData: [
+  [32m'o'[39m,     [32m'25.72'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'29.20'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'25.72'[39m, [32m'50.80'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'2177.64'[39m,
+  [32m'50.80'[39m, [32m'0.00'[39m,  [32m'60.80'[39m,   [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'2177.64'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'25.72'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m
+]
+🔍 AKBlockParser - Input (36 fields): [
+  [32m'o'[39m,     [32m'25.72'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'29.20'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'25.72'[39m, [32m'50.80'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m
+]
+🔍 AKBlockParser - ALL Input: [
+  [32m'o'[39m,     [32m'25.72'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'29.20'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'25.72'[39m, [32m'50.80'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'2177.64'[39m,
+  [32m'50.80'[39m, [32m'0.00'[39m,  [32m'60.80'[39m,   [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'2177.64'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'25.72'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m
+]
+🔍 isLegacyFaceIndicatorFormat - Checking 36 fields
+🔍 First field: "o", length: 1
+🔍 Format legacy détecté: première lettre = o
+🔍 AK Format: LEGACY with face indicators
+🔍 AK Format detection: faces=1, numeric=35, zeros=26, total=36
+🔍 Detected MATRIX_7 format (high zero ratio: 26/36)
+🔍 Parsing MATRIX format with 36 fields
+🔄 AK Block: mapping face indicator 'o' → top_flange
+🔍 Face extraite: o → top_flange
+✅ AK Point parsed (MATRIX): [25.72, 0] from line starting at 1
+✅ AK Point parsed (MATRIX): [25.72, 50.8] from line starting at 8
+✅ AK Point parsed (MATRIX): [2177.64, 50.8] from line starting at 15
+✅ AK Point parsed (MATRIX): [2177.64, 0] from line starting at 22
+✅ AK Point parsed (MATRIX): [25.72, 0] from line starting at 29
+🔍 MATRIX format extracted 5 points, face=top_flange
+🔍 AK Legacy parsing result: 5 points, face=top_flange
+🚀 parseBlock called, headerToken: AK
+🎯 parseBlockData called with blockType="AK", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for AK...
+🏭 Got parser for AK, rawData: [
+  [32m'u'[39m,       [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,
+  [32m'2259.98'[39m, [32m'0.00'[39m,   [32m'0.00'[39m, [32m'-60.80'[39m,
+  [32m'4.78'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'2259.98'[39m,
+  [32m'50.80'[39m,   [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'50.80'[39m,
+  [32m'0.00'[39m,    [32m'-29.20'[39m, [32m'4.78'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m
+]
+🔍 AKBlockParser - Input (36 fields): [
+  [32m'u'[39m,       [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'2259.98'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'-60.80'[39m
+]
+🔍 AKBlockParser - ALL Input: [
+  [32m'u'[39m,       [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,
+  [32m'2259.98'[39m, [32m'0.00'[39m,   [32m'0.00'[39m, [32m'-60.80'[39m,
+  [32m'4.78'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'2259.98'[39m,
+  [32m'50.80'[39m,   [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'50.80'[39m,
+  [32m'0.00'[39m,    [32m'-29.20'[39m, [32m'4.78'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m, [32m'0.00'[39m
+]
+🔍 isLegacyFaceIndicatorFormat - Checking 36 fields
+🔍 First field: "u", length: 1
+🔍 Format legacy détecté: première lettre = u
+🔍 AK Format: LEGACY with face indicators
+🔍 AK Format detection: faces=1, numeric=35, zeros=27, total=36
+🔍 Detected MATRIX_7 format (high zero ratio: 27/36)
+🔍 Parsing MATRIX format with 36 fields
+🔄 AK Block: mapping face indicator 'u' → bottom_flange
+🔍 Face extraite: u → bottom_flange
+✅ AK Point parsed (MATRIX): [0, 0] from line starting at 1
+✅ AK Point parsed (MATRIX): [2259.98, 0] from line starting at 8
+✅ AK Point parsed (MATRIX): [2259.98, 50.8] from line starting at 15
+✅ AK Point parsed (MATRIX): [0, 50.8] from line starting at 22
+✅ AK Point parsed (MATRIX): [0, 0] from line starting at 29
+🔍 MATRIX format extracted 5 points, face=bottom_flange
+🔍 AK Legacy parsing result: 5 points, face=bottom_flange
+🚀 parseBlock called, headerToken: AK
+🎯 parseBlockData called with blockType="AK", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for AK...
+🏭 Got parser for AK, rawData: [
+  [32m'h'[39m,     [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'28.39'[39m, [32m'50.80'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'2169.09'[39m,
+  [32m'50.80'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'2259.98'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m
+]
+🔍 AKBlockParser - Input (36 fields): [
+  [32m'h'[39m,     [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,
+  [32m'28.39'[39m, [32m'50.80'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m
+]
+🔍 AKBlockParser - ALL Input: [
+  [32m'h'[39m,     [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'28.39'[39m, [32m'50.80'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'2169.09'[39m,
+  [32m'50.80'[39m, [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'2259.98'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'0.00'[39m,  [32m'0.00'[39m,  [32m'0.00'[39m,    [32m'0.00'[39m
+]
+🔍 isLegacyFaceIndicatorFormat - Checking 36 fields
+🔍 First field: "h", length: 1
+🔍 Format legacy détecté: première lettre = h
+🔍 AK Format: LEGACY with face indicators
+🔍 AK Format detection: faces=1, numeric=35, zeros=30, total=36
+🔍 Detected MATRIX_7 format (high zero ratio: 30/36)
+🔍 Parsing MATRIX format with 36 fields
+🔄 AK Block: mapping face indicator 'h' → front
+🔍 Face extraite: h → front
+✅ AK Point parsed (MATRIX): [0, 0] from line starting at 1
+✅ AK Point parsed (MATRIX): [28.39, 50.8] from line starting at 8
+✅ AK Point parsed (MATRIX): [2169.09, 50.8] from line starting at 15
+✅ AK Point parsed (MATRIX): [2259.98, 0] from line starting at 22
+✅ AK Point parsed (MATRIX): [0, 0] from line starting at 29
+🔍 MATRIX format extracted 5 points, face=front
+🔍 AK Legacy parsing result: 5 points, face=front
+🚀 parseBlock called, headerToken: BO
+🎯 parseBlockData called with blockType="BO", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for BO...
+🏭 Got parser for BO, rawData: [
+  [32m'o'[39m,     [32m'89.01'[39m,   [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'174.93'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'260.85'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'346.77'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'432.69'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'518.61'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'604.53'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'690.45'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'776.37'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'862.29'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'948.21'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1034.13'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'1120.05'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1205.97'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1291.89'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'1377.81'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1463.73'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1549.65'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'1635.57'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1721.49'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1807.41'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'1893.33'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1979.25'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'2065.17'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'2151.09'[39m, [32m'25.40'[39m, [32m'17.50'[39m
+]
+🔧 BOBlockParser.process called with 100 lines: [
+  [32m'o'[39m,     [32m'89.01'[39m,   [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'174.93'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'260.85'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'346.77'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'432.69'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'518.61'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'604.53'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'690.45'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'776.37'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'862.29'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'948.21'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1034.13'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'1120.05'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1205.97'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1291.89'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'1377.81'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1463.73'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1549.65'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'1635.57'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1721.49'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1807.41'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'1893.33'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'1979.25'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'o'[39m,     [32m'2065.17'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'o'[39m,     [32m'2151.09'[39m, [32m'25.40'[39m, [32m'17.50'[39m
+]
+🔍 BO format detected: LEGACY
+🔍 BO parseLegacyFormat called with 100 fields
+  First few fields: [ [32m'o'[39m, [32m'89.01'[39m, [32m'25.40'[39m, [32m'17.50'[39m, [32m'o'[39m ]
+🔍 Parsed hole from separated format: face=o, x=89.01, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=260.85, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=432.69, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=604.53, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=776.37, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=948.21, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=1120.05, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=1291.89, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=1463.73, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=1635.57, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=1807.41, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=1979.25, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=o, x=2151.09, y=25.4, d=17.5
+🔍 Legacy format parsed 13 holes
+📦 BO normalization: wrapping 13 holes in { holes: [...] } structure
+🚀 parseBlock called, headerToken: BO
+🎯 parseBlockData called with blockType="BO", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for BO...
+🏭 Got parser for BO, rawData: [
+  [32m'u'[39m,     [32m'61.98'[39m,   [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'147.90'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'233.82'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'319.74'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'405.66'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'491.58'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'577.50'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'663.42'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'749.34'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'835.26'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'921.18'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1007.10'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'1093.02'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1178.94'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1264.86'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'1350.78'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1436.70'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1522.62'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'1608.54'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1694.46'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1780.38'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'1866.30'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1952.22'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'2038.14'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'2124.06'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  ... 4 more items
+]
+🔧 BOBlockParser.process called with 104 lines: [
+  [32m'u'[39m,     [32m'61.98'[39m,   [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'147.90'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'233.82'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'319.74'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'405.66'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'491.58'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'577.50'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'663.42'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'749.34'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'835.26'[39m,  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'921.18'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1007.10'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'1093.02'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1178.94'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1264.86'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'1350.78'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1436.70'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1522.62'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'1608.54'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1694.46'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1780.38'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'1866.30'[39m, [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'1952.22'[39m,
+  [32m'25.40'[39m, [32m'17.50'[39m,   [32m'u'[39m,     [32m'2038.14'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  [32m'u'[39m,     [32m'2124.06'[39m, [32m'25.40'[39m, [32m'17.50'[39m,
+  ... 4 more items
+]
+🔍 BO format detected: LEGACY
+🔍 BO parseLegacyFormat called with 104 fields
+  First few fields: [ [32m'u'[39m, [32m'61.98'[39m, [32m'25.40'[39m, [32m'17.50'[39m, [32m'u'[39m ]
+🔍 Parsed hole from separated format: face=u, x=61.98, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=233.82, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=405.66, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=577.5, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=749.34, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=921.18, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=1093.02, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=1264.86, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=1436.7, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=1608.54, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=1780.38, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=1952.22, y=25.4, d=17.5
+🔍 Parsed hole from separated format: face=u, x=2124.06, y=25.4, d=17.5
+🔍 Legacy format parsed 13 holes
+📦 BO normalization: wrapping 13 holes in { holes: [...] } structure
+🚀 parseBlock called, headerToken: EN
+🎯 parseBlockData called with blockType="EN", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for EN...
+🏭 Got parser for EN, rawData: []
+[dstv-syntax-analysis] [dstv-syntax-analysis] Syntax analysis completed { blocksParsed: [33m8[39m, duration: [32m'7.17ms'[39m, profile: [32m'HSS51X51X4.8'[39m }
+[dstv-syntax-analysis] Completed stage: dstv-syntax-analysis { duration: [32m'7.36ms'[39m, outputType: [32m'Object'[39m }
+[dstv-syntax-analysis] Completed stage: dstv-syntax-analysis { duration: [32m'7.58ms'[39m }
+[dstv-semantic-validation] Starting stage: dstv-semantic-validation { stageIndex: [33m3[39m, totalStages: [33m5[39m }
+[dstv-semantic-validation] Starting stage: dstv-semantic-validation {
+  description: [32m'DSTV Semantic Validation - Validates DSTV data against business rules and standards'[39m,
+  estimatedDuration: [32m'150ms'[39m
+}
+[dstv-semantic-validation] [dstv-semantic-validation] Starting semantic validation { totalBlocks: [33m8[39m, profile: [32m'HSS51X51X4.8'[39m }
+[dstv-semantic-validation] [dstv-semantic-validation] Semantic validation completed {
+  validBlocks: [33m8[39m,
+  totalErrors: [33m0[39m,
+  totalWarnings: [33m3[39m,
+  conformityScore: [32m'99.4%'[39m,
+  duration: [32m'1.30ms'[39m
+}
+[dstv-semantic-validation] Completed stage: dstv-semantic-validation { duration: [32m'1.53ms'[39m, outputType: [32m'Object'[39m }
+[dstv-semantic-validation] Completed stage: dstv-semantic-validation { duration: [32m'1.69ms'[39m }
+[dstv-normalization] Starting stage: dstv-normalization { stageIndex: [33m4[39m, totalStages: [33m5[39m }
+[dstv-normalization] Starting stage: dstv-normalization {
+  description: [32m'DSTV Normalization - Converts DSTV data to normalized internal format'[39m,
+  estimatedDuration: [32m'100ms'[39m
+}
+[dstv-normalization] [dstv-normalization] Starting normalization { validBlocks: [33m8[39m, conformityScore: [32m'99.4%'[39m }
+📦 ST Block data received: {
+  "orderNumber": "P2201",
+  "drawingNumber": "h5004",
+  "phaseNumber": "1",
+  "pieceNumber": "h5004",
+  "steelGrade": "350",
+  "quantity": 1,
+  "profileName": "HSS51X51X4.8",
+  "profileType": "TUBE_RECT",
+  "length": 2259.98,
+  "height": 50.8,
+  "width": 50.8,
+  "webThickness": 4.78,
+  "flangeThickness": 4.78,
+  "weight": 9.56,
+  "paintingSurface": 6.45,
+  "radius": 0.187,
+  "blockType": "ST"
+}
+🔍🔍🔍 extractCrossSectionFromSTData - profileType: "TUBE_RECT", profileName: "HSS51X51X4.8"
+  Raw data fields: height=50.8, width=50.8, profileHeight=undefined, profileWidth=undefined
+  webThickness=4.78, flangeThickness=4.78
+✅ Extracted TUBE dimensions from ST data: height=50.8, width=50.8, thickness=4.78, radius=0.187
+📐 Profile type mapping: DSTV="TUBE_RECT" → Internal="TUBE_RECT"
+📐 Profile dimensions set for coordinate conversion: { length: [33m2259.98[39m, height: [33m50.8[39m, width: [33m50.8[39m }
+🔍 Profile type detection: name="HSS51X51X4.8", type="TUBE_RECT"
+✅ Detected TUBE_RECT from HSS/RHS/SHS: HSS51X51X4.8
+🔍 Mapping profile type: profileName="HSS51X51X4.8", profileType="TUBE_RECT" → mappedType="TUBE_RECT"
+  🔍 AK Processing - Current profile type: TUBE_RECT
+  🔍 AK Processing - Profile dimensions: { length: [33m2259.98[39m, height: [33m50.8[39m, width: [33m50.8[39m }
+  🎯 TUBE DETECTED (TUBE_RECT): Processing AK as final shape
+     Contour X bounds: [0.0, 2260.0]
+     Profile length: 2260.0
+     Sorted X points: [0.0, 0.0, 28.4, 2169.1, 2260.0]
+     Significant points: START=28.4, END=2169.1
+     🔍 START cut detected: cut from 0 to X=28.4 -> cut length = 28.4mm
+     🔍 END cut detected: cut from X=2169.1 to 2260.0 -> cut length = 90.9mm
+     🔺 START Angle cut detected:
+        - Points: (28.4, 50.8) → (0.0, 0.0)
+        - dx=-28.4, dy=-50.8
+        - atan2(28.4, 50.8) = 29.2° (from vertical)
+     🔺 END Angle cut detected:
+        - Points: (2260.0, 0.0) → (2169.1, 50.8)
+        - dx=-90.9, dy=50.8
+        - atan2(90.9, 50.8) = 60.8° (from vertical)
+  🔍 AK Processing - Current profile type: TUBE_RECT
+  🔍 AK Processing - Profile dimensions: { length: [33m2259.98[39m, height: [33m50.8[39m, width: [33m50.8[39m }
+  🎯 TUBE DETECTED (TUBE_RECT): Processing AK as final shape
+  ⏭️ Skipping AK contour for tube on face top_flange (only processing main face 'v'/'web')
+  🔍 AK Processing - Current profile type: TUBE_RECT
+  🔍 AK Processing - Profile dimensions: { length: [33m2259.98[39m, height: [33m50.8[39m, width: [33m50.8[39m }
+  🎯 TUBE DETECTED (TUBE_RECT): Processing AK as final shape
+  ⏭️ Skipping AK contour for tube on face bottom_flange (only processing main face 'v'/'web')
+  🔍 AK Processing - Current profile type: TUBE_RECT
+  🔍 AK Processing - Profile dimensions: { length: [33m2259.98[39m, height: [33m50.8[39m, width: [33m50.8[39m }
+  🎯 TUBE DETECTED (TUBE_RECT): Processing AK as final shape
+  ⏭️ Skipping AK contour for tube on face front (only processing main face 'v'/'web')
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=o, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=TUBE_RECT, face=u, Y=25.4, height=50.8
+  📐 BO normalization: hole.depth=0, normalized depth=0
+[dstv-normalization] [dstv-normalization] Normalization completed {
+  featuresNormalized: [33m28[39m,
+  profileName: [32m'HSS51X51X4.8'[39m,
+  duration: [32m'5.54ms'[39m
+}
+[dstv-normalization] Completed stage: dstv-normalization { duration: [32m'5.74ms'[39m, outputType: [32m'Object'[39m }
+[dstv-normalization] Completed stage: dstv-normalization { duration: [32m'5.92ms'[39m }
+[dstv-scene-building] Starting stage: dstv-scene-building { stageIndex: [33m5[39m, totalStages: [33m5[39m }
+[dstv-scene-building] Starting stage: dstv-scene-building {
+  description: [32m'DSTV Scene Building - Builds final 3D scene from normalized DSTV data'[39m,
+  estimatedDuration: [32m'200ms'[39m
+}
+[dstv-scene-building] [dstv-scene-building] Starting scene building { profiles: [33m1[39m, totalFeatures: [33m28[39m }
+🚨 buildProfileElements - profile type: TUBE_RECT name: HSS51X51X4.8
+📐 GeometryBridge.createProfileGeometry - profile: {
+  id: [32m'P2201_h5004_h5004'[39m,
+  type: [32m'TUBE_RECT'[39m,
+  name: [32m'HSS51X51X4.8'[39m,
+  dimensions: {
+    length: [33m2259.98[39m,
+    crossSection: {
+      height: [33m50.8[39m,
+      width: [33m50.8[39m,
+      thickness: [33m4.78[39m,
+      wallThickness: [33m4.78[39m,
+      radius: [33m0.187[39m
+    }
+  }
+}
+🔧 GeometryBridge: Available generators: [
+  [32m'I_PROFILE'[39m, [32m'U_PROFILE'[39m,
+  [32m'L_PROFILE'[39m, [32m'T_PROFILE'[39m,
+  [32m'C_PROFILE'[39m, [32m'Z_PROFILE'[39m,
+  [32m'TUBE_RECT'[39m, [32m'TUBE_ROUND'[39m,
+  [32m'PLATE'[39m,     [32m'FLAT_BAR'[39m
+]
+🎯 GeometryBridge: Looking for generator for type: TUBE_RECT
+🏭 GeometryBridge: Using generator TubeGenerator for profile TUBE_RECT
+📝 GeometryBridge: Prepared params: {
+  length: [33m2259.98[39m,
+  height: [33m50.8[39m,
+  width: [33m50.8[39m,
+  profileType: [32m'TUBE_RECT'[39m,
+  profileName: [32m'HSS51X51X4.8'[39m,
+  wallThickness: [33m4.78[39m,
+  thickness: [33m4.78[39m,
+  isRound: [33mfalse[39m,
+  material: [32m'350'[39m,
+  density: [33m7850[39m
+}
+🔧 Calling TubeGenerator with dimensions: {
+  height: [33m50.8[39m,
+  width: [33m50.8[39m,
+  profileType: [32m'TUBE_RECT'[39m,
+  profileName: [32m'HSS51X51X4.8'[39m,
+  wallThickness: [33m4.78[39m,
+  thickness: [33m4.78[39m,
+  isRound: [33mfalse[39m,
+  material: [32m'350'[39m,
+  density: [33m7850[39m
+} and length: [33m2259.98[39m
+🔧 TubeGenerator.generate called with: {
+  dimensions: {
+    height: [33m50.8[39m,
+    width: [33m50.8[39m,
+    profileType: [32m'TUBE_RECT'[39m,
+    profileName: [32m'HSS51X51X4.8'[39m,
+    wallThickness: [33m4.78[39m,
+    thickness: [33m4.78[39m,
+    isRound: [33mfalse[39m,
+    material: [32m'350'[39m,
+    density: [33m7850[39m
+  },
+  length: [33m2259.98[39m
+}
+🎯 TubeGenerator: Determined profile type: TUBE_SQUARE
+🔄 TubeGenerator: Generating rectangular tube
+🏗️ TubeGenerator.generateRectangularTube called with: {
+  dimensions: {
+    height: [33m50.8[39m,
+    width: [33m50.8[39m,
+    profileType: [32m'TUBE_RECT'[39m,
+    profileName: [32m'HSS51X51X4.8'[39m,
+    wallThickness: [33m4.78[39m,
+    thickness: [33m4.78[39m,
+    isRound: [33mfalse[39m,
+    material: [32m'350'[39m,
+    density: [33m7850[39m
+  },
+  length: [33m2259.98[39m
+}
+📏 Tube dimensions extracted: { height: [33m50.8[39m, width: [33m50.8[39m, thickness: [33m4.78[39m, outerRadius: [33m0[39m }
+🎨 Creating rectangular tube profile...
+🎨 createRectangularTubeProfile called with: { height: [33m50.8[39m, width: [33m50.8[39m, thickness: [33m4.78[39m, outerRadius: [33m0[39m }
+📐 Profile parameters: { h: [33m50.8[39m, w: [33m50.8[39m, t: [33m4.78[39m, r: [33m0[39m }
+🔲 Creating outer shape...
+🔍 Outer shape created: { type: [32m'Shape'[39m, isShape: [33mtrue[39m, hasMoveTo: [33mtrue[39m, hasLineTo: [33mtrue[39m }
+🕳️ Adding inner hole to outer shape
+✅ Rectangular tube profile completed: { hasShape: [33mtrue[39m, holes: [33m1[39m }
+✅ Profile created: Shape {
+  type: [32m'Shape'[39m,
+  arcLengthDivisions: [33m200[39m,
+  curves: [
+    LineCurve {
+      type: [32m'LineCurve'[39m,
+      arcLengthDivisions: [33m200[39m,
+      isLineCurve: [33mtrue[39m,
+      v1: [36m[Vector2][39m,
+      v2: [36m[Vector2][39m
+    },
+    LineCurve {
+      type: [32m'LineCurve'[39m,
+      arcLengthDivisions: [33m200[39m,
+      isLineCurve: [33mtrue[39m,
+      v1: [36m[Vector2][39m,
+      v2: [36m[Vector2][39m
+    },
+    LineCurve {
+      type: [32m'LineCurve'[39m,
+      arcLengthDivisions: [33m200[39m,
+      isLineCurve: [33mtrue[39m,
+      v1: [36m[Vector2][39m,
+      v2: [36m[Vector2][39m
+    },
+    LineCurve {
+      type: [32m'LineCurve'[39m,
+      arcLengthDivisions: [33m200[39m,
+      isLineCurve: [33mtrue[39m,
+      v1: [36m[Vector2][39m,
+      v2: [36m[Vector2][39m
+    }
+  ],
+  autoClose: [33mfalse[39m,
+  currentPoint: Vector2 { x: [33m-25.4[39m, y: [33m-25.4[39m },
+  uuid: [32m'7ff0d11f-1bc3-451d-a4aa-165beab95f15'[39m,
+  holes: [
+    Shape {
+      type: [32m'Shape'[39m,
+      arcLengthDivisions: [33m200[39m,
+      curves: [36m[Array][39m,
+      autoClose: [33mfalse[39m,
+      currentPoint: [36m[Vector2][39m,
+      uuid: [32m'a94b659b-bb98-4ed0-b294-cc52b2a81adb'[39m,
+      holes: []
+    }
+  ]
+}
+⚙️ Extrude settings: { depth: [33m2259.98[39m, bevelEnabled: [33mfalse[39m, steps: [33m1[39m, curveSegments: [33m1[39m }
+🔨 Creating ExtrudeGeometry...
+🔍 Profile validation before ExtrudeGeometry:
+  - Profile type: Shape
+  - Profile holes: [33m1[39m
+  - Profile is Shape: [33mtrue[39m
+📊 Raw ExtrudeGeometry created: {
+  vertices: [33m96[39m,
+  faces: [33m0[39m,
+  hasPosition: [33mtrue[39m,
+  hasIndex: [33mfalse[39m,
+  type: [32m'ExtrudeGeometry'[39m
+}
+📍 Position details: { itemSize: [33m3[39m, count: [33m96[39m, arrayType: [32m'Float32Array'[39m }
+🔍 First few vertices:
+  Vertex 0: (-20.62, 20.62, 0.00)
+  Vertex 1: (-20.62, -20.62, 0.00)
+  Vertex 2: (-25.40, -25.40, 0.00)
+  Vertex 3: (-25.40, -25.40, 0.00)
+  Vertex 4: (-20.62, -20.62, 0.00)
+  Vertex 5: (20.62, -20.62, 0.00)
+📍 Keeping geometry on Z-axis (original orientation)
+📊 Centered geometry: { vertices: [33m96[39m, faces: [33m0[39m }
+✅ TubeGenerator: Generated geometry with: {
+  vertices: [33m96[39m,
+  faces: [33m0[39m,
+  hasPosition: [33mtrue[39m,
+  hasIndex: [33mfalse[39m,
+  geometryType: [32m'ExtrudeGeometry'[39m
+}
+✅ GeometryBridge: Generator returned geometry with vertices: [33m96[39m
+Created TUBE_RECT geometry using existing generator
+🔍 SceneBuildingStage: Geometry state before applying features: {
+  profileId: [32m'P2201_h5004_h5004'[39m,
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  originalVertexCount: [33m96[39m,
+  geometryType: [32m'ExtrudeGeometry'[39m
+}
+📦 Applying 28 features to profile P2201_h5004_h5004 (sorted by DSTV priority):
+  Feature 0: id=dstv_end_cut_start_1, type=end_cut, priority=750, block=AK
+  Feature 1: id=dstv_end_cut_end_3, type=end_cut, priority=750, block=AK
+  Feature 2: id=dstv_hole_4, type=hole, priority=500, block=BO
+  Feature 3: id=dstv_hole_5, type=hole, priority=500, block=BO
+  Feature 4: id=dstv_hole_6, type=hole, priority=500, block=BO
+  Feature 5: id=dstv_hole_7, type=hole, priority=500, block=BO
+  Feature 6: id=dstv_hole_8, type=hole, priority=500, block=BO
+  Feature 7: id=dstv_hole_9, type=hole, priority=500, block=BO
+  Feature 8: id=dstv_hole_10, type=hole, priority=500, block=BO
+  Feature 9: id=dstv_hole_11, type=hole, priority=500, block=BO
+  Feature 10: id=dstv_hole_12, type=hole, priority=500, block=BO
+  Feature 11: id=dstv_hole_13, type=hole, priority=500, block=BO
+  Feature 12: id=dstv_hole_14, type=hole, priority=500, block=BO
+  Feature 13: id=dstv_hole_15, type=hole, priority=500, block=BO
+  Feature 14: id=dstv_hole_16, type=hole, priority=500, block=BO
+  Feature 15: id=dstv_hole_17, type=hole, priority=500, block=BO
+  Feature 16: id=dstv_hole_18, type=hole, priority=500, block=BO
+  Feature 17: id=dstv_hole_19, type=hole, priority=500, block=BO
+  Feature 18: id=dstv_hole_20, type=hole, priority=500, block=BO
+  Feature 19: id=dstv_hole_21, type=hole, priority=500, block=BO
+  Feature 20: id=dstv_hole_22, type=hole, priority=500, block=BO
+  Feature 21: id=dstv_hole_23, type=hole, priority=500, block=BO
+  Feature 22: id=dstv_hole_24, type=hole, priority=500, block=BO
+  Feature 23: id=dstv_hole_25, type=hole, priority=500, block=BO
+  Feature 24: id=dstv_hole_26, type=hole, priority=500, block=BO
+  Feature 25: id=dstv_hole_27, type=hole, priority=500, block=BO
+  Feature 26: id=dstv_hole_28, type=hole, priority=500, block=BO
+  Feature 27: id=dstv_hole_29, type=hole, priority=500, block=BO
+✅ SceneBuildingStage: Starting feature application with 96 vertices
+🎯 Processing 28 features in 2 priority groups
+
+📦 Processing priority group 750 (AK): 2 features
+  🔧 Processing end_cut feature dstv_end_cut_start_1
+🔧 ProcessorBridge: Applying normalized feature dstv_end_cut_start_1 of type end_cut
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m96[39m,
+  geometryType: [32m'ExtrudeGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_end_cut_start_1
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_end_cut_start_1'[39m,
+  featureType: [32m'end_cut'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m },
+  outputPosition: { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m },
+  rawFace: [32m'web'[39m,
+  mappedFace: [32m'web'[39m,
+  timestamp: [33m1756837575319[39m
+}
+  → WEB face: rotation (0, 0, π/2) - hole through web along X axis
+✅ Converted feature dstv_end_cut_start_1 type end_cut, using processor factory...
+📋 Feature details: {
+  type: [32m'end_cut'[39m,
+  id: [32m'dstv_end_cut_start_1'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  parameters: {
+    chamferLength: [33m28.39[39m,
+    angle: [33m29.199002736968506[39m,
+    position: [32m'start'[39m,
+    cutType: [32m'end_cut'[39m,
+    isEndCut: [33mtrue[39m,
+    cutPosition: [32m'start'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: end_cut, id: dstv_end_cut_start_1
+✅ Found processor for end_cut, calling process...
+
+================================================================================
+🔪 CUT OPERATION START
+================================================================================
+📋 Feature: dstv_end_cut_start_1 | Type: end_cut
+🏗️ Element: P2201_h5004_h5004 | Profile: TUBE_RECT
+📍 Face: web
+================================================================================
+  🔍 Checking end_cut feature dstv_end_cut_start_1: {
+  type: [32m'end_cut'[39m,
+  isEndCut: [33mtrue[39m,
+  cutType: [32m'end_cut'[39m,
+  params: {
+    chamferLength: [33m28.39[39m,
+    angle: [33m29.199002736968506[39m,
+    position: [32m'start'[39m,
+    cutType: [32m'end_cut'[39m,
+    isEndCut: [33mtrue[39m,
+    cutPosition: [32m'start'[39m
+  }
+}
+  🔧 Processing END_CUT feature for tube
+  🔧 Processing END_CUT for tube P2201_h5004_h5004
+  📐 Feature parameters: {
+  angle: [33m29.199002736968506[39m,
+  length: [90mundefined[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m },
+  cutPosition: [32m'start'[39m,
+  hasContourPoints: [33mfalse[39m
+}
+  📍 Feature position details:
+     - position.x = 0
+     - position.y = 0
+     - position.z = 0
+     - cutPosition param = start
+    Position: START (z=0.0)
+    Cut angle: 29.199002736968506°
+    Cut length: 50.0 mm
+    📐 END_CUT rotation:
+       - position: START
+       - input angle: 29.199002736968506° (from vertical)
+       - rotation applied: -0.5096187360589363 rad = -29.2°
+       - sign: negative (forward tilt)
+    📐 Added END_CUT info to userData: {
+  id: [32m'dstv_end_cut_start_1'[39m,
+  type: [32m'END_CUT'[39m,
+  face: [32m'end'[39m,
+  position: [32m'start'[39m,
+  angle: [33m29.199002736968506[39m,
+  bounds: {
+    minX: [33m0[39m,
+    maxX: [33m0[39m,
+    minY: [33m-25.4[39m,
+    maxY: [33m25.4[39m,
+    minZ: [33m-25.4[39m,
+    maxZ: [33m25.4[39m
+  },
+  depth: [33m28.39[39m
+}
+    📐 Total cuts in userData: 1
+📊 Processing result for dstv_end_cut_start_1: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m219[39m vertices
+  🔧 Processing end_cut feature dstv_end_cut_end_3
+🔧 ProcessorBridge: Applying normalized feature dstv_end_cut_end_3 of type end_cut
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m219[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_end_cut_end_3
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_end_cut_end_3'[39m,
+  featureType: [32m'end_cut'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m0[39m, z: [33m2259.98[39m },
+  outputPosition: { x: [33m0[39m, y: [33m0[39m, z: [33m2259.98[39m },
+  rawFace: [32m'web'[39m,
+  mappedFace: [32m'web'[39m,
+  timestamp: [33m1756837575344[39m
+}
+  → WEB face: rotation (0, 0, π/2) - hole through web along X axis
+✅ Converted feature dstv_end_cut_end_3 type end_cut, using processor factory...
+📋 Feature details: {
+  type: [32m'end_cut'[39m,
+  id: [32m'dstv_end_cut_end_3'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m2259.98[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  parameters: {
+    chamferLength: [33m90.88999999999987[39m,
+    angle: [33m60.79841681673516[39m,
+    position: [32m'end'[39m,
+    cutType: [32m'end_cut'[39m,
+    isEndCut: [33mtrue[39m,
+    cutPosition: [32m'end'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: end_cut, id: dstv_end_cut_end_3
+✅ Found processor for end_cut, calling process...
+
+================================================================================
+🔪 CUT OPERATION START
+================================================================================
+📋 Feature: dstv_end_cut_end_3 | Type: end_cut
+🏗️ Element: P2201_h5004_h5004 | Profile: TUBE_RECT
+📍 Face: web
+================================================================================
+  🔍 Checking end_cut feature dstv_end_cut_end_3: {
+  type: [32m'end_cut'[39m,
+  isEndCut: [33mtrue[39m,
+  cutType: [32m'end_cut'[39m,
+  params: {
+    chamferLength: [33m90.88999999999987[39m,
+    angle: [33m60.79841681673516[39m,
+    position: [32m'end'[39m,
+    cutType: [32m'end_cut'[39m,
+    isEndCut: [33mtrue[39m,
+    cutPosition: [32m'end'[39m
+  }
+}
+  🔧 Processing END_CUT feature for tube
+  🔧 Processing END_CUT for tube P2201_h5004_h5004
+  📐 Feature parameters: {
+  angle: [33m60.79841681673516[39m,
+  length: [90mundefined[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m2259.98[39m },
+  cutPosition: [32m'end'[39m,
+  hasContourPoints: [33mfalse[39m
+}
+  📍 Feature position details:
+     - position.x = 0
+     - position.y = 0
+     - position.z = 2259.98
+     - cutPosition param = end
+    Position: END (z=2260.0)
+    Cut angle: 60.79841681673516°
+    Cut length: 50.0 mm
+    📐 END_CUT rotation:
+       - position: END
+       - input angle: 60.79841681673516° (from vertical)
+       - rotation applied: 1.0611325534519185 rad = 60.8°
+       - sign: positive (backward tilt)
+    📐 Added END_CUT info to userData: {
+  id: [32m'dstv_end_cut_end_3'[39m,
+  type: [32m'END_CUT'[39m,
+  face: [32m'end'[39m,
+  position: [32m'end'[39m,
+  angle: [33m60.79841681673516[39m,
+  bounds: {
+    minX: [33m2259.98[39m,
+    maxX: [33m2259.98[39m,
+    minY: [33m-25.4[39m,
+    maxY: [33m25.4[39m,
+    minZ: [33m-25.4[39m,
+    maxZ: [33m25.4[39m
+  },
+  depth: [33m90.88999999999987[39m
+}
+    📐 Total cuts in userData: 2
+📊 Processing result for dstv_end_cut_end_3: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m327[39m vertices
+
+📦 Processing priority group 500 (BO): 26 features
+  ⚡ Batch processing 26 BO features
+    📐 Processing 13 features on face o
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_4 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m327[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_4
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_4'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m89.01[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m89.01[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575356[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_4 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_4'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m89.01[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_4
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_4'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m89.01[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 89.01)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.357Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m89.01[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m89.01[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=89.01
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m89.01[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 327
+  - Result vertex count: 1425
+  - Vertices ADDED: 1098
+📊 Processing result for dstv_hole_4: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m1425[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_5 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m1425[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_5
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_5'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m260.85[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m260.85[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575392[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_5 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_5'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m260.85[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_5
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_5'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m260.85[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 260.85)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.392Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m260.85[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m260.85[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=260.85
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m260.85[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 1425
+  - Result vertex count: 2487
+  - Vertices ADDED: 1062
+📊 Processing result for dstv_hole_5: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m2487[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_6 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m2487[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_6
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_6'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m432.69[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m432.69[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575412[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_6 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_6'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m432.69[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_6
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_6'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m432.69[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 432.69)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.412Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m432.69[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m432.69[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=432.69
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m432.69[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 2487
+  - Result vertex count: 3549
+  - Vertices ADDED: 1062
+📊 Processing result for dstv_hole_6: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m3549[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_7 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m3549[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_7
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_7'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m604.53[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m604.53[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575436[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_7 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_7'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m604.53[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_7
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_7'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m604.53[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 604.53)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.437Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m604.53[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m604.53[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=604.53
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m604.53[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 3549
+  - Result vertex count: 4581
+  - Vertices ADDED: 1032
+📊 Processing result for dstv_hole_7: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m4581[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_8 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m4581[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_8
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_8'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m776.37[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m776.37[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575455[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_8 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_8'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m776.37[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_8
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_8'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m776.37[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 776.37)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.455Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m776.37[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m776.37[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=776.37
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m776.37[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 4581
+  - Result vertex count: 5625
+  - Vertices ADDED: 1044
+📊 Processing result for dstv_hole_8: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m5625[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_9 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m5625[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_9
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_9'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m948.21[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m948.21[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575471[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_9 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_9'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m948.21[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_9
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_9'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m948.21[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 948.21)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.471Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m948.21[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m948.21[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=948.21
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m948.21[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 5625
+  - Result vertex count: 6708
+  - Vertices ADDED: 1083
+📊 Processing result for dstv_hole_9: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m6708[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_10 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m6708[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_10
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_10'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1120.05[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1120.05[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575497[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_10 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_10'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1120.05[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_10
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_10'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1120.05[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 1120.05)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.497Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1120.05[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m1120.05[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=1120.05
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1120.05[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 6708
+  - Result vertex count: 7854
+  - Vertices ADDED: 1146
+📊 Processing result for dstv_hole_10: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m7854[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_11 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m7854[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_11
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_11'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1291.89[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1291.89[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575518[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_11 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_11'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1291.89[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_11
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_11'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1291.89[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 1291.89)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.519Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1291.89[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m1291.89[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=1291.89
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1291.89[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 7854
+  - Result vertex count: 8964
+  - Vertices ADDED: 1110
+📊 Processing result for dstv_hole_11: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m8964[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_12 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m8964[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_12
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_12'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1463.73[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1463.73[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575540[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_12 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_12'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1463.73[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_12
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_12'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1463.73[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 1463.73)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.541Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1463.73[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m1463.73[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=1463.73
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1463.73[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 8964
+  - Result vertex count: 10098
+  - Vertices ADDED: 1134
+📊 Processing result for dstv_hole_12: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m10098[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_13 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m10098[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_13
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_13'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1635.57[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1635.57[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575561[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_13 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_13'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1635.57[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_13
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_13'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1635.57[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 1635.57)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.561Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1635.57[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m1635.57[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=1635.57
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1635.57[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 10098
+  - Result vertex count: 11118
+  - Vertices ADDED: 1020
+📊 Processing result for dstv_hole_13: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m11118[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_14 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m11118[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_14
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_14'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1807.41[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1807.41[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575582[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_14 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_14'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1807.41[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_14
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_14'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1807.41[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 1807.41)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.582Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1807.41[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m1807.41[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=1807.41
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1807.41[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 11118
+  - Result vertex count: 12195
+  - Vertices ADDED: 1077
+📊 Processing result for dstv_hole_14: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m12195[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_15 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m12195[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_15
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_15'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1979.25[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m1979.25[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575607[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_15 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_15'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1979.25[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_15
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_15'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1979.25[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 1979.25)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.607Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1979.25[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m1979.25[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=1979.25
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m1979.25[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 12195
+  - Result vertex count: 13230
+  - Vertices ADDED: 1035
+📊 Processing result for dstv_hole_15: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m13230[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_16 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m13230[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_16
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_16'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m25.4[39m, z: [33m2151.09[39m },
+  outputPosition: { x: [33m0[39m, y: [33m25.4[39m, z: [33m2151.09[39m },
+  rawFace: [32m'o'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756837575630[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_16 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_16'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m2151.09[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_16
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_16'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m2151.09[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'top_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, 25.4, 2151.09)
+  - Face: top_flange
+🎯 calculateRotationForFace called with face: top_flange at 2025-09-02T18:26:15.630Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on top_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m2151.09[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m1[39m, z: [33m0[39m },
+  face: [32m'top_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m25.4[39m [33m2151.09[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=top_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=25.4, Z=2151.09
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m25.4[39m, z: [33m2151.09[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 13230
+  - Result vertex count: 14298
+  - Vertices ADDED: 1068
+📊 Processing result for dstv_hole_16: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m14298[39m vertices
+    📐 Processing 13 features on face u
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_17 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m14298[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_17
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_17'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m61.98[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m61.98[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575663[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_17 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_17'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m61.98[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_17
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_17'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m61.98[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 61.98)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.663Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m61.98[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m61.98[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=61.98
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m61.98[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 14298
+  - Result vertex count: 14811
+  - Vertices ADDED: 513
+📊 Processing result for dstv_hole_17: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m14811[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_18 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m14811[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_18
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_18'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m233.82[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m233.82[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575691[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_18 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_18'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m233.82[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_18
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_18'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m233.82[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 233.82)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.691Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m233.82[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m233.82[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=233.82
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m233.82[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 14811
+  - Result vertex count: 15903
+  - Vertices ADDED: 1092
+📊 Processing result for dstv_hole_18: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m15903[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_19 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m15903[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_19
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_19'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m405.66[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m405.66[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575721[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_19 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_19'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m405.66[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_19
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_19'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m405.66[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 405.66)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.721Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m405.66[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m405.66[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=405.66
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m405.66[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 15903
+  - Result vertex count: 16950
+  - Vertices ADDED: 1047
+📊 Processing result for dstv_hole_19: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m16950[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_20 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m16950[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_20
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_20'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m577.5[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m577.5[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575751[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_20 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_20'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m577.5[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_20
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_20'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m577.5[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 577.5)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.752Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m577.5[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m577.5[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=577.5
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m577.5[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 16950
+  - Result vertex count: 17982
+  - Vertices ADDED: 1032
+📊 Processing result for dstv_hole_20: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m17982[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_21 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m17982[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_21
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_21'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m749.34[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m749.34[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575785[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_21 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_21'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m749.34[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_21
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_21'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m749.34[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 749.34)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.785Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m749.34[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m749.34[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=749.34
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m749.34[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 17982
+  - Result vertex count: 19020
+  - Vertices ADDED: 1038
+📊 Processing result for dstv_hole_21: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m19020[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_22 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m19020[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_22
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_22'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m921.18[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m921.18[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575819[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_22 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_22'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m921.18[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_22
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_22'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m921.18[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 921.18)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.820Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m921.18[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m921.18[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=921.18
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m921.18[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 19020
+  - Result vertex count: 20142
+  - Vertices ADDED: 1122
+📊 Processing result for dstv_hole_22: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m20142[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_23 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m20142[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_23
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_23'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1093.02[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1093.02[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575856[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_23 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_23'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1093.02[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_23
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_23'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1093.02[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 1093.02)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.856Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1093.02[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m1093.02[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=1093.02
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1093.02[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 20142
+  - Result vertex count: 21222
+  - Vertices ADDED: 1080
+📊 Processing result for dstv_hole_23: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m21222[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_24 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m21222[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_24
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_24'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1264.86[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1264.86[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575892[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_24 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_24'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1264.86[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_24
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_24'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1264.86[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 1264.86)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.892Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1264.86[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m1264.86[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=1264.86
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1264.86[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 21222
+  - Result vertex count: 22311
+  - Vertices ADDED: 1089
+📊 Processing result for dstv_hole_24: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m22311[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_25 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m22311[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_25
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_25'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1436.7[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1436.7[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575930[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_25 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_25'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1436.7[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_25
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_25'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1436.7[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 1436.7)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.931Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1436.7[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m1436.7[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=1436.7
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1436.7[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 22311
+  - Result vertex count: 23457
+  - Vertices ADDED: 1146
+📊 Processing result for dstv_hole_25: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m23457[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_26 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m23457[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_26
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_26'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1608.54[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1608.54[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837575988[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_26 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_26'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1608.54[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_26
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_26'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1608.54[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 1608.54)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:15.988Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1608.54[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m1608.54[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=1608.54
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1608.54[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 23457
+  - Result vertex count: 24534
+  - Vertices ADDED: 1077
+📊 Processing result for dstv_hole_26: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m24534[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_27 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m24534[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_27
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_27'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1780.38[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1780.38[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837576032[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_27 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_27'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1780.38[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_27
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_27'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1780.38[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 1780.38)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:16.032Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1780.38[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m1780.38[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=1780.38
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1780.38[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 24534
+  - Result vertex count: 25566
+  - Vertices ADDED: 1032
+📊 Processing result for dstv_hole_27: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m25566[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_28 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m25566[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_28
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_28'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1952.22[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1952.22[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837576084[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_28 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_28'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1952.22[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_28
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_28'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1952.22[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 1952.22)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:16.085Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1952.22[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m1952.22[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=1952.22
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m1952.22[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 25566
+  - Result vertex count: 26604
+  - Vertices ADDED: 1038
+📊 Processing result for dstv_hole_28: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m26604[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_29 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m26604[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_29
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_29'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m2124.06[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-25.4[39m, z: [33m2124.06[39m },
+  rawFace: [32m'u'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756837576137[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_hole_29 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_29'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m2124.06[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_29
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element P2201_h5004_h5004
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_29'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m2124.06[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'bottom_flange'[39m,
+  parameters: {
+    diameter: [33m17.5[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m2259.98[39m,
+  width: [33m50.8[39m,
+  height: [33m50.8[39m,
+  thickness: [33m10[39m,
+  flangeThickness: [33m7.6[39m
+}
+  - Using standard position: (0, -25.4, 2124.06)
+  - Face: bottom_flange
+🎯 calculateRotationForFace called with face: bottom_flange at 2025-09-02T18:26:16.137Z
+  → TOP/BOTTOM_FLANGE face: no rotation
+  → Hole on bottom_flange face, depth=7.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m2124.06[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  depth: [33m7.6[39m,
+  normal: Vector3 { x: [33m0[39m, y: [33m-1[39m, z: [33m0[39m },
+  face: [32m'bottom_flange'[39m
+}
+    → Position Vector3: [33m0[39m [33m-25.4[39m [33m2124.06[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m0[39m
+  - Flange face detected, flangeThickness: 7.6mm, using: 7.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=17.5mm, segments=32, depth=15.2mm, face=bottom_flange
+  - Created round hole: diameter=17.5
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=7.6, actualDepth=15.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 15.2mm depth
+  - Position: X=0, Y=-25.4, Z=2124.06
+  - Rotation: X=0, Y=0, Z=0
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-25.4[39m, z: [33m2124.06[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m0[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 26604
+  - Result vertex count: 27621
+  - Vertices ADDED: 1017
+📊 Processing result for dstv_hole_29: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m27621[39m vertices
+✅ SceneBuildingStage: Feature application completed: 96 → 27621 vertices
+[dstv-scene-building] [dstv-scene-building] Features applied successfully {
+  originalVertices: [33m96[39m,
+  finalVertices: [33m27621[39m,
+  verticesAdded: [33m27525[39m,
+  featuresApplied: [33m28[39m
+}
+[dstv-scene-building] [dstv-scene-building] ✅ Attached processed geometry to element P2201_h5004_h5004 { vertexCount: [33m27621[39m, hasFeatures: [33mtrue[39m }
+[dstv-scene-building] [dstv-scene-building] Scene building completed {
+  elementsCreated: [33m1[39m,
+  sceneId: [32m'dstv_scene_P2201_h5004_h5004_1756837575312'[39m,
+  duration: [32m'882.85ms'[39m
+}
+[dstv-scene-building] Completed stage: dstv-scene-building { duration: [32m'883.09ms'[39m, outputType: [32m'Object'[39m }
+[dstv-scene-building] Completed stage: dstv-scene-building { duration: [32m'883.24ms'[39m }
+[dstv-scene-building] Pipeline execution completed: dstv-import-pipeline { duration: [32m'902.01ms'[39m, success: [33mtrue[39m }
+🎯 DSTV Import completed successfully {
+  duration: [32m'0.00ms'[39m,
+  elements: [33m1[39m,
+  metadata: {
+    format: [32m'DSTV'[39m,
+    originalProfile: [32m'P2201_h5004_h5004'[39m,
+    createdDate: [32m'2025-09-02T18:26:15.312Z'[39m,
+    processingMetadata: {
+      format: [32m'DSTV'[39m,
+      version: [32m'7th Edition (1998)'[39m,
+      normalizationDate: [32m'2025-09-02T18:26:15.311Z'[39m,
+      originalConformityScore: [33m0.99375[39m,
+      coordinateSystem: [32m'right-handed'[39m,
+      units: [32m'mm'[39m,
+      profile: [36m[Object][39m,
+      processing: [36m[Object][39m
+    },
+    bounds: { min: [36m[Object][39m, max: [36m[Object][39m },
+    stats: {
+      profileCount: [33m1[39m,
+      featureCount: [33m28[39m,
+      materialCount: [33m1[39m,
+      elementCount: [33m1[39m
+    }
+  }
+}
+========================================
+⏱️  Temps d'exécution: 904ms
+
+
+📊 RÉSULTAT DE L'IMPORT:
+========================================
+  Success: ✅
+
+  📦 Éléments importés: 1
+
+  🔹 Élément 1:
+     - ID: P2201_h5004_h5004
+     - Type: tube
+     - Profil: undefined
+     - Matériau: [object Object]
+     - Dimensions:
+       • Longueur: 2259.98mm
+       • Largeur: 50.8mm
+       • Hauteur: 50.8mm
+     - Features: 28
+
+       📌 Feature 1:
+          Type: HOLE
+          ID: dstv_hole_4
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 2:
+          Type: HOLE
+          ID: dstv_hole_5
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 3:
+          Type: HOLE
+          ID: dstv_hole_6
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 4:
+          Type: HOLE
+          ID: dstv_hole_7
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 5:
+          Type: HOLE
+          ID: dstv_hole_8
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 6:
+          Type: HOLE
+          ID: dstv_hole_9
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 7:
+          Type: HOLE
+          ID: dstv_hole_10
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 8:
+          Type: HOLE
+          ID: dstv_hole_11
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 9:
+          Type: HOLE
+          ID: dstv_hole_12
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 10:
+          Type: HOLE
+          ID: dstv_hole_13
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 11:
+          Type: HOLE
+          ID: dstv_hole_14
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 12:
+          Type: HOLE
+          ID: dstv_hole_15
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 13:
+          Type: HOLE
+          ID: dstv_hole_16
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 14:
+          Type: HOLE
+          ID: dstv_hole_17
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 15:
+          Type: HOLE
+          ID: dstv_hole_18
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 16:
+          Type: HOLE
+          ID: dstv_hole_19
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 17:
+          Type: HOLE
+          ID: dstv_hole_20
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 18:
+          Type: HOLE
+          ID: dstv_hole_21
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 19:
+          Type: HOLE
+          ID: dstv_hole_22
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 20:
+          Type: HOLE
+          ID: dstv_hole_23
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 21:
+          Type: HOLE
+          ID: dstv_hole_24
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 22:
+          Type: HOLE
+          ID: dstv_hole_25
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 23:
+          Type: HOLE
+          ID: dstv_hole_26
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 24:
+          Type: HOLE
+          ID: dstv_hole_27
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 25:
+          Type: HOLE
+          ID: dstv_hole_28
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 26:
+          Type: HOLE
+          ID: dstv_hole_29
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 27:
+          Type: END_CUT
+          ID: dstv_end_cut_start_1
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 28:
+          Type: END_CUT
+          ID: dstv_end_cut_end_3
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+     - Géométrie: ✅ Créée
+       • Vertices: 27621
+
+
+========================================
+📝 METADATA DU RÉSULTAT:
+========================================
+  {
+    "format": "DSTV",
+    "originalProfile": "P2201_h5004_h5004",
+    "createdDate": "2025-09-02T18:26:15.312Z",
+    "processingMetadata": {
+      "format": "DSTV",
+      "version": "7th Edition (1998)",
+      "normalizationDate": "2025-09-02T18:26:15.311Z",
+      "originalConformityScore": 0.99375,
+      "coordinateSystem": "right-handed",
+      "units": "mm",
+      "profile": {
+        "name": "HSS51X51X4.8",
+        "type": "TUBE_RECT",
+        "material": "350",
+        "featureCount": 28,
+        "featureTypes": {
+          "hole": 26,
+          "end_cut": 2
+        }
+      },
+      "processing": {
+        "errors": 0,
+        "warnings": 3,
+        "blocksProcessed": 8
+      }
+    },
+    "bounds": {
+      "min": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "max": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    "stats": {
+      "profileCount": 1,
+      "featureCount": 28,
+      "materialCount": 1,
+      "elementCount": 1
+    }
+  }
+
+
+================================================================================
+✅ FIN DE L'IMPORT DSTV
+================================================================================
+
+
+
+ [32m✓[39m src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [33m1 skipped[39m[2m)[22m[33m 910[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (2)[39m
+[2m   Start at [22m 20:26:12
+[2m   Duration [22m 3.24s[2m (transform 896ms, setup 77ms, collect 1.02s, tests 910ms, environment 678ms, prepare 197ms)[22m
+

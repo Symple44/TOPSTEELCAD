@@ -12,6 +12,7 @@ import { PivotScene, PivotElement, MaterialProperties, ElementType, MaterialType
 import { NormalizedFeature, NormalizedFeatureType, NormalizedProfile } from './DSTVNormalizationStage';
 import { ProcessorBridge } from '../../integration/ProcessorBridge';
 import { GeometryBridge } from '../../integration/GeometryBridge';
+import { dstvFeaturePriority } from '../DSTVFeaturePriority';
 import * as THREE from 'three';
 
 /**
@@ -165,6 +166,8 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
   private async buildProfileElements(profile: NormalizedProfile, context: ProcessingContext): Promise<Map<string, PivotElement>> {
     const elements = new Map<string, PivotElement>();
     
+    console.log('🚨 buildProfileElements - profile type:', profile.type, 'name:', profile.name);
+    
     // Créer l'élément principal du profil
     const profileElement = await this.buildProfileElement(profile, context);
     elements.set(profileElement.id, profileElement);
@@ -217,31 +220,65 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
           length: profile.dimensions.length,
           width: profile.dimensions.crossSection?.width || 100,
           height: profile.dimensions.crossSection?.height || 200,
-          thickness: profile.dimensions.crossSection?.webThickness || 10
+          thickness: profile.dimensions.crossSection?.webThickness || 10,
+          flangeThickness: profile.dimensions.crossSection?.flangeThickness || 7.6
         },
         position: [0, 0, 0],
         rotation: [0, 0, 0],
         scale: [1, 1, 1],
         metadata: {
-          elementType: ElementType.BEAM
+          elementType: ElementType.BEAM,
+          profileType: profile.type,  // Add profile type for CutProcessor
+          profileName: profile.name   // Add profile name for CutProcessor
         }
       };
       
+      // Trier les features par priorité DSTV avant application
+      const sortedFeatures = dstvFeaturePriority.sortFeaturesByPriority(profile.features);
+      
+      // Afficher le rapport de priorité en debug
+      if (context.options?.enableDebugLogs) {
+        const priorityReport = dstvFeaturePriority.generatePriorityReport(profile.features);
+        console.log(`📊 Feature Priority Report for ${profile.id}:\n${priorityReport}`);
+      }
+      
+      // VÉRIFICATION CRITIQUE : État de la géométrie avant application des features
+      console.log('🔍 SceneBuildingStage: Geometry state before applying features:', {
+        profileId: profile.id,
+        isNull: profileGeometry === null,
+        isUndefined: profileGeometry === undefined,
+        hasAttributes: !!profileGeometry?.attributes,
+        hasPositions: !!profileGeometry?.attributes?.position,
+        originalVertexCount: profileGeometry?.attributes?.position?.count || 0,
+        geometryType: profileGeometry?.constructor?.name || 'unknown'
+      });
+      
+      if (!profileGeometry || !profileGeometry.attributes || !profileGeometry.attributes.position) {
+        console.error('❌ SceneBuildingStage: GEOMETRY IS NULL BEFORE FEATURE APPLICATION!');
+        console.error('❌ This is the root cause of the "Cannot convert undefined or null to object" error');
+        console.error('❌ The GeometryBridge failed to create valid geometry');
+        // Return early to avoid further processing
+        throw new Error(`Invalid base geometry for profile ${profile.id}. GeometryBridge returned null/undefined geometry.`);
+      }
+      
       // Appliquer toutes les features via le ProcessorBridge
-      console.log(`📦 Applying ${profile.features.length} features to profile ${profile.id}:`);
-      profile.features.forEach((f, i) => {
-        console.log(`  Feature ${i}: id=${f.id}, type=${f.type}, params:`, f.parameters);
+      console.log(`📦 Applying ${sortedFeatures.length} features to profile ${profile.id} (sorted by DSTV priority):`);
+      sortedFeatures.forEach((f, i) => {
+        const priorityInfo = dstvFeaturePriority.getFeaturePriorityInfo(f);
+        console.log(`  Feature ${i}: id=${f.id}, type=${f.type}, priority=${priorityInfo.priority}, block=${priorityInfo.blockType}`);
       });
       
       const originalVertexCount = profileGeometry.attributes.position?.count || 0;
+      console.log(`✅ SceneBuildingStage: Starting feature application with ${originalVertexCount} vertices`);
       
       profileGeometry = await this.processorBridge.applyFeatureBatch(
         profileGeometry,
-        profile.features,
+        sortedFeatures,
         tempElement
       );
       
       const finalVertexCount = profileGeometry.attributes.position?.count || 0;
+      console.log(`✅ SceneBuildingStage: Feature application completed: ${originalVertexCount} → ${finalVertexCount} vertices`);
       
       this.log(context, 'info', `Features applied successfully`, {
         originalVertices: originalVertexCount,
@@ -261,7 +298,8 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
         length: profile.dimensions.length,
         width: profile.dimensions.crossSection?.width || 100,
         height: profile.dimensions.crossSection?.height || 200,
-        thickness: profile.dimensions.crossSection?.webThickness || 10
+        thickness: profile.dimensions.crossSection?.webThickness || 10,
+        flangeThickness: profile.dimensions.crossSection?.flangeThickness
       },
       position: [0, 0, 0],
       rotation: [0, 0, 0],
@@ -272,13 +310,18 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
         id: f.id,
         type: this.mapFeatureType(f.type),
         elementId: profile.id,
-        position: [f.coordinates.x, f.coordinates.y, f.coordinates.z || 0] as [number, number, number],
+        position: f.coordinates 
+          ? [f.coordinates.x || 0, f.coordinates.y || 0, f.coordinates.z || 0] as [number, number, number]
+          : [0, 0, 0] as [number, number, number],
         selectable: true,
         visible: true,
         metadata: f.parameters
       })),
       metadata: {
         elementType: ElementType.BEAM,
+        profileType: profile.type,  // Ex: 'TUBE_RECT', 'I_PROFILE', etc.
+        profileName: profile.name,  // Ex: 'HSS51X51X4.8' - Use profile.name not profile.profileName
+        steelGrade: profile.material?.grade,
         originalData: profile,
         processingOrder: 0,
         quantity: (profile as any).metadata?.quantity,
@@ -375,12 +418,13 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
           type: 'cylinder',
           parameters: {
             radius: feature.parameters.diameter / 2,
-            height: feature.parameters.depth || 10,
+            height: feature.parameters.depth !== undefined ? feature.parameters.depth : 10,
             radialSegments: 16
           }
         };
 
       case NormalizedFeatureType.CUT:
+      case NormalizedFeatureType.END_CUT:
         return {
           type: 'box',
           parameters: {
@@ -548,6 +592,8 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
         return FeatureType.THREAD;
       case NormalizedFeatureType.CUT:
         return FeatureType.CUT;
+      case NormalizedFeatureType.END_CUT:
+        return FeatureType.END_CUT;
       case NormalizedFeatureType.CUT_WITH_NOTCHES:
         return FeatureType.CUT;
       case NormalizedFeatureType.CONTOUR:
@@ -657,6 +703,26 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
 
   private mapToMaterialType(profileType: string): MaterialType {
     // Map DSTV profile types to MaterialType enum
+    const type = profileType.toUpperCase();
+    
+    // Handle specific profile types
+    if (type.includes('TUBE_RECT') || type.includes('TUBE_ROUND')) {
+      return MaterialType.TUBE;
+    }
+    if (type.includes('I_PROFILE')) {
+      return MaterialType.BEAM;
+    }
+    if (type.includes('L_PROFILE')) {
+      return MaterialType.ANGLE;
+    }
+    if (type.includes('U_PROFILE') || type.includes('C_PROFILE')) {
+      return MaterialType.CHANNEL;
+    }
+    if (type.includes('T_PROFILE')) {
+      return MaterialType.TEE;
+    }
+    
+    // Fallback to simpler checks
     switch (profileType.toLowerCase()) {
       case 'l':
       case 'angle':
@@ -685,6 +751,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
     const colors: Record<NormalizedFeatureType, { r: number; g: number; b: number; a: number }> = {
       [NormalizedFeatureType.HOLE]: { r: 0.2, g: 0.2, b: 0.8, a: 0.8 }, // Bleu
       [NormalizedFeatureType.CUT]: { r: 0.8, g: 0.2, b: 0.2, a: 0.8 },   // Rouge
+      [NormalizedFeatureType.END_CUT]: { r: 0.9, g: 0.1, b: 0.1, a: 0.9 }, // Rouge vif pour les coupes d'extrémité
       [NormalizedFeatureType.CONTOUR]: { r: 0.2, g: 0.8, b: 0.2, a: 0.8 }, // Vert
       [NormalizedFeatureType.NOTCH]: { r: 0.8, g: 0.2, b: 0.2, a: 0.8 }, // Rouge foncé
       [NormalizedFeatureType.CUT_WITH_NOTCHES]: { r: 0.9, g: 0.3, b: 0.2, a: 0.8 }, // Rouge orangé

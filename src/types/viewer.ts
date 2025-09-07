@@ -101,6 +101,7 @@ export enum FeatureType {
   
   // Découpes et contours
   CUT = 'CUT',
+  END_CUT = 'END_CUT',  // Coupe droite d'extrémité pour tubes
   SLOT = 'SLOT',
   CUTOUT = 'CUTOUT',
   CONTOUR = 'CONTOUR',
@@ -208,7 +209,13 @@ export interface PivotElement {
   
   // Type et géométrie
   materialType: MaterialType;
+  type?: string;                      // Alternative/legacy type field for compatibility
+  profile?: string;                   // Profile designation (e.g., "IPE200", "HEB240")
   dimensions: MetalDimensions;
+  bounds?: {                          // Element-specific bounding box (different from scene bounds)
+    min: [number, number, number];
+    max: [number, number, number];
+  };
   
   // Transformation spatiale
   position: [number, number, number];  // x, y, z en mm

@@ -3,6 +3,7 @@
  */
 
 import { Shape, ExtrudeGeometry, BufferGeometry } from '../../../lib/three-exports';
+import * as THREE from 'three';
 import { ProfileType, ProfileDimensions } from '../../types/profile.types';
 import { BaseProfileGenerator } from '../interfaces/ProfileGeometryGenerator';
 
@@ -55,7 +56,7 @@ export class LProfileGenerator extends BaseProfileGenerator {
       toeRadius
     });
 
-    // Extruder
+    // Extruder pour créer la 3D
     const extrudeSettings = {
       depth: length,
       bevelEnabled: false,
@@ -72,9 +73,53 @@ export class LProfileGenerator extends BaseProfileGenerator {
   }
 
   /**
-   * Crée le profil 2D d'une cornière
+   * Crée directement la géométrie 3D d'une cornière dans l'orientation DSTV
    */
-  private createLProfile(params: {
+  private createLProfileGeometry3D(params: {
+    length: number;
+    height: number;
+    width: number;
+    thickness: number;
+  }): BufferGeometry {
+    const { length, height, width, thickness } = params;
+    
+    // Créer le profil dans le plan YZ
+    const shape = new Shape();
+    
+    // Dessiner la cornière (origine au coin intérieur)
+    // Aile verticale le long de Y, aile horizontale le long de Z
+    shape.moveTo(0, 0);
+    shape.lineTo(0, height);
+    shape.lineTo(thickness, height);
+    shape.lineTo(thickness, thickness);
+    shape.lineTo(width, thickness);
+    shape.lineTo(width, 0);
+    shape.lineTo(0, 0);
+    shape.closePath();
+    
+    // Créer un chemin d'extrusion le long de X
+    const extrudePath = new THREE.LineCurve3(
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(length, 0, 0)
+    );
+    
+    // Extruder le long de X
+    const extrudeSettings = {
+      extrudePath: extrudePath,
+      bevelEnabled: false,
+      steps: 1
+    };
+    
+    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+    
+    // La géométrie est maintenant dans l'orientation correcte DSTV
+    return geometry;
+  }
+
+  /**
+   * Crée le profil 2D d'une cornière dans le plan YZ (ancienne méthode conservée)
+   */
+  private createLProfileYZ(params: {
     height: number;
     width: number;
     thickness: number;
@@ -91,69 +136,58 @@ export class LProfileGenerator extends BaseProfileGenerator {
     const r1 = rootRadius;
     const r2 = toeRadius;
     
-    // Commencer au coin inférieur gauche (extérieur)
+    // Dessiner la cornière dans le plan YZ
+    // L'origine est au coin intérieur de la cornière
+    // Aile verticale le long de Y, aile horizontale le long de Z
+    
+    // Commencer au coin extérieur bas gauche
     shape.moveTo(0, 0);
     
-    // Aile verticale (extérieur)
-    if (r2 > 0) {
-      shape.lineTo(0, h - r2);
-      shape.quadraticCurveTo(0, h, r2, h);
-    } else {
-      shape.lineTo(0, h);
-    }
+    // Monter le long de l'aile verticale (extérieur)
+    shape.lineTo(0, h);
     
-    // Semelle horizontale supérieure
-    shape.lineTo(w - r2, h);
+    // Aller vers la droite pour l'épaisseur de l'aile verticale
+    shape.lineTo(t, h);
     
-    // Coin supérieur droit
-    if (r2 > 0) {
-      shape.quadraticCurveTo(w, h, w, h - r2);
-    } else {
-      shape.lineTo(w, h);
-    }
+    // Descendre jusqu'au raccord avec l'aile horizontale
+    shape.lineTo(t, t);
     
-    // Descente côté droit
-    shape.lineTo(w, h - t + r1);
+    // Aller vers la droite le long de l'aile horizontale (intérieur)
+    shape.lineTo(w, t);
     
-    // Raccordement intérieur droit
-    if (r1 > 0) {
-      shape.quadraticCurveTo(w, h - t, w - r1, h - t);
-    } else {
-      shape.lineTo(w, h - t);
-    }
+    // Descendre pour l'épaisseur de l'aile horizontale
+    shape.lineTo(w, 0);
     
-    // Aile horizontale intérieure
-    shape.lineTo(t + r1, h - t);
-    
-    // Raccordement central (âme)
-    if (r1 > 0) {
-      shape.quadraticCurveTo(t, h - t, t, h - t - r1);
-    } else {
-      shape.lineTo(t, h - t);
-    }
-    
-    // Aile verticale intérieure
-    shape.lineTo(t, t - r1);
-    
-    // Raccordement intérieur bas
-    if (r1 > 0) {
-      shape.quadraticCurveTo(t, t, t - r1, t);
-    } else {
-      shape.lineTo(t, t);
-    }
-    
-    // Base horizontale
-    shape.lineTo(r2, t);
-    
-    // Coin inférieur gauche
-    if (r2 > 0) {
-      shape.quadraticCurveTo(0, t, 0, t - r2);
-    } else {
-      shape.lineTo(0, t);
-    }
-    
-    // Fermer le profil
+    // Revenir au point de départ
     shape.lineTo(0, 0);
+    shape.closePath();
+    
+    return shape;
+  }
+
+  /**
+   * Crée le profil 2D d'une cornière
+   */
+  private createLProfile(params: {
+    height: number;
+    width: number;
+    thickness: number;
+    rootRadius: number;
+    toeRadius: number;
+  }): Shape {
+    const { height, width, thickness } = params;
+    
+    const shape = new Shape();
+    
+    // Dessiner le L simple sans rayons pour commencer
+    // Origine au coin intérieur du L
+    shape.moveTo(0, 0);
+    shape.lineTo(width, 0);      // Base horizontale
+    shape.lineTo(width, thickness); // Épaisseur horizontale
+    shape.lineTo(thickness, thickness); // Coin intérieur
+    shape.lineTo(thickness, height);    // Montée verticale
+    shape.lineTo(0, height);            // Haut
+    shape.lineTo(0, 0);                 // Retour au début
     shape.closePath();
     
     return shape;

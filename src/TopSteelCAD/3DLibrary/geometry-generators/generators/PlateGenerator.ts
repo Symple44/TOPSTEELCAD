@@ -54,24 +54,26 @@ export class PlateGenerator implements ProfileGeometryGenerator {
    */
   private generatePlate(profile: SteelProfile, length: number = 1000): THREE.BufferGeometry {
     // Extraire les dimensions
-    const width = profile.dimensions.width || 1000;
-    const thickness = profile.dimensions.thickness || 10;
-    // const height = profile.dimensions.height || 0; // Hauteur de la plaque (souvent 0 pour les plaques) - currently unused
+    // Pour une plaque DSTV : length = longueur, width = largeur, thickness = épaisseur
+    const plateLength = length;  // Utiliser directement le paramètre length passé (150mm pour F1003)
+    const plateWidth = profile.dimensions.width || 100;
+    const plateThickness = profile.dimensions.thickness || 10;
     
-    // Pour une plaque, on utilise width x length x thickness
-    const geometry = new THREE.BoxGeometry(width, length, thickness);
+    // Pour une plaque horizontale : X = longueur, Y = épaisseur, Z = largeur
+    // Cela place la plaque à plat dans le plan XZ avec l'épaisseur en Y
+    const geometry = new THREE.BoxGeometry(plateLength, plateThickness, plateWidth);
     
     // Ajouter des métadonnées
     geometry.userData = {
       profile: profile.designation,
       type: 'PLATE',
       dimensions: {
-        width,
-        thickness,
-        length,
-        area: width * thickness, // Aire de section transversale (largeur × épaisseur)
-        volume: width * length * thickness,
-        weight: (width * length * thickness * 7850) / 1e9 // kg (densité acier = 7850 kg/m³)
+        length: plateLength,
+        width: plateWidth,
+        thickness: plateThickness,
+        area: plateWidth * plateThickness, // Aire de section transversale (largeur × épaisseur)
+        volume: plateLength * plateWidth * plateThickness,
+        weight: (plateLength * plateWidth * plateThickness * 7850) / 1e9 // kg (densité acier = 7850 kg/m³)
       }
     };
     

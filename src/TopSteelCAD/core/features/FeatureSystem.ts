@@ -430,6 +430,7 @@ export class FeatureSystem {
       [FeatureType.CUTOUT]: 3,
       [FeatureType.NOTCH]: 4,
       [FeatureType.COPING]: 5,
+      [FeatureType.END_CUT]: 5,
       
       // Puis les trous et perçages
       [FeatureType.SLOT]: 6,

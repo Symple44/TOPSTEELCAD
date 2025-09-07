@@ -393,9 +393,31 @@ export class PositionService {
         depth = element.dimensions?.webThickness || element.dimensions?.thickness || 8.6;
       } else if (standardFace === StandardFace.TOP_FLANGE || standardFace === StandardFace.BOTTOM_FLANGE) {
         depth = element.dimensions?.flangeThickness || 15;
+      } else if (standardFace === StandardFace.FRONT || standardFace === StandardFace.BACK) {
+        // Pour les faces avant/arrière des profils L, utiliser l'épaisseur
+        // Pour les profils I, utiliser l'épaisseur de la semelle ou de l'âme selon la position
+        const profileType = element.type || element.profileType || element.materialType;
+        console.log(`  → Calculating depth for FRONT/BACK face, profileType: ${profileType}`);
+        console.log(`  → Element dimensions:`, element.dimensions);
+        
+        // Check for L-profiles (can be 'L_PROFILE', 'L', or 'angle')
+        if (profileType === 'L_PROFILE' || profileType === 'L' || profileType === 'angle') {
+          // For L-profiles, use the actual thickness from dimensions
+          depth = element.dimensions?.thickness || element.dimensions?.webThickness || 8;
+          console.log(`  → L-profile FRONT/BACK depth = ${depth}mm (actual thickness)`);
+        } else {
+          // Pour profils I, U, etc. - épaisseur typique
+          depth = element.dimensions?.webThickness || element.dimensions?.flangeThickness || 10;
+          console.log(`  → ${profileType} FRONT/BACK depth = ${depth}mm`);
+        }
       }
       
       let finalPosition = featurePosition instanceof THREE.Vector3 ? featurePosition : new THREE.Vector3(featurePosition.x, featurePosition.y, featurePosition.z || 0);
+      
+      // IMPORTANT: Keep holes positioned ON the face, not centered in material
+      // The hole depth will ensure it traverses through the material
+      const profileType = element.type || element.profileType || element.materialType;
+      console.log(`  → Hole on ${standardFace} face, depth=${depth}mm will traverse through material`);
       
       return {
         position: finalPosition,
@@ -446,17 +468,18 @@ export class PositionService {
    */
   private mapToStandardFace(face: string): StandardFace {
     // Mapping des faces communes (cohérent avec DSTV)
+    // ATTENTION: Mapping corrigé selon la norme DSTV
     const faceMap: Record<string, StandardFace> = {
       'web': StandardFace.WEB,
-      'o': StandardFace.WEB,           // o = web (DSTV)
-      'v': StandardFace.TOP_FLANGE,    // v = top flange (DSTV) - CORRIGÉ!
+      'v': StandardFace.TOP_FLANGE,    // v = semelle supérieure (DSTV corrigé)
+      'o': StandardFace.WEB,           // o = âme (DSTV corrigé)
       'top': StandardFace.TOP_FLANGE,
       'top_flange': StandardFace.TOP_FLANGE,
       'bottom': StandardFace.BOTTOM_FLANGE,
       'bottom_flange': StandardFace.BOTTOM_FLANGE,
-      'u': StandardFace.BOTTOM_FLANGE, // u = bottom flange (DSTV)
+      'u': StandardFace.BOTTOM_FLANGE, // u = Unten = semelle inférieure (DSTV)
       'front': StandardFace.FRONT,
-      'h': StandardFace.FRONT,         // h = front (DSTV)
+      'h': StandardFace.FRONT,         // h = face avant (DSTV)
       'back': StandardFace.BACK
     };
     
@@ -485,8 +508,11 @@ export class PositionService {
   
   /**
    * Calcule la rotation pour une face
+   * Updated: 2024-11-28 19:24 - Holes should be parallel to bar
    */
   private calculateRotationForFace(face?: StandardFace): THREE.Euler {
+    console.log(`🎯 calculateRotationForFace called with face: ${face} at ${new Date().toISOString()}`);
+    
     if (!face) {
       return new THREE.Euler(0, 0, 0);
     }
@@ -496,17 +522,23 @@ export class PositionService {
         // Pour l'âme, le cylindre doit traverser selon X
         // Le cylindre THREE.js est créé vertical (selon Y) par défaut
         // Rotation de 90° autour de Z pour orienter le cylindre selon X
+        console.log(`  → WEB face: rotation (0, 0, π/2)`);
         return new THREE.Euler(0, 0, Math.PI / 2);
         
       case StandardFace.TOP_FLANGE:
       case StandardFace.BOTTOM_FLANGE:
         // Pas de rotation, vertical par défaut (traverse selon Y)
+        console.log(`  → TOP/BOTTOM_FLANGE face: no rotation`);
         return new THREE.Euler(0, 0, 0);
         
       case StandardFace.FRONT:
       case StandardFace.BACK:
-        // Rotation de 90° autour de X pour traverser selon Z
-        return new THREE.Euler(Math.PI / 2, 0, 0);
+        // Face AVANT/ARRIÈRE : les trous doivent TRAVERSER PERPENDICULAIREMENT la face
+        // Pour un profil L, la face FRONT est à X=0 (perpendiculaire à X)
+        // Le trou doit donc traverser selon X
+        // Le cylindre est créé vertical (selon Y), rotation de 90° autour de Z pour l'orienter selon X
+        console.log(`  → FRONT/BACK face: Rotation 90° around Z - hole perpendicular to face (along X)`);
+        return new THREE.Euler(0, 0, Math.PI / 2);
         
       default:
         return new THREE.Euler(0, 0, 0);

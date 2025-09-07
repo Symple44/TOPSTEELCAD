@@ -1,7 +1,9 @@
-import { PivotElement } from '@/types/viewer';
+import { PivotElement, PivotScene } from '@/types/viewer';
 import { ExportOptions, ExportResult } from '../FileExporter';
 import { ProfileDatabase } from '../../3DLibrary/database/ProfileDatabase';
 import { ProfileFace } from '../../core/features/types';
+import { DSTVPlugin } from '../../plugins/dstv/DSTVPlugin';
+import { DSTVExportPipeline } from '../../plugins/dstv/export/DSTVExportPipeline';
 
 /**
  * DSTVExporter - Export au format DSTV/NC1 conforme à la norme officielle
@@ -75,8 +77,176 @@ export class DSTVExporter {
   
   /**
    * Exporte les éléments au format DSTV (ZIP avec fichiers .nc1)
+   * Utilise le nouveau pipeline DSTV complet et conforme
    */
   static async export(
+    elements: PivotElement[],
+    fileName: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
+    try {
+      console.log('🔍 DSTV Export - Éléments reçus:', elements.length);
+      console.log('🔍 DSTV Export - Options:', options);
+      
+      if (!elements || elements.length === 0) {
+        console.error('❌ DSTV Export - Aucun élément fourni');
+        return {
+          success: false,
+          error: 'Aucun élément à exporter'
+        };
+      }
+      
+      // Si on a le nouveau pipeline disponible, l'utiliser
+      if (options.includeFeatures !== false) {
+        console.log('✅ DSTV Export - Utilisation du nouveau pipeline');
+        return await this.exportWithNewPipeline(elements, fileName, options);
+      }
+      
+      // Sinon, utiliser l'ancien système pour compatibilité
+      console.log('ℹ️ DSTV Export - Utilisation du système legacy');
+      return await this.exportLegacy(elements, fileName, options);
+    } catch (error) {
+      console.error('❌ DSTV export error:', error);
+      return {
+        success: false,
+        error: `Erreur export DSTV: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+      };
+    }
+  }
+
+  /**
+   * Export avec le nouveau pipeline DSTV complet
+   */
+  private static async exportWithNewPipeline(
+    elements: PivotElement[],
+    fileName: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
+    try {
+      // Créer le plugin et le pipeline
+      const plugin = new DSTVPlugin({
+        strictMode: false,
+        enableDebugLogs: false,
+        enableAdvancedHoles: options.includeFeatures !== false,
+        enableWeldingPreparation: options.includeFeatures !== false,
+        enablePlaneDefinition: options.includeFeatures !== false,
+        enableBendingSupport: options.includeFeatures !== false
+      });
+      
+      // Create the pipeline directly instead of through the plugin interface
+      const pipeline = new DSTVExportPipeline({
+        strictMode: false,
+        enableDebugLogs: false,
+        enableAdvancedHoles: options.includeFeatures !== false,
+        enableWeldingPreparation: options.includeFeatures !== false,
+        enablePlaneDefinition: options.includeFeatures !== false,
+        enableBendingSupport: options.includeFeatures !== false
+      });
+      
+      // Créer une scène depuis les éléments
+      const scene: PivotScene = {
+        id: 'export-scene',
+        name: fileName,
+        elements: new Map(elements.map(el => [el.id, el]))
+      };
+      
+      // Charger JSZip
+      const JSZip = await import('jszip').then(m => m.default);
+      const zip = new JSZip();
+      
+      // Générer un fichier NC pour chaque élément de type profil
+      let fileCount = 0;
+      for (const element of elements) {
+        console.log('🔍 Vérification élément pour export DSTV:', {
+          id: element.id,
+          type: element.type,
+          profile: element.profile,
+          material: element.material,
+          hasMetadata: !!element.metadata
+        });
+        
+        // Filtrer seulement les profils (pas les plaques, boulons, etc.)
+        // Accepter plus de types d'éléments
+        const elementType = element.type?.toLowerCase() || '';
+        const materialType = element.materialType?.toLowerCase() || '';
+        
+        const isProfile = element.profile || 
+                         elementType === 'beam' || // Accepter 'beam' directement
+                         elementType.includes('beam') || 
+                         elementType.includes('column') ||
+                         elementType.includes('profile') ||
+                         elementType.includes('tube') ||
+                         materialType.includes('beam') ||
+                         materialType.includes('column') ||
+                         materialType.includes('tube') ||
+                         materialType.includes('angle') ||
+                         materialType.includes('channel') ||
+                         element.metadata?.elementType === 'BEAM' ||
+                         element.metadata?.originalFormat === 'DSTV';
+                         
+        if (!isProfile) {
+          console.log('⏭️ Élément ignoré (pas un profil):', element.id);
+          continue;
+        }
+        
+        // Créer une scène avec un seul élément
+        const singleElementScene: PivotScene = {
+          id: `element-${element.id}`,
+          name: element.name || element.id,
+          elements: new Map([[element.id, element]])
+        };
+        
+        // Exécuter le pipeline pour cet élément
+        const dstvContent = await pipeline.execute(singleElementScene);
+        
+        // LOG TEMPORAIRE: Afficher le contenu DSTV généré
+        console.log(`📄 Contenu DSTV généré pour ${element.id}:`);
+        console.log('================================');
+        console.log(dstvContent);
+        console.log('================================');
+        
+        // Ajouter au ZIP
+        const elementFileName = `${fileCount + 1}.nc`;
+        zip.file(elementFileName, dstvContent);
+        fileCount++;
+      }
+      
+      if (fileCount === 0) {
+        return {
+          success: false,
+          error: 'Aucun élément de type profil à exporter'
+        };
+      }
+      
+      // Générer le ZIP
+      const blob = await zip.generateAsync({ 
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
+      
+      return {
+        success: true,
+        fileName,
+        data: blob,
+        metadata: {
+          format: 'dstv',
+          elementsCount: fileCount,
+          fileSize: blob.size,
+          exportDate: new Date()
+        }
+      };
+    } catch (error) {
+      // Si le nouveau pipeline échoue, essayer l'ancien
+      console.warn('New DSTV pipeline failed, falling back to legacy:', error);
+      return await this.exportLegacy(elements, fileName, options);
+    }
+  }
+  
+  /**
+   * Export avec l'ancien système (pour compatibilité)
+   */
+  private static async exportLegacy(
     elements: PivotElement[],
     fileName: string,
     options: ExportOptions
@@ -89,7 +259,6 @@ export class DSTVExporter {
       // Créer un fichier NC1 pour chaque élément
       elements.forEach((element, index) => {
         const ncContent = this.generateNC1File(element, index + 1, options);
-        // Format de nom : numéro simple ou avec préfixe
         const elementFileName = `${index + 1}.nc`;
         zip.file(elementFileName, ncContent);
       });
@@ -247,7 +416,8 @@ export class DSTVExporter {
     lines.push(`  ${pieceNumber}`);
     
     // Ligne 6: Nuance d'acier
-    lines.push(`  ${element.material?.grade || 'S235JR'}`);
+    const materialGrade = element.material?.grade || element.material || 'S235JR';
+    lines.push(`  ${materialGrade}`);
     
     // Ligne 7: Code de phase/catégorie (pas quantité!)
     // Utilise un code de catégorie basé sur le type de profil
@@ -682,9 +852,10 @@ export class DSTVExporter {
    * Détermine le code de profil selon la norme DSTV
    */
   private static getProfileCode(element: PivotElement): string {
+    const profile = element.profile?.toUpperCase() || '';
     const type = element.materialType?.toUpperCase() || '';
     const name = element.name?.toUpperCase() || '';
-    const combined = `${type} ${name}`.toUpperCase();
+    const combined = `${profile} ${type} ${name}`.toUpperCase();
     
     // Plats et tôles
     if (combined.match(/^(PL|PLAT|FL|FLAT|SHEET|PLATE|TOLE)/)) {
@@ -734,7 +905,12 @@ export class DSTVExporter {
    * Obtient la description du profil pour le bloc ST
    */
   private static getProfileDescription(element: PivotElement): string {
-    // Si le nom contient déjà la désignation complète
+    // Priorité 1: Si l'élément a une propriété profile directement
+    if (element.profile) {
+      return element.profile.replace(/\s+/g, '');
+    }
+    
+    // Priorité 2: Si le nom contient déjà la désignation complète
     const name = element.name || '';
     const type = element.materialType || '';
     
@@ -804,7 +980,7 @@ export class DSTVExporter {
     // Les profils I peuvent avoir des contours AK (voir exemple T1.NC1)
     // Particulièrement pour les HE
     if (profileCode === PROFILE_CODES.I) {
-      const type = element.materialType.toUpperCase();
+      const type = (element.materialType || 'BEAM').toUpperCase();
       // HE profiles souvent avec AK
       if (type.includes('HE')) {
         return true;
@@ -831,7 +1007,7 @@ export class DSTVExporter {
    */
   private static getRequiredFaces(element: PivotElement): string[] {
     const profileCode = this.getProfileCode(element);
-    const type = element.materialType.toUpperCase();
+    const type = (element.materialType || 'BEAM').toUpperCase();
     
     // Pour les tubes (exemple 572Z.NC1) : 4 faces v, o, u, h
     if (profileCode === PROFILE_CODES.M) {

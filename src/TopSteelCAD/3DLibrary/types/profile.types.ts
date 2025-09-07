@@ -25,8 +25,12 @@ export enum ProfileType {
   
   // Tubes
   TUBE_SQUARE = 'TUBE_SQUARE',
-  TUBE_RECTANGULAR = 'TUBE_RECTANGULAR',
+  TUBE_RECTANGULAR = 'TUBE_RECTANGULAR', 
   TUBE_CIRCULAR = 'TUBE_CIRCULAR',
+  
+  // Aliases for backward compatibility
+  TUBE_RECT = 'TUBE_RECT',
+  TUBE_ROUND = 'TUBE_ROUND',
   
   // Plats et barres
   FLAT = 'FLAT',

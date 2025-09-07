@@ -3,7 +3,15 @@
  */
 
 import * as THREE from 'three';
-import { PivotElement } from '@/types/viewer';
+// Import temporairement commenté pour éviter problème d'alias
+// import { PivotElement } from '@/types/viewer';
+
+// Interface stub temporaire
+interface PivotElement {
+  id: string;
+  dimensions?: any;
+  [key: string]: any;
+}
 
 /**
  * Types de features supportées
@@ -25,6 +33,7 @@ export enum FeatureType {
   UNRESTRICTED_CONTOUR = 'unrestricted_contour',
   NOTCH = 'notch',
   COPING = 'coping',
+  END_CUT = 'end_cut',
   
   // Finitions et déformations
   CHAMFER = 'chamfer',
@@ -309,13 +318,27 @@ export function arrayToPoints(array: [number, number][]): Point2D[] {
 
 /**
  * Mapping DSTV vers ProfileFace
+ * Selon la norme DSTV officielle :
+ * - v = Vorderseite = âme/web (face verticale centrale)
+ * - o = Oben = aile supérieure (top flange)
+ * - u = Unten = aile inférieure (bottom flange)
+ * - h = Hinten = face arrière
  */
 export const DSTV_FACE_MAPPING: Record<string, ProfileFace> = {
-  'v': ProfileFace.TOP_FLANGE,    // v = top flange (aile supérieure)
-  'u': ProfileFace.BOTTOM_FLANGE, // u = bottom flange (aile inférieure)
-  'o': ProfileFace.WEB,           // o = web (âme)
-  'l': ProfileFace.LEFT_LEG,
-  'r': ProfileFace.RIGHT_LEG,
+  'v': ProfileFace.WEB,            // v = web/âme (Vorderseite)
+  'o': ProfileFace.TOP_FLANGE,     // o = top flange (Oben = dessus)
+  'u': ProfileFace.BOTTOM_FLANGE,  // u = bottom flange (Unten = dessous)
+  'h': ProfileFace.FRONT,          // h = front face (Hinten = arrière)
+  'l': ProfileFace.LEFT_LEG,       // l = jambe gauche (profil L)
+  'r': ProfileFace.RIGHT_LEG,      // r = jambe droite (profil L)
+  
+  // Mappings directs pour les valeurs déjà converties
+  'web': ProfileFace.WEB,
+  'top_flange': ProfileFace.TOP_FLANGE,
+  'bottom_flange': ProfileFace.BOTTOM_FLANGE,
+  'front': ProfileFace.FRONT,
+  'left_leg': ProfileFace.LEFT_LEG,
+  'right_leg': ProfileFace.RIGHT_LEG
 };
 
 /**

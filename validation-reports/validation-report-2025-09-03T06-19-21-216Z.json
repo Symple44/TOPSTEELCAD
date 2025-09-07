@@ -1,0 +1,1235 @@
+{
+  "timestamp": "2025-09-03T06:19:21.224Z",
+  "summary": {
+    "filesAnalyzed": 29,
+    "totalBlocks": 155,
+    "uniqueBlockTypes": 15,
+    "averageCoverage": 36.83908045977012,
+    "fullySupportedFiles": 0,
+    "partiallySupportedFiles": 29,
+    "unsupportedFiles": 0
+  },
+  "blockDistribution": {
+    "ST": 29,
+    "IP": 4,
+    "SI": 23,
+    "EN": 29,
+    "PL": 14,
+    "BL": 1,
+    "BO": 19,
+    "AK": 27,
+    "TU": 1,
+    "RS": 1,
+    "UK": 1,
+    "KA": 1,
+    "HS": 2,
+    "UB": 2,
+    "HE": 1
+  },
+  "files": [
+    {
+      "file": "1.nc",
+      "stats": {
+        "name": "1.nc",
+        "size": 273,
+        "lines": 28,
+        "blocks": {
+          "ST": 1,
+          "IP": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "IP",
+          "EN"
+        ],
+        "coverage": 25
+      }
+    },
+    {
+      "file": "10.nc",
+      "stats": {
+        "name": "10.nc",
+        "size": 274,
+        "lines": 28,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 25
+      }
+    },
+    {
+      "file": "1009.nc",
+      "stats": {
+        "name": "1009.nc",
+        "size": 843,
+        "lines": 47,
+        "blocks": {
+          "ST": 1,
+          "BL": 1,
+          "BO": 1,
+          "SI": 1,
+          "AK": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 1,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor",
+          "ExteriorCutHandler"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "BL",
+          "EN"
+        ],
+        "coverage": 50
+      }
+    },
+    {
+      "file": "11.nc",
+      "stats": {
+        "name": "11.nc",
+        "size": 274,
+        "lines": 28,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 25
+      }
+    },
+    {
+      "file": "12.nc",
+      "stats": {
+        "name": "12.nc",
+        "size": 354,
+        "lines": 31,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "13.nc",
+      "stats": {
+        "name": "13.nc",
+        "size": 582,
+        "lines": 37,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "14.nc",
+      "stats": {
+        "name": "14.nc",
+        "size": 430,
+        "lines": 33,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "15.nc",
+      "stats": {
+        "name": "15.nc",
+        "size": 353,
+        "lines": 31,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "2.nc",
+      "stats": {
+        "name": "2.nc",
+        "size": 353,
+        "lines": 31,
+        "blocks": {
+          "ST": 1,
+          "IP": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "IP",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "3.nc",
+      "stats": {
+        "name": "3.nc",
+        "size": 272,
+        "lines": 28,
+        "blocks": {
+          "ST": 1,
+          "IP": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "IP",
+          "EN"
+        ],
+        "coverage": 25
+      }
+    },
+    {
+      "file": "4.nc",
+      "stats": {
+        "name": "4.nc",
+        "size": 580,
+        "lines": 37,
+        "blocks": {
+          "ST": 1,
+          "IP": 1,
+          "SI": 1,
+          "BO": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "IP",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "5.nc",
+      "stats": {
+        "name": "5.nc",
+        "size": 398,
+        "lines": 31,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "572Z.NC1",
+      "stats": {
+        "name": "572Z.NC1",
+        "size": 1080,
+        "lines": 52,
+        "blocks": {
+          "ST": 1,
+          "TU": 1,
+          "AK": 4,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 4,
+          "holes": 0,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "TU",
+          "EN"
+        ],
+        "coverage": 25
+      }
+    },
+    {
+      "file": "6.nc",
+      "stats": {
+        "name": "6.nc",
+        "size": 352,
+        "lines": 31,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "7.nc",
+      "stats": {
+        "name": "7.nc",
+        "size": 351,
+        "lines": 31,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "8.nc",
+      "stats": {
+        "name": "8.nc",
+        "size": 491,
+        "lines": 36,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "SI": 1,
+          "AK": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 1,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor",
+          "ExteriorCutHandler"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "9.nc",
+      "stats": {
+        "name": "9.nc",
+        "size": 492,
+        "lines": 36,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "SI": 1,
+          "AK": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 1,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor",
+          "ExteriorCutHandler"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "F1000.nc",
+      "stats": {
+        "name": "F1000.nc",
+        "size": 297,
+        "lines": 28,
+        "blocks": {
+          "ST": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 1,
+          "markings": 0,
+          "other": 2
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "EN"
+        ],
+        "coverage": 33.33333333333333
+      }
+    },
+    {
+      "file": "F1001.nc",
+      "stats": {
+        "name": "F1001.nc",
+        "size": 370,
+        "lines": 31,
+        "blocks": {
+          "ST": 1,
+          "RS": 1,
+          "SI": 1,
+          "BO": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "RS",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "F1002.nc",
+      "stats": {
+        "name": "F1002.nc",
+        "size": 290,
+        "lines": 28,
+        "blocks": {
+          "ST": 1,
+          "UK": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "UK",
+          "EN"
+        ],
+        "coverage": 25
+      }
+    },
+    {
+      "file": "F1003.nc",
+      "stats": {
+        "name": "F1003.nc",
+        "size": 363,
+        "lines": 31,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 0,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "f5001.nc1",
+      "stats": {
+        "name": "f5001.nc1",
+        "size": 1207,
+        "lines": 42,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "AK": 1,
+          "KA": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 1,
+          "holes": 0,
+          "markings": 0,
+          "other": 4
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "KA",
+          "EN"
+        ],
+        "coverage": 20
+      }
+    },
+    {
+      "file": "h5004-cuts-only.nc1",
+      "stats": {
+        "name": "h5004-cuts-only.nc1",
+        "size": 1046,
+        "lines": 39,
+        "blocks": {
+          "ST": 1,
+          "HS": 1,
+          "AK": 2,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 2,
+          "holes": 0,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "HS",
+          "EN"
+        ],
+        "coverage": 25
+      }
+    },
+    {
+      "file": "h5004.nc1",
+      "stats": {
+        "name": "h5004.nc1",
+        "size": 3854,
+        "lines": 105,
+        "blocks": {
+          "ST": 1,
+          "HS": 1,
+          "AK": 4,
+          "BO": 2,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 4,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler",
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "HS",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "M1001.nc",
+      "stats": {
+        "name": "M1001.nc",
+        "size": 971,
+        "lines": 53,
+        "blocks": {
+          "ST": 1,
+          "UB": 1,
+          "AK": 3,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 3,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler",
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "UB",
+          "EN"
+        ],
+        "coverage": 50
+      }
+    },
+    {
+      "file": "M1002.nc",
+      "stats": {
+        "name": "M1002.nc",
+        "size": 971,
+        "lines": 53,
+        "blocks": {
+          "ST": 1,
+          "UB": 1,
+          "AK": 3,
+          "BO": 1,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 3,
+          "holes": 2,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler",
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "UB",
+          "EN"
+        ],
+        "coverage": 50
+      }
+    },
+    {
+      "file": "P1.nc1",
+      "stats": {
+        "name": "P1.nc1",
+        "size": 692,
+        "lines": 36,
+        "blocks": {
+          "ST": 1,
+          "PL": 1,
+          "AK": 1,
+          "BO": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 1,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler",
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "PL",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "T1.NC1",
+      "stats": {
+        "name": "T1.NC1",
+        "size": 932,
+        "lines": 48,
+        "blocks": {
+          "ST": 1,
+          "HE": 1,
+          "AK": 3,
+          "SI": 1,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 3,
+          "holes": 1,
+          "markings": 0,
+          "other": 3
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler",
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "HE",
+          "EN"
+        ],
+        "coverage": 40
+      }
+    },
+    {
+      "file": "U101.nc1",
+      "stats": {
+        "name": "U101.nc1",
+        "size": 2560,
+        "lines": 76,
+        "blocks": {
+          "ST": 1,
+          "AK": 3,
+          "BO": 2,
+          "EN": 1
+        },
+        "features": {
+          "cuts": 3,
+          "holes": 2,
+          "markings": 0,
+          "other": 2
+        },
+        "profile": null,
+        "validation": {
+          "valid": false,
+          "errors": [
+            "No ST (Start) block found"
+          ],
+          "warnings": []
+        }
+      },
+      "compatibility": {
+        "supported": false,
+        "handlers": [
+          "ExteriorCutHandler",
+          "HoleProcessor"
+        ],
+        "unsupportedBlocks": [
+          "ST",
+          "EN"
+        ],
+        "coverage": 50
+      }
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "message": "Implement handlers for unsupported blocks: ST, IP, EN, PL, BL, TU, RS, UK, KA, HS, UB, HE"
+    },
+    {
+      "priority": "MEDIUM",
+      "message": "Current coverage is 36.8%. Consider implementing additional handlers."
+    },
+    {
+      "priority": "INFO",
+      "message": "Most used blocks: ST(29), EN(29), AK(27), SI(23), BO(19)"
+    }
+  ]
+}

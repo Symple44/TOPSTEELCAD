@@ -195,7 +195,7 @@ export class PerformanceOptimizer {
     }
     
     // Vérifier si les paramètres sont suffisamment similaires
-    if (features.length < 10) {
+    if (features.length < 3) {
       return false;
     }
     

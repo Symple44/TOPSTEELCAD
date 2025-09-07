@@ -9,58 +9,11 @@ import { BaseStage } from '../../../../core/pipeline/BaseStage';
 import { ProcessingContext } from '../../../../core/pipeline/ProcessingContext';
 import { DSTVTokens, DSTVSyntaxTree } from '../DSTVImportPipeline';
 import { DSTVToken, DSTVTokenType } from './DSTVLexicalStage';
+import { BlockParserFactory } from '../blocks/factory/BlockParserFactory';
+import { DSTVBlockType } from '../types/dstv-types';
 
-/**
- * Types de blocs DSTV selon la norme officielle
- */
-export enum DSTVBlockType {
-  // Blocs obligatoires
-  ST = 'ST',    // Start/Header - Données de la pièce
-  EN = 'EN',    // End - Fin du fichier
-  
-  // Blocs de géométrie
-  BO = 'BO',    // Hole - Trou rond
-  AK = 'AK',    // Outer contour - Contour extérieur
-  IK = 'IK',    // Inner contour - Contour intérieur
-  
-  // Blocs de marquage et traitement
-  SI = 'SI',    // Marking - Marquage pièce
-  SC = 'SC',    // Cut - Découpe spéciale
-  PU = 'PU',    // Punch mark - Pointage
-  KO = 'KO',    // Contour marking - Marquage contour
-  
-  // Blocs avancés
-  TO = 'TO',    // Threading - Filetage
-  UE = 'UE',    // Unrestricted contour - Contour libre
-  PR = 'PR',    // Profile - Définition profil
-  KA = 'KA',    // Bending - Pliage
-  BR = 'BR',    // Bevel/Radius - Chanfrein/Rayon
-  VO = 'VO',    // Volume - Volume de matière
-  NU = 'NU',    // Numerically Controlled - Commande numérique
-  
-  // Programmes et contrôle
-  FP = 'FP',    // Free Program - Programme libre
-  LP = 'LP',    // Line Program - Programme linéaire
-  RT = 'RT',    // Rotation - Rotation de pièce
-  EB = 'EB',    // End of Batch - Fin de lot
-  VB = 'VB',    // Variable Block - Bloc variable
-  GR = 'GR',    // Group - Groupement d'opérations
-  
-  // Opérations mécaniques
-  WA = 'WA',    // Washing - Lavage/Nettoyage
-  FB = 'FB',    // Face Block - Bloc de face
-  BF = 'BF',    // Bending Force - Force de pliage
-  KL = 'KL',    // Clamping - Serrage
-  KN = 'KN',    // Knurling - Moletage
-  RO = 'RO',    // Roll - Laminage
-  
-  // Plans de travail (E0-E9)
-  E0 = 'E0', E1 = 'E1', E2 = 'E2', E3 = 'E3', E4 = 'E4',
-  E5 = 'E5', E6 = 'E6', E7 = 'E7', E8 = 'E8', E9 = 'E9',
-  
-  // Information
-  IN = 'IN'     // Information block - Bloc d'information
-}
+// DSTVBlockType est maintenant importé depuis dstv-types.ts
+// pour éviter les conflits de définition
 
 /**
  * Structure d'un bloc DSTV parsé
@@ -218,6 +171,7 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
   private async parseBlock(context: ProcessingContext): Promise<DSTVParsedBlock | null> {
     const startPosition = this.currentPosition;
     const headerToken = this.getCurrentToken();
+    console.log(`🚀 parseBlock called, headerToken:`, headerToken?.value);
     
     if (!headerToken || headerToken.type !== DSTVTokenType.BLOCK_HEADER) {
       return null;
@@ -279,6 +233,7 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
     } catch (error) {
       const errorMsg = `Error parsing ${blockType} block data: ${error instanceof Error ? error.message : String(error)}`;
       errors.push(errorMsg);
+      console.error(`❌ ${errorMsg}`, error);
       
       if (this.syntaxConfig.strictMode) {
         throw new Error(errorMsg);
@@ -311,6 +266,73 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
    * Parse les données spécifiques d'un bloc selon son type
    */
   private async parseBlockData(blockType: DSTVBlockType, rawData: string[], context: ProcessingContext): Promise<Record<string, any>> {
+    console.log(`🎯 parseBlockData called with blockType="${blockType}", DSTVBlockType.ST="${DSTVBlockType.ST}", equal=${blockType === DSTVBlockType.ST}`);
+    
+    // IMPORTANT: Utiliser TOUJOURS le Factory Pattern pour obtenir le bon parser
+    // Cela garantit que le STBlockParser refactorisé est utilisé
+    console.log(`🏭 Getting factory...`);
+    const factory = BlockParserFactory.getInstance();
+    console.log(`🏭 Getting parser for ${blockType}...`);
+    const parser = factory.getParser(blockType);
+    
+    console.log(`🏭 Got parser for ${blockType}, rawData:`, rawData);
+    
+    try {
+      // Parser les données avec le parser approprié
+      const result = await parser.parse(rawData, context);
+      
+      // Normaliser le résultat si nécessaire
+      return this.normalizeParserResult(result, blockType);
+    } catch (error: any) {
+      this.log(context, 'error', `Parser ${blockType} failed: ${error.message}`);
+      
+      // Fallback vers les méthodes existantes pour compatibilité
+      return this.fallbackParse(blockType, rawData, context);
+    }
+  }
+  
+  /**
+   * Normalise le résultat du parser pour assurer une structure cohérente
+   */
+  private normalizeParserResult(result: any, blockType: DSTVBlockType): Record<string, any> {
+    // Cas spécial pour BO: BOBlockParser retourne un tableau de trous
+    // mais le validateur sémantique attend { holes: [...] }
+    if (blockType === DSTVBlockType.BO) {
+      if (Array.isArray(result)) {
+        console.log(`📦 BO normalization: wrapping ${result.length} holes in { holes: [...] } structure`);
+        return {
+          blockType,
+          holes: result
+        };
+      }
+      // Si c'est déjà un objet avec 'holes', le garder tel quel
+      if (result && result.holes) {
+        return result;
+      }
+    }
+    
+    // Si le résultat est déjà un objet avec la bonne structure
+    if (typeof result === 'object' && result !== null) {
+      // Assurer que le type de bloc est présent
+      if (!result.blockType) {
+        result.blockType = blockType;
+      }
+      return result;
+    }
+    
+    // Encapsuler les données primitives
+    return {
+      blockType,
+      data: result
+    };
+  }
+  
+  /**
+   * Méthode de fallback pour utiliser les anciens parsers si nécessaire
+   */
+  private async fallbackParse(blockType: DSTVBlockType, rawData: string[], context: ProcessingContext): Promise<Record<string, any>> {
+    this.log(context, 'warn', `Using fallback parser for ${blockType}`);
+    
     switch (blockType) {
       case DSTVBlockType.ST:
         return this.parseSTBlock(rawData);
@@ -348,28 +370,107 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
       throw new Error(`ST block requires at least 8 fields, got ${rawData.length}`);
     }
 
-    return {
+    console.log(`🔍 ST Block raw input:`)
+    rawData.slice(0, 15).forEach((val, idx) => {
+      console.log(`  [${idx}]: "${val}"`);
+    });
+    console.log(`🔍 RAW DATA [9]: ${rawData[9]}, [10]: ${rawData[10]}`);
+
+    console.log(`🔍 After raw input log, continuing with parsing...`);
+
+    // Reconstituer le nom du profil si il a été splitté (ex: "Tube rect. 100x50x5")
+    let profileName = rawData[6] || '';
+    let profileTypeIndex = 7;
+    
+    // Si rawData[7] n'est pas un code de type valide, c'est probablement une continuation du nom
+    const validTypeCodes = ['I', 'U', 'L', 'T', 'M', 'R', 'P', 'B'];  // Ajout de 'B' pour les plaques
+    if (rawData[7] && !validTypeCodes.includes(rawData[7].toUpperCase())) {
+      // Reconstituer le nom du profil jusqu'à trouver le code de type
+      let reconstructedName = [rawData[6]];
+      let i = 7;
+      while (i < rawData.length && !validTypeCodes.includes(rawData[i]?.toUpperCase())) {
+        reconstructedName.push(rawData[i]);
+        i++;
+      }
+      profileName = reconstructedName.join(' ');
+      profileTypeIndex = i;
+    }
+    
+    const profileType = rawData[profileTypeIndex] || '';
+    console.log(`📦 Reconstructed profile: name="${profileName}", type="${profileType}" at index ${profileTypeIndex}`);
+
+    const baseData = {
       orderNumber: rawData[0] || '',
       drawingNumber: rawData[1] || '',
       phaseNumber: rawData[2] || '',
       pieceNumber: rawData[3] || '',
       steelGrade: rawData[4] || '',
       quantity: parseInt(rawData[5]) || 1,
-      profileName: rawData[6] || '',
-      profileType: rawData[7] || '',
-      // Champs géométriques (selon norme DSTV)
-      profileLength: rawData[8] ? parseFloat(rawData[8]) : undefined,
-      profileHeight: rawData[9] ? parseFloat(rawData[9]) : undefined,     // Vraie hauteur
-      profileWidth: rawData[10] ? parseFloat(rawData[10]) : undefined,    // Vraie largeur  
-      webThickness: rawData[11] ? parseFloat(rawData[11]) : undefined,    // Épaisseur âme
-      flangeThickness: rawData[12] ? parseFloat(rawData[12]) : undefined, // Épaisseur semelle
-      rootRadius: rawData[13] ? parseFloat(rawData[13]) : undefined,      // Rayon de raccordement
-      profileWeight: rawData[14] ? parseFloat(rawData[14]) : undefined,   // Poids par mètre
-      surfaceArea: rawData[15] ? parseFloat(rawData[15]) : undefined,     // Surface par mètre
-      // Champs de dates optionnels (si présents après les dimensions)
-      createdDate: rawData[16] || undefined,
-      createdTime: rawData[17] || undefined
+      profileName: profileName,
+      profileType: profileType
     };
+
+    // Mapping spécifique selon le type de profil, avec décalage d'index si nécessaire
+    const dataOffset = profileTypeIndex - 7; // Décalage causé par le nom splitté
+    
+    console.log(`📊 ST Block - profileType="${profileType}", going to ${profileType === 'M' ? 'TUBE' : 'STANDARD'} branch`);
+    
+    if (profileType === 'M') {
+      // Tube rectangulaire (code M selon DSTV)
+      // Ajuster les indices selon le décalage
+      const baseIdx = profileTypeIndex + 1; // Index après le code de type
+      
+      console.log(`📦 Parsing TUBE RECT (M): fields from index ${baseIdx}:`, 
+        rawData.slice(baseIdx, baseIdx + 8));
+      
+      return {
+        ...baseData,
+        profileLength: rawData[baseIdx] ? parseFloat(rawData[baseIdx]) : undefined,       // 359.37 - Longueur
+        profileHeight: rawData[baseIdx + 1] ? parseFloat(rawData[baseIdx + 1]) : undefined, // 100.00 - Hauteur du tube
+        profileWidth: rawData[baseIdx + 2] ? parseFloat(rawData[baseIdx + 2]) : undefined,  // 50.00 - Largeur du tube  
+        wallThickness: rawData[baseIdx + 3] ? parseFloat(rawData[baseIdx + 3]) : undefined, // 5.00 - Épaisseur de paroi
+        wallThickness2: rawData[baseIdx + 4] ? parseFloat(rawData[baseIdx + 4]) : undefined, // 5.00 - Épaisseur de paroi (autre direction)
+        rootRadius: rawData[baseIdx + 5] ? parseFloat(rawData[baseIdx + 5]) : undefined,    // 0.00 - Rayon de raccordement
+        profileWeight: rawData[baseIdx + 6] ? parseFloat(rawData[baseIdx + 6]) : undefined, // 10.75 - Poids par mètre
+        surfaceArea: rawData[baseIdx + 7] ? parseFloat(rawData[baseIdx + 7]) : undefined,   // 0.30 - Surface par mètre
+        // Les autres champs restent optionnels
+        createdDate: rawData[baseIdx + 8] || undefined,
+        createdTime: rawData[baseIdx + 9] || undefined
+      };
+    } else {
+      // Profils standards (I, L, U, etc.)
+      // IMPORTANT: Pour les profils I dans DSTV, l'ordre est:
+      // [8]: Longueur, [9]: Hauteur du profil, [10]: Largeur des semelles
+      const result = {
+        ...baseData,
+        // Champs géométriques (selon norme DSTV)
+        profileLength: rawData[8] ? parseFloat(rawData[8]) : undefined,
+        profileHeight: rawData[9] ? parseFloat(rawData[9]) : undefined,     // Hauteur du profil (251.40 pour UB254x146x31)
+        profileWidth: rawData[10] ? parseFloat(rawData[10]) : undefined,    // Largeur des semelles (146.10 pour UB254x146x31)
+        webThickness: rawData[12] ? parseFloat(rawData[12]) : undefined,    // Épaisseur âme (position 12 dans le fichier)
+        flangeThickness: rawData[11] ? parseFloat(rawData[11]) : undefined, // Épaisseur semelle (position 11 dans le fichier)
+        rootRadius: rawData[13] ? parseFloat(rawData[13]) : undefined,      // Rayon de raccordement
+        profileWeight: rawData[14] ? parseFloat(rawData[14]) : undefined,   // Poids par mètre
+        surfaceArea: rawData[15] ? parseFloat(rawData[15]) : undefined,     // Surface par mètre
+        // Champs de dates optionnels (si présents après les dimensions)
+        createdDate: rawData[16] || undefined,
+        createdTime: rawData[17] || undefined
+      };
+      
+      console.log(`📊 ST Block parsed data:`, {
+        profileHeight: result.profileHeight,
+        profileWidth: result.profileWidth,
+        webThickness: result.webThickness,
+        flangeThickness: result.flangeThickness,
+        fullResult: result
+      });
+      
+      return result;
+    }
+    
+    // This should never be reached
+    console.error(`❌ parseSTBlock: No branch taken for profileType="${profileType}"`);
+    return baseData;
   }
 
   /**
@@ -378,60 +479,65 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
   private parseBOBlock(rawData: string[]): Record<string, any> {
     // Le bloc BO peut contenir plusieurs trous
     // Format: [face] X Y diameter [depth] [angle] [plane] [tolerance]
+    console.log('🔍 BO Block raw data:', rawData);
     const holes: Array<Record<string, any>> = [];
-    let i = 0;
     
-    while (i < rawData.length) {
-      // Récupérer la face (optionnelle)
-      let face = 'web';
-      const startIndex = i;
-      
-      // Vérifier si c'est un indicateur de face
-      // IMPORTANT: Pour BO, 'v' = vertical = trous dans l'âme (PAS dans l'aile!)
-      if (/^[vVhHuUoO]$/.test(rawData[i])) {
-        const indicator = rawData[i].toLowerCase();
-        switch(indicator) {
-          case 'v': face = 'web'; break;      // 'v' = vertical = trous verticaux dans l'âme
-          case 'u': face = 'bottom'; break;   // 'u' = semelle inférieure
-          case 'o': face = 'top'; break;      // 'o' = over = semelle supérieure
-          case 'h': face = 'front'; break;    // 'h' = face avant
+    // Chaque ligne du fichier DSTV devient un élément dans rawData
+    // Pour M1002.nc, on a:
+    // ["v  1857.15u   163.20  22.00   0.00", "v  1857.15u    88.20  22.00   0.00"]
+    
+    for (const line of rawData) {
+      // Chaque ligne peut être un trou complet
+      if (typeof line === 'string' && line.trim()) {
+        // Si la ligne commence par un indicateur de face
+        if (/^[vVhHuUoO]/.test(line)) {
+          const faceChar = line.charAt(0).toLowerCase();
+          let face = 'web';
+          switch(faceChar) {
+            case 'v': face = 'web'; break;      // 'v' = vertical = trous dans l'âme
+            case 'u': face = 'bottom'; break;   // 'u' = semelle inférieure
+            case 'o': face = 'top'; break;      // 'o' = semelle supérieure
+            case 'h': face = 'front'; break;    // 'h' = face avant
+          }
+          
+          // Extraire les nombres de la ligne
+          const numbers: number[] = [];
+          const parts = line.substring(1).split(/\s+/).filter(p => p.trim());
+          
+          for (const part of parts) {
+            // Enlever le suffixe 'u' s'il existe (unité DSTV)
+            const cleanPart = part.replace(/u$/i, '');
+            const match = cleanPart.match(/^(-?\d+\.?\d*)$/);
+            if (match) {
+              const num = parseFloat(match[1]);
+              if (!isNaN(num)) {
+                numbers.push(num);
+              }
+            }
+          }
+          
+          // Créer le trou si on a au moins X, Y et diamètre
+          if (numbers.length >= 3) {
+            const hole = {
+              face,
+              x: numbers[0],
+              y: numbers[1],
+              diameter: numbers[2],
+              depth: numbers[3] || 0,
+              angle: numbers[4] || 0,
+              plane: 'E0',
+              tolerance: numbers[5] || undefined
+            };
+            console.log(`  📍 Parsed hole: face=${hole.face}, x=${hole.x}, y=${hole.y}, d=${hole.diameter}`);
+            holes.push(hole);
+          }
         }
-        i++;
-      }
-      
-      // Récupérer les valeurs numériques
-      const numericValues: number[] = [];
-      while (i < rawData.length && numericValues.length < 7) {
-        const val = rawData[i];
-        // Si on trouve un nouvel indicateur de face, on arrête ce trou
-        if (/^[vVhHuUoO]$/.test(val)) {
-          break;
-        }
-        // Parser les valeurs numériques
-        if (/^[+-]?\d/.test(val) || /^[+-]?\./.test(val)) {
-          // Retirer le suffixe 'u' s'il existe
-          const cleanVal = val.replace(/u$/, '');
-          numericValues.push(parseFloat(cleanVal));
-        }
-        i++;
-      }
-      
-      // Créer le trou si on a au moins X, Y et diamètre
-      if (numericValues.length >= 3) {
-        holes.push({
-          face,
-          x: numericValues[0],
-          y: numericValues[1],
-          diameter: numericValues[2],
-          depth: numericValues[3] || 0,
-          angle: numericValues[4] || 0,
-          plane: rawData[startIndex + numericValues.length + 5] || 'E0',
-          tolerance: numericValues[6] || undefined
-        });
       }
     }
     
-    console.log(`  📍 Parsed ${holes.length} holes from BO block`);
+    console.log(`  📍 Total parsed ${holes.length} holes from BO block`);
+    
+    // Retourner la structure attendue par le validateur sémantique
     return { holes };
   }
 

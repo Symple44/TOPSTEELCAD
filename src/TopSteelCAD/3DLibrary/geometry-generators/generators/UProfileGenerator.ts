@@ -29,6 +29,13 @@ export class UProfileGenerator extends BaseProfileGenerator {
       rootRadius = 0,
       toeRadius = 0
     } = dimensions;
+    
+    console.log('🔧 UProfileGenerator.generate called with:');
+    console.log('  - height (hauteur âme):', height, 'mm');
+    console.log('  - width (largeur ailes):', width, 'mm');
+    console.log('  - webThickness:', webThickness, 'mm');
+    console.log('  - flangeThickness:', flangeThickness, 'mm');
+    console.log('  - length:', length, 'mm');
 
     // Validation
     if (!height || !width || !webThickness || !flangeThickness) {
@@ -78,6 +85,12 @@ export class UProfileGenerator extends BaseProfileGenerator {
   }): Shape {
     const { height, width, webThickness, flangeThickness } = params;
     
+    console.log('📐 Creating U profile 2D shape:');
+    console.log('  - Profile height (h):', height, 'mm');
+    console.log('  - Flange width (w):', width, 'mm');
+    console.log('  - Web thickness (tw):', webThickness, 'mm');
+    console.log('  - Flange thickness (tf):', flangeThickness, 'mm');
+    
     const shape = new Shape();
     
     const h = height;
@@ -87,24 +100,27 @@ export class UProfileGenerator extends BaseProfileGenerator {
     const hw = w / 2;
     const hh = h / 2;
     
-    // Profil U - tracé du contour réel (sens anti-horaire)
-    // Commencer coin inférieur gauche extérieur
-    shape.moveTo(-hw, -hh);
+    // Profil U orienté avec l'âme à gauche et les ailes à droite
+    // L'origine est au centre de l'âme
+    // Dimensions: âme verticale de hauteur h, ailes horizontales de largeur w
     
-    // Base extérieure
-    shape.lineTo(hw, -hh);                    // Base droite
-    shape.lineTo(hw, hh);                     // Montée droite extérieure
-    shape.lineTo(hw - tf, hh);                // Semelle sup droite
-    shape.lineTo(hw - tf, -hh + tf);          // Descente intérieure droite
+    // Commencer coin inférieur gauche extérieur (base de l'aile inférieure)
+    shape.moveTo(0, -hh);
     
-    // Base intérieure
-    shape.lineTo(-hw + tw, -hh + tf);         // Base intérieure
+    // Aile inférieure extérieure
+    shape.lineTo(w, -hh);                     // Vers la droite (largeur de l'aile)
+    shape.lineTo(w, -hh + tf);                // Monter de l'épaisseur de l'aile
+    shape.lineTo(tw, -hh + tf);               // Retour vers l'âme (largeur - épaisseur âme)
     
-    // Remontée gauche
-    shape.lineTo(-hw + tw, hh);               // Montée intérieure gauche
-    shape.lineTo(-hw, hh);                    // Semelle sup gauche
+    // Monter le long de l'âme intérieure
+    shape.lineTo(tw, hh - tf);                // Monter jusqu'à l'aile supérieure
     
-    // Fermer le profil
+    // Aile supérieure intérieure
+    shape.lineTo(w, hh - tf);                 // Vers la droite
+    shape.lineTo(w, hh);                      // Monter de l'épaisseur
+    shape.lineTo(0, hh);                      // Retour au bord gauche
+    
+    // Fermer en descendant le long de l'âme extérieure
     shape.closePath();
     
     return shape;

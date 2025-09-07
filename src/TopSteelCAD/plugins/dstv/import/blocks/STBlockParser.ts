@@ -28,6 +28,8 @@ export interface STBlockData {
   width: number;               // Largeur du profil (mm)
   webThickness: number;        // Épaisseur de l'âme (mm)
   flangeThickness: number;     // Épaisseur de l'aile (mm)
+  wallThickness?: number;      // Épaisseur de paroi (tubes)
+  thickness?: number;          // Épaisseur (pour plaques)
   radius?: number;             // Rayon (optionnel)
   
   // Propriétés calculées
@@ -49,7 +51,7 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
   readonly description = 'Parses DSTV ST (Start/Header) block according to official standard with legacy compatibility';
 
   /**
-   * Parse un bloc ST moderne
+   * Parse un bloc ST avec une logique simplifiée et robuste
    */
   async process(input: string[]): Promise<STBlockData> {
     if (input.length < 8) {
@@ -57,19 +59,38 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
     }
 
     this.log(undefined as any, 'debug', `Parsing ST block with ${input.length} fields`);
+    
+    // DEBUG: Logging pour analyse
+    console.log('🔍 ST Block raw input:');
+    for (let i = 0; i < Math.min(15, input.length); i++) {
+      console.log(`  [${i}]: "${input[i]}"`);
+    }
 
+    // Analyser et nettoyer les données du ST
+    const parsedData = this.parseSTBlockStructure(input);
+    
+    console.log(`🎯 Detected profileType: "${parsedData.profileType}" for profile "${parsedData.profileName}"`);
+    console.log(`📊 Parsed dimensions: L=${parsedData.length}, H=${parsedData.height}, W=${parsedData.width}`);
+    
+    this.log(undefined as any, 'debug', `Parsed ST: ${parsedData.profileName} (${parsedData.profileType}), L=${parsedData.length}mm, H=${parsedData.height}mm, W=${parsedData.width}mm`);
+
+    return parsedData;
+  }
+
+  /**
+   * Nouvelle méthode simplifiée pour parser la structure du bloc ST
+   */
+  private parseSTBlockStructure(input: string[]): STBlockData {
+    // Initialiser avec les valeurs par défaut
     const data: STBlockData = {
-      // Champs obligatoires selon la norme (lignes 0-7)
       orderNumber: this.cleanField(input[0]),
       drawingNumber: this.cleanField(input[1]),
       phaseNumber: this.cleanField(input[2]),
       pieceNumber: this.cleanField(input[3]),
       steelGrade: this.cleanField(input[4]) || 'S235',
       quantity: this.parseNumber(input[5], 1),
-      profileName: this.cleanField(input[6]),
-      profileType: this.detectProfileType(input[6], input[7]),
-      
-      // Dimensions par défaut
+      profileName: '',
+      profileType: 'UNKNOWN',
       length: 0,
       height: 0,
       width: 0,
@@ -79,67 +100,249 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
       paintingSurface: 0
     };
 
-    // Parser les champs étendus selon l'ancien format
-    this.parseExtendedFields(input, data);
+    // Détecter le format et extraire le nom du profil et le type
+    const profileInfo = this.detectProfileFormat(input);
+    data.profileName = profileInfo.name;
+    data.profileType = profileInfo.type;
 
-    this.log(undefined as any, 'debug', `Parsed ST: ${data.profileName} (${data.profileType}), L=${data.length}mm`);
+    // Parser les dimensions selon le type de profil détecté
+    this.parseDimensions(input, data, profileInfo);
+
+    // Parser les propriétés additionnelles (poids, surface, etc.)
+    this.parseAdditionalProperties(input, data, profileInfo);
 
     return data;
   }
 
   /**
-   * Parse les champs étendus selon l'ancien parser
+   * Détecte le format du profil et retourne les informations structurées
    */
-  private parseExtendedFields(input: string[], data: STBlockData): void {
-    try {
-      // Champ 7: Type de profil ou numéro de plan (legacy logic)
-      if (input[7]) {
-        const field7 = input[7].trim();
-        if (this.isProfileTypeCode(field7)) {
-          data.profileType = this.mapProfileTypeCode(field7);
-        } else if (!field7.match(/^[IULTMR]$/)) {
-          // Si ce n'est pas un code de profil, c'est un numéro de plan
-          if (!data.drawingNumber || data.drawingNumber === '-') {
-            data.drawingNumber = field7;
-          }
+  private detectProfileFormat(input: string[]): {
+    name: string;
+    type: string;
+    dimensionStartIndex: number;
+    format: 'STANDARD' | 'PLATE' | 'TUBE' | 'SPECIAL';
+  } {
+    // Vérifier d'abord si c'est une plaque (PL)
+    if (input[6] === 'PL' && input[8] === 'B') {
+      return {
+        name: `PL ${input[7]}`,  // "PL 10", "PL 12", etc.
+        type: 'PLATE',
+        dimensionStartIndex: 9,
+        format: 'PLATE'
+      };
+    }
+
+    // Vérifier si c'est un tube spécial multi-champs
+    if (input[6] === 'Tube' && input[7] === 'rect.') {
+      const dimensions = [input[8], input[9], input[10]].filter(d => d && d !== '-').join('x');
+      return {
+        name: `Tube rect. ${dimensions}`,
+        type: 'TUBE_RECT',
+        dimensionStartIndex: 12,
+        format: 'TUBE'
+      };
+    }
+
+    // FORMAT IMPORTANT : Beaucoup de fichiers DSTV ont le nom en position 7 et le type en position 8
+    // Exemple : T1.NC1 a "HE120B" en position 7 et "I" en position 8
+    // Exemple : U101.nc1 a "C150X15.6" en position 7 et "U" en position 8
+    
+    // Vérifier si la position 9 contient un code de type valide (format T1.NC1)
+    // Format: steelGrade(6), quantity(7), profileName(8), typeCode(9)
+    if (input[9] && this.isProfileTypeCode(input[9])) {
+      console.log(`🔍 Format détecté: nom en position 8, type en position 9`);
+      const profileName = this.cleanField(input[8]);
+      const profileType = this.mapProfileTypeCode(input[9]);
+      
+      return {
+        name: profileName,
+        type: profileType,
+        dimensionStartIndex: 10,  // Les dimensions commencent en position 10
+        format: 'STANDARD'
+      };
+    }
+    
+    // Vérifier si la position 8 contient un code de type valide
+    if (input[8] && this.isProfileTypeCode(input[8])) {
+      console.log(`🔍 Format détecté: nom en position 7, type en position 8`);
+      const profileName = this.cleanField(input[7]);
+      const profileType = this.mapProfileTypeCode(input[8]);
+      
+      return {
+        name: profileName,
+        type: profileType,
+        dimensionStartIndex: 9,  // Les dimensions commencent en position 9
+        format: 'STANDARD'
+      };
+    }
+    
+    // Vérifier le format où le type est en position 7
+    if (input[7] && this.isProfileTypeCode(input[7])) {
+      const profileName = this.cleanField(input[6]);
+      const profileType = this.mapProfileTypeCode(input[7]);
+      
+      return {
+        name: profileName,
+        type: profileType,
+        dimensionStartIndex: 8,
+        format: 'STANDARD'
+      };
+    }
+
+    // Format standard: nom du profil en position 6, type en position 7
+    let profileName = this.cleanField(input[6]);
+    let profileTypeCode = input[7];
+    let dimensionStart = 8;
+
+    // Cas spéciaux où le type est intégré dans le nom
+    if (profileName && !this.isProfileTypeCode(profileTypeCode)) {
+      // Le type pourrait être en position 8
+      if (input[8] && this.isProfileTypeCode(input[8])) {
+        profileTypeCode = input[8];
+        dimensionStart = 9;
+      } else {
+        // Essayer de déduire le type depuis le nom
+        profileTypeCode = this.inferTypeFromName(profileName);
+      }
+    }
+
+    const profileType = this.mapProfileTypeCode(profileTypeCode) || this.detectProfileType(profileName, profileTypeCode);
+
+    return {
+      name: profileName,
+      type: profileType,
+      dimensionStartIndex: dimensionStart,
+      format: 'STANDARD'
+    };
+  }
+
+  /**
+   * Infère le type de profil depuis son nom
+   */
+  private inferTypeFromName(name: string): string {
+    const upper = name.toUpperCase();
+    if (upper.startsWith('HE') || upper.startsWith('IPE') || upper.startsWith('UB')) return 'I';
+    if (upper.startsWith('UPN') || upper.startsWith('C')) return 'U';
+    if (upper.startsWith('L') || upper.startsWith('RSA')) return 'L';
+    if (upper.startsWith('HSS') || upper.startsWith('RHS') || upper.startsWith('SHS')) return 'M';
+    if (upper.startsWith('PL')) return 'B';
+    return '';
+  }
+
+  /**
+   * Parse les dimensions selon le format détecté
+   */
+  private parseDimensions(input: string[], data: STBlockData, profileInfo: any): void {
+    const startIdx = profileInfo.dimensionStartIndex;
+    
+    // Vérifier qu'on a assez de champs
+    if (startIdx >= input.length) {
+      console.warn(`⚠️ Not enough fields for dimensions, startIdx=${startIdx}, length=${input.length}`);
+      return;
+    }
+
+    console.log(`📐 Parsing dimensions from index ${startIdx} for type ${profileInfo.type}`);
+    console.log(`  Raw values: [${startIdx}]="${input[startIdx]}", [${startIdx+1}]="${input[startIdx+1]}", [${startIdx+2}]="${input[startIdx+2]}"`);
+
+    switch (profileInfo.format) {
+      case 'PLATE':
+        // Format plaque: longueur, largeur, (skip), (skip), épaisseur
+        data.length = this.parseNumber(input[startIdx], 0);
+        data.width = this.parseNumber(input[startIdx + 1], 0);
+        data.thickness = this.parseNumber(input[startIdx + 4], 0); // L'épaisseur est au +4
+        data.height = data.thickness; // Pour une plaque, hauteur = épaisseur
+        break;
+        
+      case 'TUBE':
+        // Format tube: longueur, hauteur, largeur, épaisseur1, épaisseur2
+        data.length = this.parseNumber(input[startIdx], 0);
+        data.height = this.parseNumber(input[startIdx + 1], 0);
+        data.width = this.parseNumber(input[startIdx + 2], 0);
+        data.wallThickness = this.parseNumber(input[startIdx + 3], 0);
+        const wall2 = this.parseNumber(input[startIdx + 4], 0);
+        if (wall2 > 0 && data.wallThickness === 0) {
+          data.wallThickness = wall2;
+        }
+        break;
+        
+      default:
+        // Format standard pour I, U, L, etc.: longueur, hauteur, largeur, épaisseur âme, épaisseur aile
+        data.length = this.parseNumber(input[startIdx], 0);
+        data.height = this.parseNumber(input[startIdx + 1], 0);
+        data.width = this.parseNumber(input[startIdx + 2], 0);
+        data.webThickness = this.parseNumber(input[startIdx + 3], 0);
+        data.flangeThickness = this.parseNumber(input[startIdx + 4], 0);
+        break;
+    }
+
+    // Validation et correction des dimensions
+    this.validateAndFixDimensions(data, profileInfo);
+  }
+
+  /**
+   * Valide et corrige les dimensions si nécessaire
+   */
+  private validateAndFixDimensions(data: STBlockData, profileInfo: any): void {
+    // Si la longueur est 0 ou NaN, essayer de la déduire
+    if (!data.length || isNaN(data.length)) {
+      console.warn(`⚠️ Invalid length detected, setting default value`);
+      data.length = 1000; // Longueur par défaut 1m
+    }
+
+    // Pour les plaques, s'assurer que l'épaisseur est définie
+    if (profileInfo.type === 'PLATE' && (!data.thickness || data.thickness === 0)) {
+      // Essayer d'extraire l'épaisseur du nom (ex: "PL 10" -> 10mm)
+      const match = data.profileName.match(/PL\s*(\d+)/);
+      if (match) {
+        data.thickness = parseFloat(match[1]);
+        data.height = data.thickness;
+      }
+    }
+
+    // Correction des valeurs NaN
+    if (isNaN(data.height)) data.height = 100;
+    if (isNaN(data.width)) data.width = 100;
+    if (isNaN(data.webThickness)) data.webThickness = 0;
+    if (isNaN(data.flangeThickness)) data.flangeThickness = 0;
+  }
+
+  /**
+   * Parse les propriétés additionnelles (poids, surface, etc.)
+   */
+  private parseAdditionalProperties(input: string[], data: STBlockData, profileInfo: any): void {
+    const baseIdx = profileInfo.dimensionStartIndex;
+    
+    // Indices standards pour les propriétés (après les 5 dimensions)
+    const weightIdx = baseIdx + 5;
+    const surfaceIdx = baseIdx + 6;
+    const radiusIdx = baseIdx + 7;
+
+    if (input[weightIdx]) {
+      data.weight = this.parseNumber(input[weightIdx], 0);
+    }
+    
+    if (input[surfaceIdx]) {
+      data.paintingSurface = this.parseNumber(input[surfaceIdx], 0);
+    }
+    
+    if (input[radiusIdx]) {
+      data.radius = this.parseNumber(input[radiusIdx], 0);
+    }
+
+    // Dates et métadonnées si disponibles
+    for (let i = baseIdx + 8; i < input.length; i++) {
+      const field = input[i];
+      if (field && field !== '-' && field !== '0') {
+        if (this.isDateLike(field)) {
+          data.createdDate = field;
+        } else if (this.isTimeLike(field)) {
+          data.createdTime = field;
         }
       }
-
-      // Champs 8-12: Dimensions (selon ancien parser)
-      if (input[8]) data.length = this.parseNumber(input[8], 0);
-      if (input[9]) data.width = this.parseNumber(input[9], 0);
-      if (input[10]) data.height = this.parseNumber(input[10], 0);
-      if (input[11]) data.webThickness = this.parseNumber(input[11], 0);
-      if (input[12]) data.flangeThickness = this.parseNumber(input[12], 0);
-
-      // Champs 13-15: Propriétés calculées
-      if (input[13]) data.weight = this.parseNumber(input[13], 0);
-      if (input[14]) data.paintingSurface = this.parseNumber(input[14], 0);
-      if (input[15]) data.radius = this.parseNumber(input[15], 0);
-
-      // Champs optionnels supplémentaires
-      if (input[16] && input[16] !== '-' && input[16] !== '0') {
-        data.itemNumber = input[16];
-      }
-
-      // Dates de création si présentes
-      if (input[17] && this.isDateLike(input[17])) {
-        data.createdDate = input[17];
-      }
-      if (input[18] && this.isTimeLike(input[18])) {
-        data.createdTime = input[18];
-      }
-
-      // Champs réservés
-      const reservedFields = input.slice(19).filter(f => f && f !== '-' && f !== '0' && f.trim() !== '');
-      if (reservedFields.length > 0) {
-        data.reserved = reservedFields.join(' ');
-      }
-
-    } catch (error) {
-      console.warn('Warning parsing extended ST fields:', error);
     }
   }
+
 
   /**
    * Nettoie un champ d'entrée
@@ -163,7 +366,7 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
    * Vérifie si une chaîne est un code de type de profil
    */
   private isProfileTypeCode(code: string): boolean {
-    return /^[IULTMR]$/.test(code.toUpperCase());
+    return /^[IULTMRB]$/.test(code.toUpperCase());
   }
 
   /**
@@ -176,7 +379,8 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
       'L': 'L_PROFILE',
       'T': 'T_PROFILE',
       'M': 'TUBE_RECT',
-      'R': 'TUBE_ROUND'
+      'R': 'TUBE_ROUND',
+      'B': 'PLATE'
     };
     return mapping[code.toUpperCase()] || 'UNKNOWN';
   }
@@ -210,7 +414,16 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
       return 'I_PROFILE';
     }
 
-    // U-Profiles (Channels)
+    // L-Profiles (Angles) - IMPORTANT: Check BEFORE generic U profiles
+    if ((upper.startsWith('L') && upper.includes('X')) ||
+        upper.startsWith('RSA') || // Profils angulaires RSA (ex: RSA100x100x8)
+        upper.startsWith('RS') ||   // Autres profils angulaires RS
+        upper.startsWith('UKA') || // Profils cornières égales UKA (ex: UKA80x80x10)
+        upper.startsWith('ANGLE')) { // Profils angulaires génériques
+      return 'L_PROFILE';
+    }
+
+    // U-Profiles (Channels) - Check AFTER UKA
     if (upper.startsWith('UPN') || upper.startsWith('UPE') || upper.startsWith('UAP') ||
         (upper.startsWith('U') && upper.match(/^U\s*\d/))) {
       return 'U_PROFILE';
@@ -221,18 +434,13 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
       return 'U_PROFILE';
     }
 
-    // L-Profiles (Angles)
-    if (upper.startsWith('L') && upper.includes('X')) {
-      return 'L_PROFILE';
-    }
-
     // T-Profiles
     if (upper.startsWith('T') && upper.match(/^T\s*\d/)) {
       return 'T_PROFILE';
     }
 
-    // Tubes rectangulaires
-    if (upper.startsWith('RHS') || upper.startsWith('SHS') || upper.startsWith('TUBE RECT')) {
+    // Tubes rectangulaires (HSS = Hollow Structural Section)
+    if (upper.startsWith('HSS') || upper.startsWith('RHS') || upper.startsWith('SHS') || upper.startsWith('TUBE RECT')) {
       return 'TUBE_RECT';
     }
     

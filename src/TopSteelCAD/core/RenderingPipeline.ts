@@ -79,11 +79,11 @@ export class RenderingPipeline {
   
   // Configuration
   private config: RenderingConfig = {
-    enablePostProcessing: false,  // Désactivé temporairement pour debug
-    enableOutline: false,
-    enableBloom: false,
-    enableAntialiasing: false,
-    enableSSAO: false,
+    enablePostProcessing: true,  // Réactivé - problème corrigé dans post-processing-stubs.ts
+    enableOutline: true,
+    enableBloom: true,
+    enableAntialiasing: true,
+    enableSSAO: false,  // SSAO reste désactivé pour performance
     
     outlineColor: '#ff6600',
     outlineThickness: 2,

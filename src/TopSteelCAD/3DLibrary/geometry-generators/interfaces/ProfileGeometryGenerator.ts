@@ -81,7 +81,7 @@ export abstract class BaseProfileGenerator implements ProfileGeometryGenerator {
    * Méthode utilitaire pour centrer une géométrie
    * MODIFICATION: Ne centre plus en Z - la géométrie commence à Z=0
    */
-  protected centerGeometry(geometry: BufferGeometry, length: number): void {
+  protected centerGeometry(geometry: BufferGeometry, _length: number): void {
     // NE PLUS CENTRER EN Z - La géométrie commence à Z=0 et va jusqu'à Z=length
     // geometry.translate(0, 0, -length / 2); // DÉSACTIVÉ
     geometry.computeBoundingBox();

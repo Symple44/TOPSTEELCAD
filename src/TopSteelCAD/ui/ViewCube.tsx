@@ -20,7 +20,7 @@ interface ViewCubeProps {
  * ViewCube - Composant de navigation 3D moderne avec interaction complète
  */
 export const ViewCube: React.FC<ViewCubeProps> = ({
-  size = 120,
+  size = 160,  // Taille par défaut augmentée
   position = 'top-right',
   theme = 'dark',
   className = '',

@@ -10,10 +10,14 @@ import { FeatureProcessor, ProcessResult } from './FeatureProcessor';
 import {Feature, FeatureType, ProfileFace} from '../types';
 import { PivotElement } from '@/types/viewer';
 import { PositionService } from '../../services/PositionService';
+import { CutCategory, cutCategoryDetector } from './CutCategoryDetector';
+import { ICutStrategy, StraightCutStrategy, AngleCutStrategy, TubeContourStrategy, BevelCutStrategy, EndCutStrategy } from './strategies';
+import { cutLogger, LogLevel } from './CutLogger';
 
 export class CutProcessor extends FeatureProcessor {
   private positionService: PositionService;
   private evaluator: Evaluator;
+  private strategies: ICutStrategy[];
   
   constructor() {
     super();
@@ -21,13 +25,24 @@ export class CutProcessor extends FeatureProcessor {
     this.evaluator = new Evaluator();
     this.evaluator.useGroups = false;
     this.evaluator.attributes = ['position', 'normal', 'uv'];
+    
+    // Initialiser les stratégies de découpe
+    this.strategies = [
+      new EndCutStrategy(),         // Priorité aux coupes d'extrémité (h5004)
+      new BevelCutStrategy(),      // Puis bevel cuts (préparations de soudure)
+      new StraightCutStrategy(),
+      new AngleCutStrategy(), 
+      new TubeContourStrategy()
+    ];
+    
     // Force reload - v5
   }
   
   canProcess(feature: Feature): boolean {
     return feature.type === FeatureType.CUT || 
            feature.type === FeatureType.CUTOUT || 
-           feature.type === FeatureType.NOTCH;
+           feature.type === FeatureType.NOTCH ||
+           feature.type === FeatureType.END_CUT;
   }
   
   process(
@@ -35,10 +50,14 @@ export class CutProcessor extends FeatureProcessor {
     feature: Feature,
     element: PivotElement
   ): ProcessResult {
+    // Démarrer le contexte de logging
+    cutLogger.startCutOperation(feature, element);
     
     // Valider la feature
     const validationErrors = this.validateFeature(feature, element);
     if (validationErrors.length > 0) {
+      cutLogger.error('Feature validation failed', new Error(validationErrors.join(', ')));
+      cutLogger.endCutOperation(false, validationErrors.join(', '));
       return {
         success: false,
         error: validationErrors.join(', ')
@@ -46,11 +65,28 @@ export class CutProcessor extends FeatureProcessor {
     }
     
     try {
+      // Debug: Afficher les paramètres de la feature
+      if (feature.id?.includes('end_cut')) {
+        console.log(`  🔍 Checking end_cut feature ${feature.id}:`, {
+          type: feature.type,
+          isEndCut: (feature.parameters as any)?.isEndCut,
+          cutType: feature.parameters?.cutType,
+          params: feature.parameters
+        });
+      }
+      
+      // Traitement spécial pour les coupes d'extrémité (tubes)
+      if (feature.type === FeatureType.END_CUT || (feature.parameters as any)?.isEndCut || feature.parameters?.cutType === 'end_cut') {
+        console.log(`  🔧 Processing END_CUT feature for tube`);
+        return this.processEndCut(geometry, feature, element);
+      }
+      
       // Récupérer les points du contour
       const rawContourPoints = feature.parameters.points || [];
       const contourPoints = this.normalizePoints(rawContourPoints);
-      const face = feature.face || ProfileFace.WEB;
-      const depth = feature.parameters.depth || element.dimensions.flangeThickness || 10;
+      // CORRECTION: La face est directement sur feature, pas dans parameters
+      const face = feature.face || feature.parameters?.face || ProfileFace.WEB;
+      const depth = feature.parameters.depth || element.dimensions?.flangeThickness || 10;
       const isTransverse = feature.parameters.isTransverse || false;
       const cutType = feature.parameters.cutType;
       
@@ -61,12 +97,44 @@ export class CutProcessor extends FeatureProcessor {
         };
       }
       
-      console.log(`🔪 Processing cut with ${contourPoints.length} points on face ${face}`);
+      // Logger les détails du contour
+      const bounds = this.getContourBounds(contourPoints);
+      cutLogger.logContourDetails(contourPoints, bounds);
       
-      // Détecter si c'est une coupe avec encoches partielles (M1002 pattern)
+      // Détecter la catégorie et le type de coupe
+      const category = cutCategoryDetector.detectCategory(feature, element);
+      const cutTypeDetected = cutCategoryDetector.detectType(feature, element);
+      cutLogger.logCutDetection(category, cutTypeDetected);
+      
+      // NOUVELLE DÉTECTION: Contours de redéfinition sur semelles (M1002 flanges)
+      // DOIT être testé AVANT le pattern de notches pour éviter le traitement incorrect
+      if (this.isFlangeFinalContour(contourPoints, face, element)) {
+        cutLogger.logStrategySelection('FlangeContourCut', 'Flange final contour detected');
+        const result = this.processFlangeContourCut(geometry, contourPoints, face, element, feature);
+        cutLogger.endCutOperation(result.success, result.error);
+        return result;
+      }
+      
+      // CRITIQUE: PRÉSERVER ABSOLUMENT LE CODE M1002 - Détecter si c'est une coupe avec encoches partielles (M1002 pattern)
       if (cutType === 'partial_notches' || this.isPartialNotchPattern(contourPoints, element)) {
-        console.log(`  🔧 Detected partial notches pattern (M1002 type)`);
-        return this.processPartialNotches(geometry, contourPoints, face, element, feature);
+        cutLogger.logStrategySelection('PartialNotches', 'M1002 pattern detected - using LEGACY processing');
+        const result = this.processPartialNotches(geometry, contourPoints, face, element, feature);
+        cutLogger.endCutOperation(result.success, result.error);
+        return result;
+      }
+      
+      // NOUVELLE ARCHITECTURE: Essayer d'utiliser les stratégies pour les coupes extérieures
+      if (category === CutCategory.EXTERIOR && !isTransverse) {
+        cutLogger.debug('Trying strategy-based processing for exterior cut');
+        const strategyResult = this.tryProcessWithStrategies(geometry, feature, element);
+        if (strategyResult.success) {
+          cutLogger.logStrategySelection(strategyResult.strategyUsed || 'Unknown', 'Strategy successfully handled the cut');
+          cutLogger.endCutOperation(true);
+          return strategyResult.result!;
+        } else {
+          cutLogger.warn('Strategy processing failed, falling back to legacy', { error: strategyResult.error });
+          // Continue with legacy processing
+        }
       }
       
       if (face === ProfileFace.WEB || face === ProfileFace.BOTTOM) {
@@ -74,9 +142,10 @@ export class CutProcessor extends FeatureProcessor {
         console.log(`    Original bounds: X[${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}] Y[${bounds.minY.toFixed(1)}, ${bounds.maxY.toFixed(1)}]`);
         
         // Vérifier si les découpes sont à l'extrémité
-        const isAtEnd = bounds.minX > element.dimensions.length * 0.9;
+        const profileLength = element.dimensions?.length || 2260;
+        const isAtEnd = bounds.minX > profileLength * 0.9;
         if (isAtEnd) {
-          console.log(`    ⚠️ Cut is at beam extremity (X > ${(element.dimensions.length * 0.9).toFixed(1)})`);
+          console.log(`    ⚠️ Cut is at beam extremity (X > ${(profileLength * 0.9).toFixed(1)})`);
         }
       }
       
@@ -92,10 +161,12 @@ export class CutProcessor extends FeatureProcessor {
       cutGeometry.computeBoundingBox();
       geometry.computeBoundingBox();
       
+      // Logger la création de la géométrie
+      cutLogger.logGeometryCreation(cutGeometry, isTransverse ? 'TransverseCut' : 'StandardCut');
+      
       // Effectuer l'opération CSG de soustraction avec three-bvh-csg
-      console.log(`🔪 Applying cut with ${contourPoints.length} points on face ${face}`);
-      console.log(`  Cut geometry bounds:`, cutGeometry.boundingBox);
-      console.log(`  Original geometry vertex count:`, geometry.attributes.position?.count || 0);
+      const originalVertexCount = geometry.attributes.position?.count || 0;
+      cutLogger.markPerformanceStart('CSG_SUBTRACTION');
       
       // Créer les brushes pour CSG
       const baseBrush = new Brush(geometry);
@@ -105,8 +176,20 @@ export class CutProcessor extends FeatureProcessor {
       cutBrush.updateMatrixWorld();
       
       // Effectuer la soustraction
+      if (!geometry || !geometry.attributes || !geometry.attributes.position) {
+        cutLogger.error('Invalid base geometry for CSG');
+        cutLogger.endCutOperation(false, 'Invalid base geometry for CSG');
+        return { success: false, error: 'Invalid base geometry for CSG' };
+      }
+      if (!cutGeometry || !cutGeometry.attributes || !cutGeometry.attributes.position) {
+        cutLogger.error('Invalid cut geometry for CSG');
+        cutLogger.endCutOperation(false, 'Invalid cut geometry for CSG');
+        return { success: false, error: 'Invalid cut geometry for CSG' };
+      }
+      
       const resultBrush = this.evaluator.evaluate(baseBrush, cutBrush, SUBTRACTION);
       const resultGeometry = resultBrush.geometry.clone();
+      cutLogger.markPerformanceEnd('CSG_SUBTRACTION');
       
       // Nettoyer le brush résultant
       resultBrush.geometry.dispose();
@@ -116,14 +199,12 @@ export class CutProcessor extends FeatureProcessor {
       resultGeometry.computeBoundingBox();
       resultGeometry.computeBoundingSphere();
       
-      console.log(`  Result geometry vertex count:`, resultGeometry.attributes.position?.count || 0);
+      const resultVertexCount = resultGeometry.attributes.position?.count || 0;
+      cutLogger.logCSGOperation('SUBTRACTION', originalVertexCount, resultVertexCount);
       
       // Vérifier si la géométrie a changé
-      const originalVertexCount = geometry.attributes.position?.count || 0;
-      const resultVertexCount = resultGeometry.attributes.position?.count || 0;
-      
       if (resultVertexCount === originalVertexCount) {
-        console.warn(`⚠️ Cut operation did not modify geometry - cut may be outside bounds`);
+        cutLogger.warn('Cut operation did not modify geometry - cut may be outside bounds');
         // Continuer quand même car certaines découpes peuvent ne pas modifier le nombre de vertices
       }
       
@@ -133,26 +214,56 @@ export class CutProcessor extends FeatureProcessor {
       // Transférer les userData
       Object.assign(resultGeometry.userData, geometry.userData);
       
-      // Ajouter les informations de la découpe
+      // Ajouter les informations de la découpe avec bounds pour les outlines
+      if (!resultGeometry.userData) {
+        resultGeometry.userData = {};
+      }
       if (!resultGeometry.userData.cuts) {
         resultGeometry.userData.cuts = [];
       }
-      resultGeometry.userData.cuts.push({
-        id: feature.id,  // Ajouter l'ID de la feature DSTV
+      
+      // Calculer les bounds de la découpe pour les outlines
+      const cutBounds = this.getContourBounds(contourPoints);
+      const dims = element.dimensions || {};
+      const profileLength = dims.length || 1000;
+      const profileHeight = dims.height || 300;
+      
+      // Détecter si c'est une coupe de biais pour l'inclure dans cutInfo
+      const isBevelCut = element.type === 'TUBE_RECT' && this.isBevelCut(contourPoints);
+      
+      const cutInfo = {
+        id: feature.id || `cut_${Date.now()}`,
+        type: isBevelCut ? 'bevel' : (cutType === 'partial_notches' ? 'notch' : 'cut'),
+        face: face,
+        bounds: {
+          minX: cutBounds.minX - profileLength / 2,
+          maxX: cutBounds.maxX - profileLength / 2,
+          minY: cutBounds.minY - profileHeight / 2,
+          maxY: cutBounds.maxY - profileHeight / 2,
+          minZ: -depth / 2,
+          maxZ: depth / 2
+        },
         contourPoints,
-        face,
-        depth
-      });
+        depth,
+        isBevelCut
+      };
+      
+      resultGeometry.userData.cuts.push(cutInfo);
+      console.log(`  📐 Added cut info to userData:`, cutInfo);
       
       
+      cutLogger.endCutOperation(true);
       return {
         success: true,
         geometry: resultGeometry
       };
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      cutLogger.error('Cut processing failed', error instanceof Error ? error : new Error(errorMessage));
+      cutLogger.endCutOperation(false, errorMessage);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: errorMessage
       };
     }
   }
@@ -161,6 +272,12 @@ export class CutProcessor extends FeatureProcessor {
     const errors: string[] = [];
     const params = feature.parameters || {};
     
+    // Pour les coupes d'extrémité, pas besoin de points de contour
+    if ((params as any).isEndCut || params.cutType === 'end_cut') {
+      return errors; // Pas de validation spécifique pour les coupes d'extrémité
+    }
+    
+    // Pour les autres coupes, vérifier les points
     if (!params.points || !Array.isArray(params.points)) {
       errors.push('Cut feature requires points array');
     } else if (params.points.length < 3) {
@@ -215,13 +332,53 @@ export class CutProcessor extends FeatureProcessor {
     element: PivotElement
   ): THREE.BufferGeometry {
     // Calculer les dimensions de l'élément pour centrer la forme
-    const dims = element.dimensions;
+    const dims = element.dimensions || {};
     const length = dims.length || 1000;
     const height = dims.height || 300;
+    const width = dims.width || 100;
     
     console.log(`  Creating cut geometry for face ${face}:`);
     console.log(`    Element dims: L=${dims.length}, H=${dims.height}, W=${dims.width}`);
     console.log(`    Original contour points:`, contourPoints);
+    
+    // Vérifier si c'est un tube
+    console.log(`    Element metadata:`, element.metadata);
+    console.log(`    Profile type:`, element.metadata?.profileType);
+    console.log(`    Profile name:`, element.metadata?.profileName);
+    
+    const isTubeProfile = element.metadata?.profileType === 'TUBE_RECT' || 
+                          element.metadata?.profileType === 'TUBE_ROUND' ||
+                          element.metadata?.profileName?.includes('HSS') ||
+                          element.metadata?.profileName?.includes('RHS') ||
+                          element.metadata?.profileName?.includes('SHS');
+    
+    console.log(`    Is tube profile: ${isTubeProfile}`);
+    
+    // PHASE 2 AMÉLIORÉ - Simplification intelligente pour tubes HSS complexes
+    if (isTubeProfile && this.shouldSimplifyTubeGeometry(contourPoints, element)) {
+      console.log(`    🔄 Complex HSS tube contour with ${contourPoints.length} points - applying intelligent simplification`);
+      
+      // Utiliser le nouveau logging amélioré Phase 1
+      if (cutLogger?.logTubeGeometryDetails) {
+        cutLogger.logTubeGeometryDetails(contourPoints, element);
+      }
+      
+      // Simplification avec analyse de complexité
+      const simplifiedGeometry = this.createSimplifiedTubeGeometry(contourPoints, element, face);
+      
+      // Logging CSG Phase 1 si disponible
+      const originalVertices = contourPoints.length * 2; // Approximation
+      const simplifiedVertices = simplifiedGeometry.attributes.position?.count || 0;
+      if (cutLogger?.logCSGMetrics) {
+        cutLogger.logCSGMetrics('tube_simplification', 
+          { attributes: { position: { count: originalVertices } } } as any,
+          simplifiedGeometry, 
+          0 // Pas de temps de calcul pour simplification
+        );
+      }
+      
+      return simplifiedGeometry;
+    }
     
     // Créer une forme (Shape) à partir des points du contour
     const shape = new THREE.Shape();
@@ -232,7 +389,7 @@ export class CutProcessor extends FeatureProcessor {
         // Pour les ailes : forme dans le plan XZ (horizontal)
         const transformedPoint = [
           p[0] - length / 2,     // Position le long de la poutre
-          p[1] - dims.width / 2  // Position sur la largeur
+          p[1] - width / 2       // Position sur la largeur (utiliser width variable)
         ];
         console.log(`      Point [${p[0].toFixed(1)}, ${p[1].toFixed(1)}] -> X=${transformedPoint[0].toFixed(1)}, Z=${transformedPoint[1].toFixed(1)}`);
         return transformedPoint;
@@ -261,35 +418,125 @@ export class CutProcessor extends FeatureProcessor {
     // Paramètres d'extrusion
     // Pour l'aile, la profondeur doit traverser complètement l'épaisseur
     // IMPORTANT: flangeThickness est 7.6mm pour UB254x146x31
-    const flangeThickness = element.dimensions.flangeThickness || element.metadata?.flangeThickness || 7.6;
+    const flangeThickness = element.dimensions?.flangeThickness || element.metadata?.flangeThickness || 7.6;
     console.log(`    Using flangeThickness: ${flangeThickness}mm from element:`, {
-      fromDimensions: element.dimensions.flangeThickness,
+      fromDimensions: element.dimensions?.flangeThickness,
       fromMetadata: element.metadata?.flangeThickness,
       fallback: 7.6
     });
+    // Vérifier si c'est un tube (HSS, RHS, etc.)
+    const isTube = element.metadata?.profileType === 'TUBE_RECT' || 
+                   element.metadata?.profileType === 'TUBE_ROUND' ||
+                   element.metadata?.profileName?.includes('HSS') ||
+                   element.metadata?.profileName?.includes('RHS') ||
+                   element.metadata?.profileName?.includes('SHS');
+    
     // Profondeur de la découpe selon la face
-    const actualDepth = (face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE)
-      ? 50  // Profondeur fixe pour traverser complètement l'aile
-      : depth * 2.0;  // Pour l'âme, utiliser la profondeur fournie
+    let actualDepth: number;
+    if (isTube) {
+      // Pour les tubes, utiliser l'épaisseur de paroi
+      const wallThickness = element.dimensions?.thickness || 4.8;
+      actualDepth = wallThickness * 2; // Traverser complètement la paroi
+      console.log(`    Tube profile detected - using wall thickness: ${wallThickness}mm`);
+    } else {
+      actualDepth = (face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE)
+        ? 50  // Profondeur fixe pour traverser complètement l'aile
+        : depth * 2.0;  // Pour l'âme, utiliser la profondeur fournie
+    }
     
-    let geometry: THREE.BufferGeometry;
+    let geometry: THREE.BufferGeometry | undefined;
     
-    if (face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE) {
-      // Pour les ailes, créer un BoxGeometry directement à partir des bounds
+    console.log(`    Geometry creation: isTube=${isTube}, face=${face}`);
+    
+    // Pour les tubes ou les ailes, créer un BoxGeometry
+    if (isTube || face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE) {
+      // Pour les tubes et les ailes, créer un BoxGeometry directement à partir des bounds
       const bounds = this.getContourBounds(contourPoints);
       const cutWidth = bounds.maxX - bounds.minX;
       const cutDepth = bounds.maxY - bounds.minY;
       
-      geometry = new THREE.BoxGeometry(cutWidth, actualDepth, cutDepth);
-      
-      // Positionner le box aux bonnes coordonnées
-      const centerX = (bounds.minX + bounds.maxX) / 2 - length / 2;
-      const centerZ = (bounds.minY + bounds.maxY) / 2 - dims.width / 2;
-      
-      geometry.translate(centerX, 0, centerZ);
-      console.log(`    Created box for face ${face}: size=${cutWidth}x${actualDepth}x${cutDepth} at X=${centerX.toFixed(1)}, Z=${centerZ.toFixed(1)}`);
+      // Pour les tubes, créer une géométrie triangulaire pour les coupes de biais
+      if (isTube) {
+        console.log(`    📐 Processing tube cut - checking for angle cut`);
+        console.log(`    Contour points (${contourPoints.length}):`, contourPoints);
+        
+        // Détecter si c'est une coupe d'angle (diagonale complète)
+        const isAngleCut = this.isAngleCut(contourPoints, element);
+        console.log(`    Angle cut detection result: ${isAngleCut}`);
+        
+        if (isAngleCut && contourPoints.length >= 4) {
+          console.log(`    🔺 ANGLE CUT detected - creating prism geometry to remove corner`);
+          console.log(`    Face: ${face}, Element type: ${element.type}`);
+          
+          // Déterminer si c'est une coupe au début ou à la fin
+          const profileLength = dims.length || 2259.98;
+          const isStartCut = bounds.minX < 100; // Coupe au début si X < 100mm
+          const isEndCut = bounds.maxX > profileLength - 100; // Coupe à la fin
+          
+          console.log(`    Cut position: ${isStartCut ? 'START' : isEndCut ? 'END' : 'MIDDLE'}`);
+          
+          // Créer un prisme qui traverse complètement le tube
+          // Pour une coupe d'angle, on crée un BoxGeometry qu'on positionne en diagonale
+          const cutLength = bounds.maxX - bounds.minX;
+          const tubeSize = Math.max(height, width);
+          
+          // Créer un grand box qui sera positionné en diagonale
+          geometry = new THREE.BoxGeometry(
+            cutLength * 2,  // Longueur du prisme (sur-dimensionné)
+            tubeSize * 2,    // Hauteur (sur-dimensionné)
+            tubeSize * 2     // Profondeur pour traverser tout le tube
+          );
+          
+          // Calculer l'angle de la coupe
+          let angle = 0;
+          for (let i = 1; i < contourPoints.length; i++) {
+            const dx = contourPoints[i][0] - contourPoints[i-1][0];
+            const dy = contourPoints[i][1] - contourPoints[i-1][1];
+            if (Math.abs(dx) > 10 && Math.abs(dy) > 10) {
+              angle = Math.atan2(dy, dx);
+              break;
+            }
+          }
+          
+          console.log(`    Cut angle: ${(angle * 180 / Math.PI).toFixed(1)}°`);
+          
+          // Positionner et orienter le prisme
+          if (isStartCut) {
+            // Coupe au début : positionner à X=0
+            geometry.rotateZ(angle);
+            geometry.translate(
+              -profileLength/2 + cutLength/2,
+              -height/2,
+              0
+            );
+          } else if (isEndCut) {
+            // Coupe à la fin : positionner à X=profileLength
+            geometry.rotateZ(-angle);
+            geometry.translate(
+              profileLength/2 - cutLength/2,
+              -height/2,
+              0
+            );
+          }
+          
+          console.log(`    ✅ Created ANGLE CUT prism geometry for tube`);
+        } else {
+          // Coupe droite sur tube
+          geometry = new THREE.BoxGeometry(cutWidth * 1.2, actualDepth * 2, cutDepth * 1.2);
+          console.log(`    Created straight cut geometry for tube`);
+        }
+      } else {
+        geometry = new THREE.BoxGeometry(cutWidth, actualDepth, cutDepth);
+        
+        // Positionner le box aux bonnes coordonnées
+        const centerX = (bounds.minX + bounds.maxX) / 2 - length / 2;
+        const centerZ = (bounds.minY + bounds.maxY) / 2 - dims.width / 2;
+        
+        geometry.translate(centerX, 0, centerZ);
+        console.log(`    Created box for face ${face}: size=${cutWidth}x${actualDepth}x${cutDepth} at X=${centerX.toFixed(1)}, Z=${centerZ.toFixed(1)}`);
+      }
     } else {
-      // Pour l'âme, utiliser ExtrudeGeometry
+      // Pour l'âme des profils I, utiliser ExtrudeGeometry
       const extrudeSettings = {
         depth: actualDepth,
         bevelEnabled: false,
@@ -301,13 +548,77 @@ export class CutProcessor extends FeatureProcessor {
       geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     }
     
+    // Vérifier que la géométrie a été créée
+    if (!geometry) {
+      console.error(`    ❌ Geometry was not created! Creating fallback geometry`);
+      geometry = new THREE.BoxGeometry(100, 50, 10);
+    }
+    
     geometry.computeBoundingBox();
+    
+    // Vérifier que la géométrie est valide
+    if (!geometry.boundingBox || 
+        !isFinite(geometry.boundingBox.min.x) || 
+        !isFinite(geometry.boundingBox.max.x)) {
+      console.error(`    ❌ Invalid geometry bounding box after creation!`);
+      console.error(`    BoundingBox:`, geometry.boundingBox);
+      // Créer une géométrie simple de fallback
+      geometry = new THREE.BoxGeometry(100, 50, 10);
+      geometry.computeBoundingBox();
+    }
     
     // Orienter la géométrie selon la face AVANT de la translater
     const rotationMatrix = new THREE.Matrix4();
     
-    switch (face) {
-      case ProfileFace.TOP_FLANGE: { // Aile supérieure
+    // Pour les tubes, traiter différemment selon la face
+    if (isTube) {
+      // Les tubes ont des faces v, o, u, h
+      // v = front, o = top, u = bottom, h = back
+      const faceStr = face as string;
+      switch (faceStr) {
+        case ProfileFace.WEB: // face 'v' - avant du tube
+        case 'v':
+        case 'front':
+          // Rotation pour face avant - découpe traverse selon Z
+          geometry.rotateY(Math.PI / 2);
+          geometry.translate((dims.width || 50) / 2, 0, 0);
+          console.log(`    Tube cut on front face (v)`);
+          break;
+          
+        case ProfileFace.TOP_FLANGE: // face 'o' - dessus du tube
+        case 'o':
+        case 'top':
+          // Rotation pour face supérieure - découpe traverse selon Y
+          geometry.rotateX(Math.PI / 2);
+          geometry.translate(0, (dims.height || 50) / 2, 0);
+          console.log(`    Tube cut on top face (o)`);
+          break;
+          
+        case ProfileFace.BOTTOM_FLANGE: // face 'u' - dessous du tube
+        case 'u':
+        case 'bottom':
+          // Rotation pour face inférieure - découpe traverse selon Y
+          geometry.rotateX(-Math.PI / 2);
+          geometry.translate(0, -(dims.height || 50) / 2, 0);
+          console.log(`    Tube cut on bottom face (u)`);
+          break;
+          
+        case 'h': // face 'h' - arrière du tube
+        case 'back':
+          // Rotation pour face arrière - découpe traverse selon Z
+          geometry.rotateY(-Math.PI / 2);
+          geometry.translate(-(dims.width || 50) / 2, 0, 0);
+          console.log(`    Tube cut on back face (h)`);
+          break;
+          
+        default:
+          console.warn(`    Unknown tube face: ${face}`);
+          break;
+      }
+    } else {
+      // Profils I standards
+      switch (face) {
+        case ProfileFace.TOP_FLANGE: { // Aile supérieure
         // Positionner la découpe pour traverser l'aile supérieure
         const topFlangeBottom = (height / 2) - flangeThickness;
         const topFlangeTop = height / 2;
@@ -362,6 +673,7 @@ export class CutProcessor extends FeatureProcessor {
         // Par défaut, traiter comme l'âme
         geometry.translate(0, 0, -actualDepth / 2);
         break;
+      }
     }
     
     geometry.computeBoundingBox();
@@ -386,7 +698,7 @@ export class CutProcessor extends FeatureProcessor {
     element: PivotElement,
     face?: ProfileFace | undefined
   ): THREE.BufferGeometry {
-    const dims = element.dimensions;
+    const dims = element.dimensions || {};
     const length = dims.length || 1000;
     const width = dims.width || 150;
     const height = dims.height || 300;
@@ -681,6 +993,80 @@ export class CutProcessor extends FeatureProcessor {
   }
   
   /**
+   * Détecte si le contour représente une coupe d'angle complète (angle cut)
+   * Différent d'un bevel cut qui est un chanfrein pour soudure
+   */
+  private isAngleCut(contourPoints: Array<[number, number]>, element: PivotElement): boolean {
+    if (contourPoints.length < 4) {
+      return false;
+    }
+    
+    // Pour les tubes, vérifier si on a une coupe diagonale aux extrémités
+    const isTube = element.type === 'TUBE_RECT' || element.type === 'TUBE_ROUND' ||
+                   element.metadata?.profileType === 'TUBE_RECT' || 
+                   element.metadata?.profileType === 'TUBE_ROUND' ||
+                   element.metadata?.profileName?.includes('HSS') ||
+                   element.metadata?.profileName?.includes('RHS') ||
+                   element.metadata?.profileName?.includes('SHS');
+    
+    if (!isTube) {
+      return false;
+    }
+    
+    // Vérifier si la coupe est aux extrémités
+    const bounds = this.getContourBounds(contourPoints);
+    const profileLength = element.dimensions?.length || 1000;
+    
+    const isAtStart = bounds.minX < 100;
+    const isAtEnd = bounds.maxX > profileLength - 100;
+    
+    if (!isAtStart && !isAtEnd) {
+      console.log(`    ⚠️ Not an angle cut - not at extremities (X: ${bounds.minX.toFixed(1)}-${bounds.maxX.toFixed(1)})`);
+      return false;
+    }
+    
+    // Vérifier si les points forment une diagonale significative
+    let hasDiagonalSegment = false;
+    let maxDiagonalLength = 0;
+    
+    for (let i = 1; i < contourPoints.length; i++) {
+      const dx = Math.abs(contourPoints[i][0] - contourPoints[i-1][0]);
+      const dy = Math.abs(contourPoints[i][1] - contourPoints[i-1][1]);
+      
+      // Si on a un segment avec des changements significatifs en X et Y
+      if (dx > 10 && dy > 10) {
+        const segmentLength = Math.sqrt(dx * dx + dy * dy);
+        if (segmentLength > maxDiagonalLength) {
+          maxDiagonalLength = segmentLength;
+          hasDiagonalSegment = true;
+        }
+        
+        // Vérifier l'angle du segment (entre 15° et 75°)
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        console.log(`    📐 Diagonal segment: dx=${dx.toFixed(1)}, dy=${dy.toFixed(1)}, angle=${angle.toFixed(1)}°`);
+        
+        // Un angle cut a typiquement un angle entre 15° et 75°
+        if (Math.abs(angle) > 15 && Math.abs(angle) < 75) {
+          console.log(`    ✅ Valid angle cut detected at ${isAtStart ? 'start' : 'end'} with angle ${angle.toFixed(1)}°`);
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Détecte si le contour représente un bevel cut (chanfrein pour soudure)
+   * Typiquement sur une platine ou l'épaisseur d'une face
+   */
+  private isBevelCut(contourPoints: Array<[number, number]>): boolean {
+    // Pour l'instant, retourner false car on gère les angle cuts
+    // Les vrais bevel cuts seront implémentés plus tard pour les platines
+    return false;
+  }
+  
+  /**
    * Détecte si le contour représente un pattern d'encoches partielles (M1002)
    */
   private isPartialNotchPattern(contourPoints: Array<[number, number]>, element: PivotElement): boolean {
@@ -690,7 +1076,7 @@ export class CutProcessor extends FeatureProcessor {
     }
     
     const bounds = this.getContourBounds(contourPoints);
-    const profileLength = element.dimensions.length;
+    const profileLength = element.dimensions?.length || 2260;
     
     // Vérifier s'il y a une extension au-delà de la longueur du profil
     const hasExtension = bounds.maxX > profileLength + 1;
@@ -714,25 +1100,115 @@ export class CutProcessor extends FeatureProcessor {
     feature: Feature
   ): ProcessResult {
     try {
-      const dims = element.dimensions;
+      const dims = element.dimensions || {};
       const bounds = this.getContourBounds(contourPoints);
       
       console.log(`  🔧 Processing partial notches with extension:`);
       console.log(`    Contour bounds: X[${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}] Y[${bounds.minY.toFixed(1)}, ${bounds.maxY.toFixed(1)}]`);
       console.log(`    Profile length: ${dims.length}mm, Extension: ${(bounds.maxX - dims.length).toFixed(1)}mm`);
       
+      // Pour les contours rectangulaires (5 points), traiter comme une découpe simple
+      if (contourPoints.length === 5) {
+        console.log(`  📐 Rectangular contour detected - processing as simple cut`);
+        // Créer une découpe simple pour les contours rectangulaires des ailes
+        const depth = feature.parameters.depth || dims.flangeThickness || 10;
+        const cutGeometry = this.createCutGeometry(contourPoints, depth, face || ProfileFace.WEB, element);
+        
+        // Vérifier que la géométrie de découpe est valide
+        if (!cutGeometry || !cutGeometry.attributes || !cutGeometry.attributes.position) {
+          console.error('  ❌ Invalid cut geometry created - returning original geometry');
+          return {
+            success: false,
+            geometry: geometry,
+            error: 'Failed to create valid cut geometry'
+          };
+        }
+        
+        try {
+          // Appliquer la découpe CSG
+          const brush1 = new Brush(geometry);
+          const brush2 = new Brush(cutGeometry);
+          brush1.updateMatrixWorld();
+          brush2.updateMatrixWorld();
+          
+          const resultBrush = this.evaluator.evaluate(brush1, brush2, SUBTRACTION);
+          const resultGeometry = resultBrush.geometry;
+          
+          if (!resultGeometry || !resultGeometry.attributes.position) {
+            console.error('  ❌ CSG operation failed - returning original geometry');
+            return {
+              success: false,
+              geometry: geometry,
+              error: 'CSG subtraction failed'
+            };
+          }
+          
+          // Ajouter les informations de découpe à userData pour les outlines
+          if (!resultGeometry.userData) {
+            resultGeometry.userData = {};
+          }
+          if (!resultGeometry.userData.cuts) {
+            resultGeometry.userData.cuts = [];
+          }
+          
+          // Ajouter les informations du contour rectangulaire
+          const contourBounds = this.getContourBounds(contourPoints);
+          const rectElementHeight = dims.height || 200;  // Hauteur générique
+          const rectElementLength = dims.length || 1000;  // Longueur générique
+          
+          const cutInfo = {
+            id: feature.id || `cut_${Date.now()}`,
+            parentFeatureId: feature.id,
+            type: 'cut',
+            face: face,
+            bounds: {
+              minX: contourBounds.minX - rectElementLength / 2,
+              maxX: contourBounds.maxX - rectElementLength / 2,
+              minY: contourBounds.minY - rectElementHeight / 2,
+              maxY: contourBounds.maxY - rectElementHeight / 2,
+              minZ: -depth / 2,
+              maxZ: depth / 2
+            }
+          };
+          
+          resultGeometry.userData.cuts.push(cutInfo);
+          console.log(`  📐 Added rectangular cut info to userData:`, cutInfo);
+          
+          return {
+            success: true,
+            geometry: resultGeometry
+          };
+        } catch (csgError) {
+          console.error('  ❌ CSG operation error:', csgError);
+          return {
+            success: false,
+            geometry: geometry,
+            error: `CSG error: ${csgError instanceof Error ? csgError.message : 'Unknown error'}`
+          };
+        }
+      }
+      
       // Analyser les points pour identifier les encoches
       // Pour M1002: les encoches sont définies par les changements de Y aux extrémités
       const notches = this.extractNotchesFromContour(contourPoints, dims);
+      
+      // Si pas d'encoches trouvées, retourner la géométrie originale
+      if (notches.length === 0) {
+        console.log(`  ⚠️ No notches found in contour - returning original geometry`);
+        return {
+          success: true,
+          geometry: geometry
+        };
+      }
       
       // Créer les géométries de découpe pour chaque encoche
       const cutGeometries: THREE.BufferGeometry[] = [];
       
       // Récupérer l'épaisseur de l'aile pour dimensionner les encoches
-      const flangeThickness = element.dimensions.flangeThickness || element.metadata?.flangeThickness || 7.6;
+      const flangeThickness = element.dimensions?.flangeThickness || element.metadata?.flangeThickness || 7.6;
       
       // Calculer les dimensions une fois pour réutilisation
-      const profileHeight = dims.height || 251.4;
+      const profHeight = dims.height || 200;  // Hauteur générique pour tous types de profils
       let globalCenterY = 0;
       if (face === ProfileFace.TOP_FLANGE && dims.height) {
         const topFlangeBottom = (dims.height / 2) - flangeThickness;
@@ -765,7 +1241,7 @@ export class CutProcessor extends FeatureProcessor {
         const centerX = 0;
         
         // Position verticale (Y) - conversion DSTV vers Three.js
-        const centerY = (notch.yStart + notch.yEnd) / 2 - profileHeight / 2;
+        const centerY = (notch.yStart + notch.yEnd) / 2 - profHeight / 2;
         
         console.log(`      Box position: X=${centerX.toFixed(1)}mm Y=${centerY.toFixed(1)}mm Z=${centerZ.toFixed(1)}mm`);
         
@@ -803,12 +1279,53 @@ export class CutProcessor extends FeatureProcessor {
         cutGeometries.push(boxGeometry);
       }
       
+      // Vérifier que nous avons des géométries valides avant de fusionner
+      if (cutGeometries.length === 0) {
+        console.log(`  ⚠️ No cut geometries created - returning original geometry`);
+        return {
+          success: true,
+          geometry: geometry
+        };
+      }
+      
+      // Filtrer les géométries invalides
+      const validCutGeometries = cutGeometries.filter(geom => {
+        if (!geom || !geom.attributes || !geom.attributes.position) {
+          console.warn(`  ⚠️ Invalid geometry detected - skipping`);
+          return false;
+        }
+        return true;
+      });
+      
+      if (validCutGeometries.length === 0) {
+        console.log(`  ⚠️ No valid cut geometries after filtering - returning original geometry`);
+        return {
+          success: true,
+          geometry: geometry
+        };
+      }
+      
       // Fusionner toutes les géométries de découpe
-      let mergedCutGeometry: THREE.BufferGeometry;
-      if (cutGeometries.length > 1) {
-        mergedCutGeometry = BufferGeometryUtils.mergeGeometries(cutGeometries, false);
-      } else {
-        mergedCutGeometry = cutGeometries[0];
+      let mergedCutGeometry: THREE.BufferGeometry | undefined;
+      if (validCutGeometries.length > 1) {
+        try {
+          mergedCutGeometry = BufferGeometryUtils.mergeGeometries(validCutGeometries, false);
+        } catch (mergeError) {
+          console.error(`  ❌ Failed to merge cut geometries:`, mergeError);
+          // Essayer d'utiliser la première géométrie valide
+          mergedCutGeometry = validCutGeometries[0];
+        }
+      } else if (validCutGeometries.length === 1) {
+        mergedCutGeometry = validCutGeometries[0];
+      }
+      
+      // Si pas de géométrie de découpe, retourner la géométrie originale
+      if (!mergedCutGeometry) {
+        console.log(`  ⚠️ No merged cut geometry created for partial notches`);
+        return {
+          success: true,
+          geometry: geometry
+        };
       }
       
       // Appliquer la découpe à la géométrie
@@ -829,24 +1346,44 @@ export class CutProcessor extends FeatureProcessor {
         `Z[${mergedCutGeometry.boundingBox?.min.z.toFixed(1)}, ${mergedCutGeometry.boundingBox?.max.z.toFixed(1)}]`
       );
       
-      const originalBrush = new Brush(geometry);
-      originalBrush.updateMatrixWorld();
-      const cutBrush = new Brush(mergedCutGeometry);
-      cutBrush.updateMatrixWorld();
+      let resultGeometry: THREE.BufferGeometry;
       
-      console.log(`    Original geometry vertices: ${geometry.attributes.position.count}`);
-      console.log(`    Cut geometry vertices: ${mergedCutGeometry.attributes.position.count}`);
+      try {
+        const originalBrush = new Brush(geometry);
+        originalBrush.updateMatrixWorld();
+        const cutBrush = new Brush(mergedCutGeometry);
+        cutBrush.updateMatrixWorld();
+        
+        console.log(`    Original geometry vertices: ${geometry.attributes?.position?.count || 0}`);
+        console.log(`    Cut geometry vertices: ${mergedCutGeometry.attributes?.position?.count || 0}`);
+        
+        const resultBrush = this.evaluator.evaluate(originalBrush, cutBrush, SUBTRACTION);
+        resultGeometry = resultBrush.geometry;
+      } catch (csgError) {
+        console.error(`  ❌ CSG operation failed:`, csgError);
+        // En cas d'erreur CSG, retourner la géométrie originale
+        return {
+          success: false,
+          geometry: geometry,
+          error: `CSG operation failed: ${csgError instanceof Error ? csgError.message : 'Unknown error'}`
+        };
+      }
       
-      const resultBrush = this.evaluator.evaluate(originalBrush, cutBrush, SUBTRACTION);
-      const resultGeometry = resultBrush.geometry;
-      
-      console.log(`    Result geometry vertices: ${resultGeometry.attributes.position.count}`);
-      console.log(`    Vertices change: ${resultGeometry.attributes.position.count - geometry.attributes.position.count}`);
+      console.log(`    Result geometry vertices: ${resultGeometry.attributes?.position?.count || 0}`);
+      console.log(`    Vertices change: ${(resultGeometry.attributes?.position?.count || 0) - (geometry.attributes?.position?.count || 0)}`);
       
       // Ajouter les informations de découpe à userData pour les outlines
+      if (!resultGeometry.userData) {
+        resultGeometry.userData = {};
+      }
       if (!resultGeometry.userData.cuts) {
         resultGeometry.userData.cuts = [];
       }
+      
+      // Récupérer les dimensions du profil pour le calcul des positions
+      // Ces valeurs par défaut sont génériques et seront adaptées selon le profil
+      const elementHeight = dims.height || 200;  // Hauteur générique du profil
+      const elementWidth = dims.width || 100;    // Largeur générique du profil
       
       // Ajouter chaque encoche avec ses bounds
       for (const notch of notches) {
@@ -859,10 +1396,10 @@ export class CutProcessor extends FeatureProcessor {
           type: 'notch',
           face: face,
           bounds: {
-            minX: -(dims.width + 20) / 2,           // Encoche traverse toute la largeur avec marge
-            maxX: (dims.width + 20) / 2,
-            minY: notch.yStart - profileHeight / 2,   // Position verticale de l'encoche
-            maxY: notch.yEnd - profileHeight / 2,
+            minX: -(elementWidth + 20) / 2,           // Encoche traverse toute la largeur avec marge
+            maxX: (elementWidth + 20) / 2,
+            minY: notch.yStart - elementHeight / 2,   // Position verticale de l'encoche
+            maxY: notch.yEnd - elementHeight / 2,
             minZ: notch.xStart,                     // Position le long de la poutre
             maxZ: notch.xEnd
           }
@@ -962,7 +1499,846 @@ export class CutProcessor extends FeatureProcessor {
     return notches;
   }
   
+  /**
+   * Essaie de traiter la feature avec les nouvelles stratégies
+   * Cette méthode permet d'introduire les stratégies progressivement
+   * sans casser le code M1002 existant qui fonctionne
+   */
+  private tryProcessWithStrategies(
+    geometry: THREE.BufferGeometry,
+    feature: Feature,
+    element: PivotElement
+  ): { success: boolean; result?: ProcessResult; strategyUsed?: string; error?: string } {
+    try {
+      // Trouver la stratégie appropriée
+      const strategy = this.strategies.find(s => s.canHandle(feature));
+      
+      if (!strategy) {
+        return {
+          success: false,
+          error: 'No suitable strategy found for this cut type'
+        };
+      }
+      
+      console.log(`    🔧 Using strategy: ${strategy.name}`);
+      
+      // Valider avec la stratégie
+      const validationErrors = strategy.validate(feature, element);
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          error: `Strategy validation failed: ${validationErrors.join(', ')}`
+        };
+      }
+      
+      // Créer la géométrie de découpe avec la stratégie
+      const cutGeometry = strategy.createCutGeometry(feature, element);
+      if (!cutGeometry || !cutGeometry.attributes || !cutGeometry.attributes.position) {
+        return {
+          success: false,
+          error: 'Strategy failed to create valid cut geometry'
+        };
+      }
+      
+      // Effectuer la soustraction CSG
+      cutGeometry.computeBoundingBox();
+      geometry.computeBoundingBox();
+      
+      console.log(`    🔧 Applying CSG SUBTRACTION with strategy geometry`);
+      console.log(`      Cut geometry bounds:`, cutGeometry.boundingBox);
+      console.log(`      Original geometry vertex count:`, geometry.attributes.position?.count || 0);
+      
+      // Créer les brushes pour CSG
+      const baseBrush = new Brush(geometry);
+      baseBrush.updateMatrixWorld();
+      
+      const cutBrush = new Brush(cutGeometry);
+      cutBrush.updateMatrixWorld();
+      
+      // Effectuer la soustraction
+      const resultBrush = this.evaluator.evaluate(baseBrush, cutBrush, SUBTRACTION);
+      const resultGeometry = resultBrush.geometry.clone();
+      
+      console.log(`      ✅ CSG operation completed successfully`);
+      console.log(`      Result geometry vertex count:`, resultGeometry.attributes.position?.count || 0);
+      
+      // Nettoyer
+      resultBrush.geometry.dispose();
+      cutGeometry.dispose();
+      
+      // Calculer les normales et optimiser
+      resultGeometry.computeVertexNormals();
+      resultGeometry.computeBoundingBox();
+      resultGeometry.computeBoundingSphere();
+      
+      // Transférer les userData
+      Object.assign(resultGeometry.userData, geometry.userData);
+      
+      // Ajouter les informations de découpe pour les outlines
+      this.addCutInfoToUserData(resultGeometry, feature, element, strategy);
+      
+      return {
+        success: true,
+        result: {
+          success: true,
+          geometry: resultGeometry
+        },
+        strategyUsed: strategy.name
+      };
+      
+    } catch (error) {
+      console.error('    ❌ Strategy processing error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown strategy error'
+      };
+    }
+  }
+  
+  /**
+   * Ajoute les informations de découpe aux userData pour les outlines
+   */
+  private addCutInfoToUserData(
+    resultGeometry: THREE.BufferGeometry,
+    feature: Feature,
+    element: PivotElement,
+    strategy: ICutStrategy
+  ): void {
+    if (!resultGeometry.userData) {
+      resultGeometry.userData = {};
+    }
+    if (!resultGeometry.userData.cuts) {
+      resultGeometry.userData.cuts = [];
+    }
+    
+    const params = feature.parameters || {};
+    const rawPoints = params.points || params.contourPoints || [];
+    const points = this.normalizePoints(rawPoints);
+    const bounds = this.getContourBounds(points);
+    const dims = element.dimensions || {};
+    const depth = params.depth || dims.flangeThickness || 10;
+    
+    const cutInfo = {
+      id: feature.id || `cut_${Date.now()}`,
+      type: 'cut',
+      face: feature.face,
+      strategy: strategy.name,
+      bounds: {
+        minX: bounds.minX - (dims.length || 1000) / 2,
+        maxX: bounds.maxX - (dims.length || 1000) / 2,
+        minY: bounds.minY - (dims.height || 300) / 2,
+        maxY: bounds.maxY - (dims.height || 300) / 2,
+        minZ: -depth / 2,
+        maxZ: depth / 2
+      },
+      contourPoints: points,
+      depth
+    };
+    
+    resultGeometry.userData.cuts.push(cutInfo);
+    console.log(`      📐 Added cut info to userData (strategy: ${strategy.name}):`, cutInfo);
+  }
+
+  /**
+   * Détecte si un contour sur une semelle représente la forme finale
+   * (et non une coupe à soustraire)
+   */
+  private isFlangeFinalContour(
+    contourPoints: Array<[number, number]>,
+    face: ProfileFace,
+    element: PivotElement
+  ): boolean {
+    // Seulement pour les semelles
+    if (face !== ProfileFace.TOP_FLANGE && face !== ProfileFace.BOTTOM_FLANGE) {
+      return false;
+    }
+    
+    // Rectangle de 5 points
+    if (contourPoints.length !== 5) {
+      return false;
+    }
+    
+    const bounds = this.getContourBounds(contourPoints);
+    const dims = element.dimensions || {};
+    const profileLength = dims.length || 1000;
+    
+    console.log(`    🔍 Checking flange contour: face=${face}, points=${contourPoints.length}`);
+    console.log(`    🔍 Bounds: X[${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}], profileLength=${profileLength}`);
+    
+    // Si le contour commence à 0 et se termine avant la fin du profil
+    // C'est une redéfinition de la forme finale (cas M1002)
+    if (bounds.minX < 1 && bounds.maxX < profileLength - 10 && bounds.maxX > profileLength * 0.8) {
+      console.log(`    📐 Flange contour detected: X[0, ${bounds.maxX.toFixed(1)}] - Final shape definition`);
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Traite un contour de semelle comme une coupe d'extrémité
+   * (enlève la partie APRÈS le contour, pas avant)
+   */
+  private processFlangeContourCut(
+    geometry: THREE.BufferGeometry,
+    contourPoints: Array<[number, number]>,
+    face: ProfileFace,
+    element: PivotElement,
+    feature: Feature
+  ): ProcessResult {
+    try {
+      const bounds = this.getContourBounds(contourPoints);
+      const dims = element.dimensions || {};
+      const profileLength = dims.length || 1000;
+      const profileWidth = dims.width || 146;
+      const depth = dims.flangeThickness || 10;
+      
+      console.log(`  📐 Processing flange contour as end cut`);
+      console.log(`    Original contour: X[${bounds.minX.toFixed(1)}, ${bounds.maxX.toFixed(1)}]`);
+      console.log(`    Will remove: X[${bounds.maxX.toFixed(1)}, ${profileLength.toFixed(1)}]`);
+      
+      // Créer un rectangle de coupe pour enlever la partie APRÈS le contour
+      const cutPoints: Array<[number, number]> = [
+        [bounds.maxX, 0],           // Début de la coupe
+        [profileLength, 0],          // Fin du profil
+        [profileLength, profileWidth], // Largeur complète
+        [bounds.maxX, profileWidth],   // Retour
+        [bounds.maxX, 0]             // Fermeture
+      ];
+      
+      // Utiliser la méthode standard avec les nouveaux points
+      const cutGeometry = this.createCutGeometry(cutPoints, depth * 2, face, element);
+      
+      // Effectuer l'opération CSG
+      const baseBrush = new Brush(geometry);
+      baseBrush.updateMatrixWorld();
+      
+      const cutBrush = new Brush(cutGeometry);
+      cutBrush.updateMatrixWorld();
+      
+      const resultBrush = this.evaluator.evaluate(baseBrush, cutBrush, SUBTRACTION);
+      const resultGeometry = resultBrush.geometry.clone();
+      
+      // Nettoyer
+      resultBrush.geometry.dispose();
+      cutGeometry.dispose();
+      
+      // Optimiser
+      resultGeometry.computeVertexNormals();
+      resultGeometry.computeBoundingBox();
+      resultGeometry.computeBoundingSphere();
+      
+      // Ajouter les infos de découpe
+      if (!resultGeometry.userData) resultGeometry.userData = {};
+      if (!resultGeometry.userData.cuts) resultGeometry.userData.cuts = [];
+      
+      resultGeometry.userData.cuts.push({
+        id: feature.id || `flange_cut_${Date.now()}`,
+        type: 'flange_contour',
+        face: face,
+        originalContour: contourPoints,
+        actualCut: cutPoints,
+        bounds: {
+          minX: bounds.maxX - profileLength / 2,
+          maxX: profileLength / 2,
+          minY: -profileWidth / 2,
+          maxY: profileWidth / 2,
+          minZ: -depth,
+          maxZ: depth
+        }
+      });
+      
+      console.log(`  ✅ Flange contour cut applied successfully`);
+      
+      return {
+        success: true,
+        geometry: resultGeometry
+      };
+      
+    } catch (error) {
+      console.error(`  ❌ Flange contour cut failed:`, error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+  
+  /**
+   * Traite les coupes d'extrémité pour les tubes HSS
+   * Ces coupes sont créées à partir de l'inversion des contours AK
+   */
+  private processEndCut(
+    geometry: THREE.BufferGeometry,
+    feature: Feature,
+    element: PivotElement
+  ): ProcessResult {
+    console.log(`  🔧 Processing END_CUT for tube ${element.id}`);
+    console.log(`  📐 Feature parameters:`, {
+      angle: feature.parameters.angle,
+      length: feature.parameters.length,
+      position: feature.position,
+      cutPosition: (feature.parameters as any).cutPosition,
+      hasContourPoints: !!feature.parameters.contourPoints
+    });
+    
+    // Log détaillé de la position
+    console.log(`  📍 Feature position details:`);
+    console.log(`     - position.x = ${feature.position.x}`);
+    console.log(`     - position.y = ${feature.position.y}`);
+    console.log(`     - position.z = ${feature.position.z}`);
+    console.log(`     - cutPosition param = ${(feature.parameters as any).cutPosition}`);
+    
+    try {
+      const angle = feature.parameters.angle || 90;
+      const position = feature.position;
+      const length = feature.parameters.length || 50; // Réduire la longueur par défaut
+      const contourPoints = feature.parameters.contourPoints || [];
+      
+      // Déterminer si c'est au début ou à la fin
+      // Utiliser le paramètre cutPosition s'il est disponible, sinon se baser sur la position X
+      const profileLength = element.dimensions?.length || 0;
+      const cutPositionParam = (feature.parameters as any).cutPosition;
+      const isAtStart = cutPositionParam === 'start' ? true : 
+                        cutPositionParam === 'end' ? false :
+                        position.z < profileLength / 2;  // Utiliser Z car le tube est sur l'axe Z
+      
+      console.log(`    Position: ${isAtStart ? 'START' : 'END'} (z=${position.z.toFixed(1)})`);
+      console.log(`    Cut angle: ${angle}°`);
+      console.log(`    Cut length: ${length.toFixed(1)} mm`);
+      
+      // Pour les tubes HSS, créer des chanfreins aux coins plutôt que des coupes complètes
+      if (element.metadata?.profileType === 'TUBE_RECT' || element.metadata?.profileName?.includes('HSS')) {
+        return this.applyChamferEndCut(geometry, feature, element, isAtStart);
+      }
+      
+      // Pour les tubes, créer une coupe simple à l'extrémité
+      // En utilisant CSG pour couper la géométrie
+      if (!geometry.attributes.position) {
+        return {
+          success: false,
+          error: 'Geometry has no position attribute'
+        };
+      }
+      
+      // Créer une boîte de coupe positionnée à l'extrémité
+      const cutBoxGeometry = new THREE.BoxGeometry(
+        length * 2, // Largeur de la boîte (dans la direction X)
+        (element.dimensions?.height || 50) * 2, // Hauteur
+        (element.dimensions?.width || 50) * 2   // Profondeur
+      );
+      
+      // Positionner la boîte de coupe
+      const cutBoxPosition = new THREE.Vector3();
+      if (isAtStart) {
+        cutBoxPosition.x = -length; // Positionner avant le début
+      } else {
+        cutBoxPosition.x = profileLength + length; // Positionner après la fin
+      }
+      
+      // Si c'est une coupe d'angle, faire pivoter la boîte
+      if (angle !== 90) {
+        cutBoxGeometry.rotateZ(THREE.MathUtils.degToRad(angle - 90));
+      }
+      
+      cutBoxGeometry.translate(cutBoxPosition.x, cutBoxPosition.y, cutBoxPosition.z);
+      
+      // Appliquer la coupe CSG
+      try {
+        const Brush = (window as any).Brush || require('three-bvh-csg').Brush;
+        const SUBTRACTION = (window as any).SUBTRACTION || require('three-bvh-csg').SUBTRACTION;
+        const Evaluator = (window as any).Evaluator || require('three-bvh-csg').Evaluator;
+        
+        const baseBrush = new Brush(geometry);
+        const cutBrush = new Brush(cutBoxGeometry);
+        
+        const evaluator = new Evaluator();
+        const result = evaluator.evaluate(baseBrush, cutBrush, SUBTRACTION);
+        
+        if (result && result.geometry) {
+          // Remplacer la géométrie par le résultat
+          geometry.copy(result.geometry);
+          console.log(`    ✅ End cut applied successfully`);
+          return { success: true };
+        }
+      } catch (csgError) {
+        console.error(`    ❌ CSG operation failed:`, csgError);
+        // Fallback: modifier directement les vertices
+        this.applySimpleEndCut(geometry, isAtStart, length, element);
+        return { success: true };
+      }
+      
+      return { success: true };
+      
+    } catch (error) {
+      console.error(`  ❌ Failed to process end cut:`, error);
+      return {
+        success: false,
+        error: `End cut processing failed: ${error}`
+      };
+    }
+  }
+  
+  /**
+   * Applique une coupe d'extrémité simple en modifiant les vertices
+   * ATTENTION: Cette méthode est destructive et ne devrait être utilisée qu'en dernier recours
+   */
+  private applySimpleEndCut(
+    geometry: THREE.BufferGeometry,
+    isAtStart: boolean,
+    cutLength: number,
+    element: PivotElement
+  ): void {
+    console.warn(`    ⚠️ Using destructive simple end cut - should be avoided`);
+    const positions = geometry.attributes.position;
+    const profileLength = element.dimensions?.length || 0;
+    
+    // Limiter la longueur de coupe pour éviter de détruire le profil
+    const maxCutLength = Math.min(cutLength, profileLength * 0.1); // Max 10% de la longueur
+    
+    // Parcourir tous les vertices et couper ceux qui sont dans la zone de coupe
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i);
+      
+      if (isAtStart && x < maxCutLength) {
+        // Ramener les points au début de la coupe
+        positions.setX(i, maxCutLength);
+      } else if (!isAtStart && x > profileLength - maxCutLength) {
+        // Ramener les points à la fin de la coupe
+        positions.setX(i, profileLength - maxCutLength);
+      }
+    }
+    
+    positions.needsUpdate = true;
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    
+    console.log(`    ✅ Simple end cut applied (limited to ${maxCutLength.toFixed(1)}mm)`);
+  }
+  
+  /**
+   * Applique une coupe d'extrémité sur un tube HSS
+   * Utilise CSG pour créer des coupes droites ou angulaires aux extrémités
+   */
+  private applyChamferEndCut(
+    geometry: THREE.BufferGeometry,
+    feature: Feature,
+    element: PivotElement,
+    isAtStart: boolean
+  ): ProcessResult {
+    // Constantes pour les marges de sécurité
+    const CUT_MARGIN = 100; // Marge pour garantir que la coupe traverse complètement
+    const BOX_SIZE_MULTIPLIER = 3; // Multiplicateur pour la taille de la boîte de coupe
+    
+    try {
+      const profileLength = element.dimensions?.length || 0;
+      const width = element.dimensions?.width || 50;
+      const height = element.dimensions?.height || 50;
+      const cutDepth = (feature.parameters as any).chamferLength || feature.parameters.length || 30;
+      const angle = feature.parameters.angle || 90;
+      
+      // Calculer la bounding box avant modification
+      geometry.computeBoundingBox();
+      
+      // IMPORTANT: Créer une SEULE boîte de coupe qui traverse TOUTE l'épaisseur du tube
+      // Dimensions de la boîte de coupe : plus grande que le profil pour garantir une coupe complète
+      // IMPORTANT: Pour un tube sur l'axe Z, la boîte doit couper dans la direction Z
+      
+      // Calculer les dimensions de la boîte selon la position
+      let boxDepth;
+      let boxCenter;
+      
+      const featureZ = feature.position.z;
+      
+      if (isAtStart) {
+        // Coupe au début : la boîte doit couper depuis 0
+        // La boîte doit être centrée avant le point 0 pour couper correctement
+        boxDepth = width * 4; // Boîte suffisamment grande pour coupe angulaire
+        boxCenter = -boxDepth / 2; // Centre de la boîte avant le début (moitié de la boîte est avant 0)
+        console.log(`    📦 START cut box: center=${boxCenter.toFixed(1)}, depth=${boxDepth}`);
+      } else {
+        // Coupe à la fin : la boîte doit couper depuis profileLength
+        boxDepth = width * 4; // Boîte suffisamment grande pour coupe angulaire
+        boxCenter = profileLength + boxDepth / 2; // Centre de la boîte après la fin
+        console.log(`    📦 END cut box: center=${boxCenter.toFixed(1)}, depth=${boxDepth}, profileLength=${profileLength}`);
+      }
+      
+      // Créer la boîte de coupe
+      let cutGeometry;
+      
+      // Si l'angle n'est pas droit (90°), appliquer une rotation
+      if (Math.abs(angle - 90) > 0.1) {  // Si l'angle n'est pas 90° (avec tolérance)
+        // Créer la boîte centrée à l'origine
+        cutGeometry = new THREE.BoxGeometry(
+          width * BOX_SIZE_MULTIPLIER,
+          height * BOX_SIZE_MULTIPLIER,
+          boxDepth
+        );
+        
+        // Appliquer la rotation AVANT la translation
+        // Pour un tube sur l'axe Z, une coupe angulaire tourne autour de Y
+        // L'angle DSTV est depuis la verticale, donc on doit le convertir pour Three.js
+        // Pour une coupe qui penche vers l'avant (angle positif), on veut une rotation positive
+        let rotationAngle;
+        if (isAtStart) {
+          // Au début : angle depuis la verticale
+          // Pour h5004: 29.2° depuis verticale = coupe qui penche vers l'avant
+          rotationAngle = -angle * Math.PI / 180;  // Négatif pour pencher vers l'avant
+        } else {
+          // À la fin : angle inversé (miroir)
+          // Pour h5004: 60.8° depuis verticale = coupe qui penche vers l'arrière
+          rotationAngle = -angle * Math.PI / 180;  // Négatif comme le début (miroir)
+        }
+        cutGeometry.rotateY(rotationAngle);
+        
+        console.log(`    📐 END_CUT rotation:`);
+        console.log(`       - position: ${isAtStart ? 'START' : 'END'}`);
+        console.log(`       - input angle: ${angle}° (from vertical)`);
+        console.log(`       - rotation applied: ${rotationAngle} rad = ${(rotationAngle * 180 / Math.PI).toFixed(1)}°`);
+        console.log(`       - sign: ${isAtStart ? 'negative (forward tilt)' : 'positive (backward tilt)'}`);
+        
+        // Puis translater à la position finale
+        cutGeometry.translate(0, 0, boxCenter);
+      } else {
+        // Pas de rotation, créer directement à la bonne position
+        cutGeometry = new THREE.BoxGeometry(
+          width * BOX_SIZE_MULTIPLIER,
+          height * BOX_SIZE_MULTIPLIER,
+          boxDepth
+        );
+        cutGeometry.translate(0, 0, boxCenter);
+      }
+      
+      // Appliquer la soustraction CSG
+      try {
+        const originalBrush = new Brush(geometry);
+        originalBrush.updateMatrixWorld();
+        const cutBrush = new Brush(cutGeometry);
+        cutBrush.updateMatrixWorld();
+        
+        const resultBrush = this.evaluator.evaluate(originalBrush, cutBrush, SUBTRACTION);
+        const resultGeometry = resultBrush.geometry;
+        
+        // Calculer la bounding box après la coupe
+        resultGeometry.computeBoundingBox();
+        
+        // Transférer d'abord les userData existants
+        resultGeometry.userData = { ...geometry.userData };
+        
+        // Ensuite ajouter les infos de découpe pour les outlines (inlines)
+        if (!resultGeometry.userData.cuts) resultGeometry.userData.cuts = [];
+        
+        // La position de la coupe sur l'axe Z
+        const cutPosition = feature.position.z;
+        
+        // Calculer les bounds de la coupe
+        // Pour les END_CUT, utiliser la position exacte de la feature
+        const cutBounds = {
+          minX: cutPosition,  // Position exacte de la coupe sur Z
+          maxX: cutPosition,  // Même position (c'est un plan, pas un volume)
+          minY: -height / 2,
+          maxY: height / 2,
+          minZ: -width / 2,
+          maxZ: width / 2
+        };
+        
+        const cutInfo = {
+          id: feature.id || `end_cut_${Date.now()}`,
+          type: 'END_CUT',
+          face: 'end',
+          position: isAtStart ? 'start' : 'end',
+          angle: angle,
+          bounds: cutBounds,
+          depth: cutDepth
+        };
+        
+        resultGeometry.userData.cuts.push(cutInfo);
+        console.log(`    📐 Added END_CUT info to userData:`, cutInfo);
+        console.log(`    📐 Total cuts in userData: ${resultGeometry.userData.cuts.length}`);
+        
+        // IMPORTANT: Retourner la nouvelle géométrie au lieu de remplacer l'ancienne
+        // Cela préserve les trous et autres features déjà appliqués
+        return { 
+          success: true,
+          geometry: resultGeometry 
+        };
+        
+      } catch (csgError) {
+        console.error(`    ❌ CSG straight cut operation failed:`, csgError);
+        return {
+          success: false,
+          error: `Straight cut CSG operation failed: ${csgError}`
+        };
+      } finally {
+        // Nettoyer la géométrie temporaire
+        cutGeometry.dispose();
+      }
+      
+    } catch (error) {
+      console.error(`  ❌ Failed to apply chamfer cut:`, error);
+      return {
+        success: false,
+        error: `Chamfer cut failed: ${error}`
+      };
+    }
+  }
+  
+  /**
+   * PHASE 2 - Détermine si un contour de tube doit être simplifié
+   * Critères intelligents basés sur l'analyse de l'expert
+   */
+  private shouldSimplifyTubeGeometry(contourPoints: Array<[number, number]>, element: PivotElement): boolean {
+    // Seuil de base : plus de 20 points
+    if (contourPoints.length <= 20) {
+      return false;
+    }
+    
+    const profileType = element.metadata?.profileType;
+    const isHSS = profileType === 'TUBE_RECT' || element.metadata?.profileName?.includes('HSS');
+    
+    // Appliquer seulement aux tubes HSS/rectangulaires
+    if (!isHSS) {
+      return false;
+    }
+    
+    // Analyse de complexité - si trop de changements de direction
+    const complexity = this.analyzeContourComplexity(contourPoints);
+    
+    // Simplifier si:
+    // 1. Plus de 30 points OU
+    // 2. Plus de 20 points avec haute complexité OU  
+    // 3. Plus de 15 changements de direction
+    const shouldSimplify = contourPoints.length > 30 ||
+                          (contourPoints.length > 20 && complexity.aspectRatio > 10) ||
+                          complexity.directionChanges > 15;
+                          
+    if (shouldSimplify) {
+      console.log(`    ⚠️ Tube simplification triggered:`);
+      console.log(`      Points: ${contourPoints.length} (threshold: 20+)`);
+      console.log(`      Direction changes: ${complexity.directionChanges} (threshold: 15)`);
+      console.log(`      Aspect ratio: ${complexity.aspectRatio.toFixed(2)} (threshold: 10)`);
+    }
+    
+    return shouldSimplify;
+  }
+  
+  /**
+   * PHASE 2 - Crée une géométrie simplifiée intelligente pour tubes
+   * Préserve les caractéristiques importantes (angles, chanfreins)
+   */
+  private createSimplifiedTubeGeometry(
+    contourPoints: Array<[number, number]>, 
+    element: PivotElement, 
+    face?: ProfileFace
+  ): THREE.BufferGeometry {
+    const bounds = this.getContourBounds(contourPoints);
+    const dims = element.dimensions || {};
+    const length = dims.length || 1000;
+    const height = dims.height || 50;
+    const wallThickness = dims.thickness || 4.8;
+    
+    // Analyser le type de coupe pour choisir la simplification appropriée
+    const cutType = this.detectTubeCutType(contourPoints, element);
+    
+    let geometry: THREE.BufferGeometry;
+    
+    switch (cutType.type) {
+      case 'ANGLE_CUT':
+        // Coupe d'angle - utiliser un prisme trapézoïdal
+        geometry = this.createAngleCutGeometry(bounds, wallThickness, cutType.angle);
+        console.log(`    🔶 Created angle cut geometry: ${cutType.angle.toFixed(1)}°`);
+        break;
+        
+      case 'BEVEL_CUT':
+        // Chanfrein - utiliser une géométrie de chanfrein
+        geometry = this.createBevelCutGeometry(bounds, wallThickness, cutType.angle);
+        console.log(`    🔥 Created bevel cut geometry: ${cutType.angle.toFixed(1)}°`);
+        break;
+        
+      case 'COMPLEX_NOTCH':
+        // Encoche complexe - utiliser géométrie multi-segments
+        geometry = this.createComplexNotchGeometry(contourPoints, wallThickness);
+        console.log(`    🔍 Created complex notch geometry`);
+        break;
+        
+      case 'STRAIGHT_CUT':
+      default:
+        // Coupe droite simple - boîte
+        const boxWidth = bounds.maxX - bounds.minX;
+        const boxHeight = bounds.maxY - bounds.minY;
+        geometry = new THREE.BoxGeometry(boxWidth, boxHeight, wallThickness * 1.5);
+        console.log(`    🟦 Created simple box geometry: ${boxWidth.toFixed(1)}x${boxHeight.toFixed(1)}`);
+        break;
+    }
+    
+    // Positionner géométrie
+    const centerX = (bounds.minX + bounds.maxX) / 2 - length / 2;
+    const centerY = (bounds.minY + bounds.maxY) / 2 - height / 2;
+    geometry.translate(centerX, centerY, 0);
+    
+    return geometry;
+  }
+  
+  /**
+   * PHASE 2 - Analyse la complexité d'un contour (from CutLogger pattern)
+   */
+  private analyzeContourComplexity(points: Array<[number, number]>): {
+    directionChanges: number;
+    aspectRatio: number;
+    maxSegmentLength: number;
+    minSegmentLength: number;
+  } {
+    let directionChanges = 0;
+    let maxSegmentLength = 0;
+    let minSegmentLength = Infinity;
+    let prevDirection: number | null = null;
+    
+    for (let i = 1; i < points.length; i++) {
+      const dx = points[i][0] - points[i-1][0];
+      const dy = points[i][1] - points[i-1][1];
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const direction = Math.atan2(dy, dx);
+      
+      maxSegmentLength = Math.max(maxSegmentLength, length);
+      minSegmentLength = Math.min(minSegmentLength, length);
+      
+      if (prevDirection !== null) {
+        const angleDiff = Math.abs(direction - prevDirection);
+        if (angleDiff > Math.PI / 4) { // 45° de changement
+          directionChanges++;
+        }
+      }
+      prevDirection = direction;
+    }
+    
+    // Calculer aspect ratio
+    const bounds = this.getContourBounds(points);
+    const width = bounds.maxX - bounds.minX;
+    const height = bounds.maxY - bounds.minY;
+    const aspectRatio = width > 0 && height > 0 ? Math.max(width, height) / Math.min(width, height) : 1;
+    
+    return {
+      directionChanges,
+      aspectRatio,
+      maxSegmentLength,
+      minSegmentLength: minSegmentLength === Infinity ? 0 : minSegmentLength
+    };
+  }
+  
+  /**
+   * PHASE 2 - Détection du type de coupe pour tubes
+   */
+  private detectTubeCutType(points: Array<[number, number]>, element: PivotElement): {
+    type: 'ANGLE_CUT' | 'BEVEL_CUT' | 'STRAIGHT_CUT' | 'COMPLEX_NOTCH';
+    angle: number;
+    confidence: number;
+  } {
+    const bounds = this.getContourBounds(points);
+    const dims = element.dimensions || {};
+    const profileLength = dims.length || 1000;
+    
+    // Vérifier position (extrémités vs milieu)
+    const isAtStart = bounds.minX < 100;
+    const isAtEnd = bounds.maxX > profileLength - 100;
+    const atExtremity = isAtStart || isAtEnd;
+    
+    // Analyser les segments pour détecter les angles
+    const diagonalSegments = this.findDiagonalSegments(points);
+    
+    if (diagonalSegments.length === 0) {
+      return { type: 'STRAIGHT_CUT', angle: 0, confidence: 0.9 };
+    }
+    
+    const avgAngle = diagonalSegments.reduce((sum, s) => sum + Math.abs(s.angle), 0) / diagonalSegments.length;
+    const maxLength = Math.max(...diagonalSegments.map(s => s.length));
+    
+    // Logique de décision
+    if (atExtremity) {
+      if (maxLength > 50 && avgAngle > 20) {
+        return { type: 'ANGLE_CUT', angle: avgAngle, confidence: 0.8 };
+      } else if (maxLength < 30 && avgAngle > 15) {
+        return { type: 'BEVEL_CUT', angle: avgAngle, confidence: 0.7 };
+      }
+    }
+    
+    if (points.length > 15 && diagonalSegments.length > 3) {
+      return { type: 'COMPLEX_NOTCH', angle: avgAngle, confidence: 0.6 };
+    }
+    
+    return { type: 'STRAIGHT_CUT', angle: 0, confidence: 0.5 };
+  }
+  
+  /**
+   * PHASE 2 - Trouve segments diagonaux significatifs
+   */
+  private findDiagonalSegments(points: Array<[number, number]>): Array<{
+    index: number;
+    angle: number;
+    length: number;
+  }> {
+    const segments = [];
+    
+    for (let i = 1; i < points.length; i++) {
+      const dx = points[i][0] - points[i-1][0];
+      const dy = points[i][1] - points[i-1][1];
+      const length = Math.sqrt(dx * dx + dy * dy);
+      
+      // Segment diagonal significatif
+      if (Math.abs(dx) > 3 && Math.abs(dy) > 3 && length > 5) {
+        const angle = Math.abs(Math.atan2(dy, dx) * 180 / Math.PI);
+        segments.push({ index: i, angle, length });
+      }
+    }
+    
+    return segments;
+  }
+  
+  /**
+   * PHASE 2 - Crée géométrie pour coupe d'angle
+   */
+  private createAngleCutGeometry(bounds: any, thickness: number, angle: number): THREE.BufferGeometry {
+    // Pour une coupe d'angle, créer un prisme avec l'angle approprié
+    const width = bounds.maxX - bounds.minX;
+    const height = bounds.maxY - bounds.minY;
+    
+    // Utiliser une géométrie de boîte comme base, plus tard on peut améliorer
+    return new THREE.BoxGeometry(width, height, thickness * 1.5);
+  }
+  
+  /**
+   * PHASE 2 - Crée géométrie pour chanfrein
+   */
+  private createBevelCutGeometry(bounds: any, thickness: number, angle: number): THREE.BufferGeometry {
+    // Pour un chanfrein, créer une géométrie plus petite et précise
+    const width = bounds.maxX - bounds.minX;
+    const height = bounds.maxY - bounds.minY;
+    
+    // Chanfrein plus petit que la coupe d'angle
+    return new THREE.BoxGeometry(width * 0.8, height * 0.8, thickness);
+  }
+  
+  /**
+   * PHASE 2 - Crée géométrie pour encoche complexe
+   */
+  private createComplexNotchGeometry(points: Array<[number, number]>, thickness: number): THREE.BufferGeometry {
+    // Pour une encoche complexe, utiliser la forme simplifiée basée sur les bounds
+    const bounds = this.getContourBounds(points);
+    const width = bounds.maxX - bounds.minX;
+    const height = bounds.maxY - bounds.minY;
+    
+    return new THREE.BoxGeometry(width, height, thickness);
+  }
+
   dispose(): void {
+    // Nettoyer les stratégies
+    if (this.strategies) {
+      this.strategies.forEach(strategy => {
+        if (strategy.dispose) {
+          strategy.dispose();
+        }
+      });
+    }
+    
     // Nettoyer les ressources si nécessaire
   }
 }

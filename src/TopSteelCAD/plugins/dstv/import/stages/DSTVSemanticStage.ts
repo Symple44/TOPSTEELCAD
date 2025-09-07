@@ -8,7 +8,8 @@
 import { BaseStage } from '../../../../core/pipeline/BaseStage';
 import { ProcessingContext } from '../../../../core/pipeline/ProcessingContext';
 import { DSTVSyntaxTree, DSTVValidatedData } from '../DSTVImportPipeline';
-import { DSTVParsedBlock, DSTVBlockType } from './DSTVSyntaxStage';
+import { DSTVParsedBlock } from './DSTVSyntaxStage';
+import { DSTVBlockType } from '../types/dstv-types';
 
 /**
  * Types d'erreurs de validation sémantique

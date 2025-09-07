@@ -73,7 +73,7 @@ export class DSTVLexicalStage extends BaseStage<ArrayBuffer, DSTVTokens> {
     super(config);
     
     this.lexicalConfig = {
-      allowComments: false,          // DSTV standard ne supporte pas les commentaires
+      allowComments: true,           // Activé pour supporter les commentaires ** générés par certains logiciels
       normalizeWhitespace: true,     // Normaliser selon la norme
       strictBlockNames: true,        // Validation stricte par défaut
       ...config.lexical
@@ -209,7 +209,8 @@ export class DSTVLexicalStage extends BaseStage<ArrayBuffer, DSTVTokens> {
         token = this.consumeString(line, position, lineNumber, column);
       }
       // Commentaire (extension non standard)
-      else if (char === '#' && this.lexicalConfig.allowComments) {
+      // Support des commentaires DSTV qui commencent par ** ou #
+      else if ((char === '#' || (char === '*' && line[position + 1] === '*')) && this.lexicalConfig.allowComments) {
         token = this.consumeComment(line, position, lineNumber, column);
       }
       // Caractères spéciaux ou erreur

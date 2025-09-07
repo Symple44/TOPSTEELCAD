@@ -68,10 +68,19 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
   const [allElements, setAllElements] = useState<PivotElement[]>(initialElements);
   const [updateKey, setUpdateKey] = useState(0); // Clé pour forcer le re-render
   
-  // Synchroniser allElements avec initialElements quand ils changent
+  // Synchroniser allElements avec initialElements SEULEMENT au montage initial
   useEffect(() => {
-    setAllElements(initialElements);
-  }, [initialElements]);
+    console.log('🔄 Initialisation avec initialElements:', initialElements.length);
+    if (initialElements.length > 0) {
+      setAllElements(initialElements);
+    }
+  }, []); // Pas de dépendance sur initialElements pour éviter d'écraser les imports
+  
+  // Déboguer les changements de allElements
+  useEffect(() => {
+    console.log('📊 allElements a changé:', allElements.length, 'éléments');
+    console.log('📊 Contenu:', allElements);
+  }, [allElements]);
   
   // États des outils professionnels
   const [measurementMode, setMeasurementMode] = useState(false);
@@ -970,12 +979,11 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
         console.log(`📊 Total après import: ${newElements.length} éléments`);
         console.log(`📊 Nouveau tableau complet:`, newElements);
         
-        // Mettre à jour l'état local des éléments avec un petit délai pour React
-        setTimeout(() => {
-          setAllElements(newElements);
-          // Forcer le re-render en incrémentant la clé
-          setUpdateKey(prev => prev + 1);
-        }, 50);
+        // Mettre à jour l'état local des éléments immédiatement
+        console.log('📝 Mise à jour immédiate de allElements avec:', newElements);
+        setAllElements(newElements);
+        // Forcer le re-render en incrémentant la clé
+        setUpdateKey(prev => prev + 1);
         
         // Mettre à jour via les props parent si disponible
         if (onElementChange) {
@@ -1058,10 +1066,24 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
         precision: 2
       };
       
+      // Utiliser directement allElements (état React)
+      console.log(`📊 État allElements: ${allElements.length} éléments`);
+      console.log('📊 Détail des éléments:', allElements);
+      
+      // Vérifier si on a des éléments
+      if (!allElements || allElements.length === 0) {
+        console.error('❌ Aucun élément dans allElements');
+        console.log('📊 selectedIds:', selectedIds);
+        console.log('📊 initialElements:', initialElements);
+        throw new Error('Aucun élément disponible. Veuillez importer un fichier ou créer des éléments.');
+      }
+      
+      const currentElements = allElements;
+      
       // Exporter les éléments selon les options
       const elementsToExport = exportOptions.selectedOnly && selectedIds.length > 0
-        ? allElements.filter(el => selectedIds.includes(el.id))
-        : allElements;
+        ? currentElements.filter(el => selectedIds.includes(el.id))
+        : currentElements;
       
       if (elementsToExport.length === 0) {
         throw new Error('Aucun élément à exporter');

@@ -1,0 +1,1550 @@
+
+[7m[1m[36m RUN [39m[22m[27m [36mv0.34.6[39m [90mD:/GitHub/TOPSTEELCAD[39m
+
+[90mstderr[2m | unknown test[22m[39m
+WARNING: Multiple instances of Three.js being imported.
+
+[90mstderr[2m | unknown test[22m[39m
+<empty line>
+[90mstdout[2m | unknown test[22m[39m
+📊 Performance monitoring initialized for development environment
+   Sample rate: 100%
+   Max metrics: 50000
+💾 Geometry cache initialized
+   Max size: 200MB
+   Eviction policy: LRU
+
+[90mstderr[2m | unknown test[22m[39m
+<empty line>
+[90mstdout[2m | unknown test[22m[39m
+✅ Registered cut handler: PartialNotchHandler for types: NOTCH_PARTIAL, NOTCH_COMPOUND, CUT_WITH_NOTCHES
+✅ Registered cut handler: NotchHandler for types: NOTCH_RECTANGULAR, NOTCH_CURVED, NOTCH_PARTIAL, NOTCH_COMPOUND
+✅ Registered cut handler: EndCutHandler for types: END_STRAIGHT, END_ANGLE, END_COMPOUND, END_CHAMFER
+✅ Registered cut handler: CompoundCutHandler for types: END_COMPOUND, NOTCH_COMPOUND
+✅ Registered cut handler: CopingCutHandler for types: COPING_CUT, CONTOUR_CUT
+✅ Registered cut handler: BevelCutHandler for types: BEVEL_CUT, END_CHAMFER
+✅ Registered cut handler: ExteriorCutHandler for types: EXTERIOR_CUT, CONTOUR_CUT, COPING_CUT
+✅ Registered cut handler: KontourHandler for types: CONTOUR_CUT, UNRESTRICTED_CONTOUR, EXTERIOR_CUT, INTERIOR_CUT
+✅ Registered cut handler: PlateHandler for types: CONTOUR_CUT, THROUGH_CUT, PARTIAL_CUT
+✅ Registered cut handler: InteriorCutHandler for types: INTERIOR_CUT, THROUGH_CUT, PARTIAL_CUT, SLOT_CUT
+✅ Registered cut handler: AngleCutHandler for types: ANGLE_CUT, BEVEL_CUT, CHAMFER_CUT
+✅ Registered cut handler: StraightCutHandler for types: STRAIGHT_CUT, NOTCH_RECTANGULAR
+✅ Registered cut handler: TransverseCutHandler for types: STRAIGHT_CUT, ANGLE_CUT, THROUGH_CUT
+✅ Registered cut handler: SlotCutHandler for types: SLOT_CUT
+✅ Registered cut handler: LegacyFallbackHandler for types: STRAIGHT_CUT, ANGLE_CUT, END_STRAIGHT, END_ANGLE, END_COMPOUND, END_CHAMFER, NOTCH_RECTANGULAR, NOTCH_CURVED, NOTCH_PARTIAL, NOTCH_COMPOUND, INTERIOR_CUT, EXTERIOR_CUT, THROUGH_CUT, PARTIAL_CUT, BEVEL_CUT, CHAMFER_CUT, CONTOUR_CUT, COPING_CUT, SLOT_CUT, CUT_WITH_NOTCHES, UNRESTRICTED_CONTOUR
+📌 Set default cut handler: LegacyFallbackHandler
+✅ Registered 15 built-in cut handlers
+🚀 Cut Handler Factory initialized with production monitoring
+🚀 CutProcessorMigrated initialized in mode: new
+
+[90mstderr[2m | unknown test[22m[39m
+<empty line>
+[90mstdout[2m | unknown test[22m[39m
+
+
+📚 UTILISATION:
+============================================================
+1. Pour tester avec un fichier spécifique:
+   DSTV_TEST_FILE=chemin/vers/fichier.nc npm test DSTVImportWithLogs
+
+2. Pour exécuter directement:
+   npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts
+
+3. Avec un fichier spécifique:
+   DSTV_TEST_FILE=test-files/F1001.nc npx vitest run DSTVImportWithLogs
+============================================================
+
+
+
+[90mstdout[2m | src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts[2m > [22m[2mDSTV Import avec logs complets[2m > [22m[2mImport avec logs détaillés[2m > [22m[2mdevrait importer le fichier et afficher tous les logs[22m[39m
+
+
+================================================================================
+🚀 DÉBUT DE L'IMPORT DSTV AVEC LOGS COMPLETS
+================================================================================
+📁 Fichier: test-files/dstv/M1002.nc
+================================================================================
+
+
+📄 CONTENU DU FICHIER:
+----------------------------------------
+  001 | ST
+  002 |   -
+  003 |   001
+  004 |   M1002
+  005 |   M1002
+  006 |   S275JR
+  007 |   1
+  008 |   UB254x146x31
+  009 |   I
+  010 |     1912.15
+  011 |      251.40
+  012 |      146.10
+  013 |        8.60
+  014 |        6.00
+  015 |        7.60
+  016 |       31.16
+  017 |        1.08
+  018 |        0.00
+  019 |        0.00
+  020 |        0.00
+  021 |        0.00
+  022 |   -
+  023 |   -
+  024 |   -
+  025 |   -
+  026 | AK
+  027 |   o  1842.10u     0.00   0.00
+  028 |   o     0.00u     0.00   0.00
+  029 |   o     0.00u   146.10   0.00
+  030 |   o  1842.10u   146.10   0.00
+  031 |   o  1842.10u     0.00   0.00
+  032 | BO
+  033 |   v  1857.15u   163.20  22.00   0.00
+  034 |   v  1857.15u    88.20  22.00   0.00
+  035 | SI
+  036 |   v    2.00u    2.00  0.00  10rM1002
+  037 | AK
+  038 |   v  1912.15u    18.60   0.00
+  039 |   v  1912.15u   232.80   0.00
+  040 |   v  1842.10u   232.80   0.00
+  041 |   v  1842.10u   251.40   0.00
+  042 |   v     0.00u   251.40   0.00
+  043 |   v     0.00u     0.00   0.00
+  044 |   v  1842.10u     0.00   0.00
+  045 |   v  1842.10u    18.60   0.00
+  046 |   v  1912.15u    18.60   0.00
+  047 | AK
+  048 |   u  1842.10u   146.10   0.00
+  049 |   u     0.00u   146.10   0.00
+  050 |   u     0.00u     0.00   0.00
+  051 |   u  1842.10u     0.00   0.00
+  052 |   u  1842.10u   146.10   0.00
+  053 | EN
+----------------------------------------
+
+
+🔧 DÉBUT DU PIPELINE D'IMPORT
+========================================
+[Pipeline] Processing context initialized {
+  file: [90mundefined[39m,
+  fileSize: [90mundefined[39m,
+  options: [ [32m'config'[39m, [32m'startTime'[39m ]
+}
+[Pipeline] Starting pipeline execution: dstv-import-pipeline { stageCount: [33m5[39m, middlewareCount: [33m0[39m }
+[dstv-lexical-analysis] Starting stage: dstv-lexical-analysis { stageIndex: [33m1[39m, totalStages: [33m5[39m }
+[dstv-lexical-analysis] Starting stage: dstv-lexical-analysis {
+  description: [32m'DSTV Lexical Analysis - Tokenizes DSTV file according to official grammar'[39m,
+  estimatedDuration: [32m'100ms'[39m
+}
+[dstv-lexical-analysis] [dstv-lexical-analysis] Starting lexical analysis { fileSize: [33m971[39m, contentLength: [33m971[39m }
+[dstv-lexical-analysis] [dstv-lexical-analysis] Lexical analysis completed { tokensGenerated: [33m177[39m, duration: [32m'1.53ms'[39m, blocksDetected: [33m7[39m }
+[dstv-lexical-analysis] Completed stage: dstv-lexical-analysis { duration: [32m'2.14ms'[39m, outputType: [32m'Object'[39m }
+[dstv-lexical-analysis] Completed stage: dstv-lexical-analysis { duration: [32m'3.12ms'[39m }
+[dstv-syntax-analysis] Starting stage: dstv-syntax-analysis { stageIndex: [33m2[39m, totalStages: [33m5[39m }
+[dstv-syntax-analysis] Starting stage: dstv-syntax-analysis {
+  description: [32m'DSTV Syntax Analysis - Builds AST from tokens according to DSTV grammar'[39m,
+  estimatedDuration: [32m'200ms'[39m
+}
+[dstv-syntax-analysis] [dstv-syntax-analysis] Starting syntax analysis { totalTokens: [33m177[39m, blocksDetected: [33m7[39m }
+🚀 parseBlock called, headerToken: ST
+🎯 parseBlockData called with blockType="ST", DSTVBlockType.ST="ST", equal=true
+🏭 Getting factory...
+🏭 Getting parser for ST...
+🏭 Got parser for ST, rawData: [
+  [32m'-'[39m,            [32m'001'[39m,
+  [32m'M1002'[39m,        [32m'M1002'[39m,
+  [32m'S275JR'[39m,       [32m'1'[39m,
+  [32m'UB254x146x31'[39m, [32m'I'[39m,
+  [32m'1912.15'[39m,      [32m'251.40'[39m,
+  [32m'146.10'[39m,       [32m'8.60'[39m,
+  [32m'6.00'[39m,         [32m'7.60'[39m,
+  [32m'31.16'[39m,        [32m'1.08'[39m,
+  [32m'0.00'[39m,         [32m'0.00'[39m,
+  [32m'0.00'[39m,         [32m'0.00'[39m,
+  [32m'-'[39m,            [32m'-'[39m,
+  [32m'-'[39m,            [32m'-'[39m
+]
+🔍 ST Block raw input:
+  [0]: "-"
+  [1]: "001"
+  [2]: "M1002"
+  [3]: "M1002"
+  [4]: "S275JR"
+  [5]: "1"
+  [6]: "UB254x146x31"
+  [7]: "I"
+  [8]: "1912.15"
+  [9]: "251.40"
+  [10]: "146.10"
+  [11]: "8.60"
+  [12]: "6.00"
+  [13]: "7.60"
+  [14]: "31.16"
+📐 Parsing dimensions from index 8 for type I_PROFILE
+  Raw values: [8]="1912.15", [9]="251.40", [10]="146.10"
+🎯 Detected profileType: "I_PROFILE" for profile "UB254x146x31"
+📊 Parsed dimensions: L=1912.15, H=251.4, W=146.1
+🚀 parseBlock called, headerToken: AK
+🎯 parseBlockData called with blockType="AK", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for AK...
+🏭 Got parser for AK, rawData: [
+  [32m'o'[39m,    [32m'1842.10'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m, [32m'o'[39m,       [32m'0.00'[39m,
+  [32m'0.00'[39m, [32m'0.00'[39m,    [32m'o'[39m,
+  [32m'0.00'[39m, [32m'146.10'[39m,  [32m'0.00'[39m,
+  [32m'o'[39m,    [32m'1842.10'[39m, [32m'146.10'[39m,
+  [32m'0.00'[39m, [32m'o'[39m,       [32m'1842.10'[39m,
+  [32m'0.00'[39m, [32m'0.00'[39m
+]
+🔍 AKBlockParser - Input (20 fields): [
+  [32m'o'[39m,      [32m'1842.10'[39m,
+  [32m'0.00'[39m,   [32m'0.00'[39m,
+  [32m'o'[39m,      [32m'0.00'[39m,
+  [32m'0.00'[39m,   [32m'0.00'[39m,
+  [32m'o'[39m,      [32m'0.00'[39m,
+  [32m'146.10'[39m, [32m'0.00'[39m
+]
+🔍 AKBlockParser - ALL Input: [
+  [32m'o'[39m,    [32m'1842.10'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m, [32m'o'[39m,       [32m'0.00'[39m,
+  [32m'0.00'[39m, [32m'0.00'[39m,    [32m'o'[39m,
+  [32m'0.00'[39m, [32m'146.10'[39m,  [32m'0.00'[39m,
+  [32m'o'[39m,    [32m'1842.10'[39m, [32m'146.10'[39m,
+  [32m'0.00'[39m, [32m'o'[39m,       [32m'1842.10'[39m,
+  [32m'0.00'[39m, [32m'0.00'[39m
+]
+🔍 isLegacyFaceIndicatorFormat - Checking 20 fields
+🔍 First field: "o", length: 1
+🔍 Format legacy détecté: première lettre = o
+🔍 AK Format: LEGACY with face indicators
+🔍 AK Format detection: faces=5, numeric=15, zeros=10, total=20
+🔍 Detected GROUPED_4 format (face ratio: 5*4 ≈ 20)
+🔄 AK Block: mapping face indicator 'o' → top_flange
+✅ AK Point parsed (GROUPED): [1842.1, 0] from fields [face=o, x=1842.10, y=0.00]
+🔄 AK Block: mapping face indicator 'o' → top_flange
+✅ AK Point parsed (GROUPED): [0, 0] from fields [face=o, x=0.00, y=0.00]
+🔄 AK Block: mapping face indicator 'o' → top_flange
+✅ AK Point parsed (GROUPED): [0, 146.1] from fields [face=o, x=0.00, y=146.10]
+🔄 AK Block: mapping face indicator 'o' → top_flange
+✅ AK Point parsed (GROUPED): [1842.1, 146.1] from fields [face=o, x=1842.10, y=146.10]
+🔄 AK Block: mapping face indicator 'o' → top_flange
+✅ AK Point parsed (GROUPED): [1842.1, 0] from fields [face=o, x=1842.10, y=0.00]
+🔍 AK Legacy parsing result: 5 points, face=top_flange
+🚀 parseBlock called, headerToken: BO
+🎯 parseBlockData called with blockType="BO", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for BO...
+🏭 Got parser for BO, rawData: [
+  [32m'v'[39m,       [32m'1857.15'[39m,
+  [32m'163.20'[39m,  [32m'22.00'[39m,
+  [32m'0.00'[39m,    [32m'v'[39m,
+  [32m'1857.15'[39m, [32m'88.20'[39m,
+  [32m'22.00'[39m,   [32m'0.00'[39m
+]
+🔧 BOBlockParser.process called with 10 lines: [
+  [32m'v'[39m,       [32m'1857.15'[39m,
+  [32m'163.20'[39m,  [32m'22.00'[39m,
+  [32m'0.00'[39m,    [32m'v'[39m,
+  [32m'1857.15'[39m, [32m'88.20'[39m,
+  [32m'22.00'[39m,   [32m'0.00'[39m
+]
+🔍 BO format detected: LEGACY
+🔍 BO parseLegacyFormat called with 10 fields
+  First few fields: [ [32m'v'[39m, [32m'1857.15'[39m, [32m'163.20'[39m, [32m'22.00'[39m, [32m'0.00'[39m ]
+🔍 Parsed hole from separated format: face=v, x=1857.15, y=163.2, d=22
+🔍 Parsed hole from separated format: face=v, x=1857.15, y=88.2, d=22
+🔍 Legacy format parsed 2 holes
+📦 BO normalization: wrapping 2 holes in { holes: [...] } structure
+🚀 parseBlock called, headerToken: SI
+🎯 parseBlockData called with blockType="SI", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for SI...
+🏭 Got parser for SI, rawData: [ [32m'v'[39m, [32m'2.00'[39m, [32m'2.00'[39m, [32m'0.00'[39m, [32m'10'[39m, [32m'1002'[39m ]
+🎯 DSTV face mapping: 'v' → 'web'
+🚀 parseBlock called, headerToken: AK
+🎯 parseBlockData called with blockType="AK", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for AK...
+🏭 Got parser for AK, rawData: [
+  [32m'v'[39m, [32m'1912.15'[39m, [32m'18.60'[39m,  [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1912.15'[39m, [32m'232.80'[39m, [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1842.10'[39m, [32m'232.80'[39m, [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1842.10'[39m, [32m'251.40'[39m, [32m'0.00'[39m,
+  [32m'v'[39m, [32m'0.00'[39m,    [32m'251.40'[39m, [32m'0.00'[39m,
+  [32m'v'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1842.10'[39m, [32m'0.00'[39m,   [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1842.10'[39m, [32m'18.60'[39m,  [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1912.15'[39m, [32m'18.60'[39m,  [32m'0.00'[39m
+]
+🔍 AKBlockParser - Input (36 fields): [
+  [32m'v'[39m,      [32m'1912.15'[39m,
+  [32m'18.60'[39m,  [32m'0.00'[39m,
+  [32m'v'[39m,      [32m'1912.15'[39m,
+  [32m'232.80'[39m, [32m'0.00'[39m,
+  [32m'v'[39m,      [32m'1842.10'[39m,
+  [32m'232.80'[39m, [32m'0.00'[39m
+]
+🔍 AKBlockParser - ALL Input: [
+  [32m'v'[39m, [32m'1912.15'[39m, [32m'18.60'[39m,  [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1912.15'[39m, [32m'232.80'[39m, [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1842.10'[39m, [32m'232.80'[39m, [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1842.10'[39m, [32m'251.40'[39m, [32m'0.00'[39m,
+  [32m'v'[39m, [32m'0.00'[39m,    [32m'251.40'[39m, [32m'0.00'[39m,
+  [32m'v'[39m, [32m'0.00'[39m,    [32m'0.00'[39m,   [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1842.10'[39m, [32m'0.00'[39m,   [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1842.10'[39m, [32m'18.60'[39m,  [32m'0.00'[39m,
+  [32m'v'[39m, [32m'1912.15'[39m, [32m'18.60'[39m,  [32m'0.00'[39m
+]
+🔍 isLegacyFaceIndicatorFormat - Checking 36 fields
+🔍 First field: "v", length: 1
+🔍 Format legacy détecté: première lettre = v
+🔍 AK Format: LEGACY with face indicators
+🔍 AK Format detection: faces=9, numeric=27, zeros=13, total=36
+🔍 Detected GROUPED_4 format (face ratio: 9*4 ≈ 36)
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [1912.15, 18.6] from fields [face=v, x=1912.15, y=18.60]
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [1912.15, 232.8] from fields [face=v, x=1912.15, y=232.80]
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [1842.1, 232.8] from fields [face=v, x=1842.10, y=232.80]
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [1842.1, 251.4] from fields [face=v, x=1842.10, y=251.40]
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [0, 251.4] from fields [face=v, x=0.00, y=251.40]
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [0, 0] from fields [face=v, x=0.00, y=0.00]
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [1842.1, 0] from fields [face=v, x=1842.10, y=0.00]
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [1842.1, 18.6] from fields [face=v, x=1842.10, y=18.60]
+🔄 AK Block: mapping face indicator 'v' → web
+✅ AK Point parsed (GROUPED): [1912.15, 18.6] from fields [face=v, x=1912.15, y=18.60]
+🔍 AK Legacy parsing result: 9 points, face=web
+🚀 parseBlock called, headerToken: AK
+🎯 parseBlockData called with blockType="AK", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for AK...
+🏭 Got parser for AK, rawData: [
+  [32m'u'[39m,      [32m'1842.10'[39m, [32m'146.10'[39m,
+  [32m'0.00'[39m,   [32m'u'[39m,       [32m'0.00'[39m,
+  [32m'146.10'[39m, [32m'0.00'[39m,    [32m'u'[39m,
+  [32m'0.00'[39m,   [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'u'[39m,      [32m'1842.10'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,   [32m'u'[39m,       [32m'1842.10'[39m,
+  [32m'146.10'[39m, [32m'0.00'[39m
+]
+🔍 AKBlockParser - Input (20 fields): [
+  [32m'u'[39m,      [32m'1842.10'[39m,
+  [32m'146.10'[39m, [32m'0.00'[39m,
+  [32m'u'[39m,      [32m'0.00'[39m,
+  [32m'146.10'[39m, [32m'0.00'[39m,
+  [32m'u'[39m,      [32m'0.00'[39m,
+  [32m'0.00'[39m,   [32m'0.00'[39m
+]
+🔍 AKBlockParser - ALL Input: [
+  [32m'u'[39m,      [32m'1842.10'[39m, [32m'146.10'[39m,
+  [32m'0.00'[39m,   [32m'u'[39m,       [32m'0.00'[39m,
+  [32m'146.10'[39m, [32m'0.00'[39m,    [32m'u'[39m,
+  [32m'0.00'[39m,   [32m'0.00'[39m,    [32m'0.00'[39m,
+  [32m'u'[39m,      [32m'1842.10'[39m, [32m'0.00'[39m,
+  [32m'0.00'[39m,   [32m'u'[39m,       [32m'1842.10'[39m,
+  [32m'146.10'[39m, [32m'0.00'[39m
+]
+🔍 isLegacyFaceIndicatorFormat - Checking 20 fields
+🔍 First field: "u", length: 1
+🔍 Format legacy détecté: première lettre = u
+🔍 AK Format: LEGACY with face indicators
+🔍 AK Format detection: faces=5, numeric=15, zeros=9, total=20
+🔍 Detected GROUPED_4 format (face ratio: 5*4 ≈ 20)
+🔄 AK Block: mapping face indicator 'u' → bottom_flange
+✅ AK Point parsed (GROUPED): [1842.1, 146.1] from fields [face=u, x=1842.10, y=146.10]
+🔄 AK Block: mapping face indicator 'u' → bottom_flange
+✅ AK Point parsed (GROUPED): [0, 146.1] from fields [face=u, x=0.00, y=146.10]
+🔄 AK Block: mapping face indicator 'u' → bottom_flange
+✅ AK Point parsed (GROUPED): [0, 0] from fields [face=u, x=0.00, y=0.00]
+🔄 AK Block: mapping face indicator 'u' → bottom_flange
+✅ AK Point parsed (GROUPED): [1842.1, 0] from fields [face=u, x=1842.10, y=0.00]
+🔄 AK Block: mapping face indicator 'u' → bottom_flange
+✅ AK Point parsed (GROUPED): [1842.1, 146.1] from fields [face=u, x=1842.10, y=146.10]
+🔍 AK Legacy parsing result: 5 points, face=bottom_flange
+🚀 parseBlock called, headerToken: EN
+🎯 parseBlockData called with blockType="EN", DSTVBlockType.ST="ST", equal=false
+🏭 Getting factory...
+🏭 Getting parser for EN...
+🏭 Got parser for EN, rawData: []
+[dstv-syntax-analysis] [dstv-syntax-analysis] Syntax analysis completed { blocksParsed: [33m7[39m, duration: [32m'7.12ms'[39m, profile: [32m'UB254x146x31'[39m }
+[dstv-syntax-analysis] Completed stage: dstv-syntax-analysis { duration: [32m'7.36ms'[39m, outputType: [32m'Object'[39m }
+[dstv-syntax-analysis] Completed stage: dstv-syntax-analysis { duration: [32m'7.72ms'[39m }
+[dstv-semantic-validation] Starting stage: dstv-semantic-validation { stageIndex: [33m3[39m, totalStages: [33m5[39m }
+[dstv-semantic-validation] Starting stage: dstv-semantic-validation {
+  description: [32m'DSTV Semantic Validation - Validates DSTV data against business rules and standards'[39m,
+  estimatedDuration: [32m'150ms'[39m
+}
+[dstv-semantic-validation] [dstv-semantic-validation] Starting semantic validation { totalBlocks: [33m7[39m, profile: [32m'UB254x146x31'[39m }
+[dstv-semantic-validation] File contains both geometry and marking blocks - good practice 
+[dstv-semantic-validation] [dstv-semantic-validation] Semantic validation completed {
+  validBlocks: [33m7[39m,
+  totalErrors: [33m1[39m,
+  totalWarnings: [33m2[39m,
+  conformityScore: [32m'96.6%'[39m,
+  duration: [32m'1.71ms'[39m
+}
+[dstv-semantic-validation] Completed stage: dstv-semantic-validation { duration: [32m'2.02ms'[39m, outputType: [32m'Object'[39m }
+[dstv-semantic-validation] Completed stage: dstv-semantic-validation { duration: [32m'2.23ms'[39m }
+[dstv-normalization] Starting stage: dstv-normalization { stageIndex: [33m4[39m, totalStages: [33m5[39m }
+[dstv-normalization] Starting stage: dstv-normalization {
+  description: [32m'DSTV Normalization - Converts DSTV data to normalized internal format'[39m,
+  estimatedDuration: [32m'100ms'[39m
+}
+[dstv-normalization] [dstv-normalization] Starting normalization { validBlocks: [33m7[39m, conformityScore: [32m'96.6%'[39m }
+📦 ST Block data received: {
+  "orderNumber": "",
+  "drawingNumber": "001",
+  "phaseNumber": "M1002",
+  "pieceNumber": "M1002",
+  "steelGrade": "S275JR",
+  "quantity": 1,
+  "profileName": "UB254x146x31",
+  "profileType": "I_PROFILE",
+  "length": 1912.15,
+  "height": 251.4,
+  "width": 146.1,
+  "webThickness": 8.6,
+  "flangeThickness": 6,
+  "weight": 7.6,
+  "paintingSurface": 31.16,
+  "radius": 1.08,
+  "blockType": "ST"
+}
+🔍🔍🔍 extractCrossSectionFromSTData - profileType: "I_PROFILE", profileName: "UB254x146x31"
+  Raw data fields: height=251.4, width=146.1, profileHeight=undefined, profileWidth=undefined
+  webThickness=8.6, flangeThickness=6
+Extracted standard dimensions from ST data: height=251.4, width=146.1, webThickness=8.6, flangeThickness=6
+📐 Profile type mapping: DSTV="I_PROFILE" → Internal="I_PROFILE"
+📐 Profile dimensions set for coordinate conversion: { length: [33m1912.15[39m, height: [33m251.4[39m, width: [33m146.1[39m }
+🔍 Profile type detection: name="UB254x146x31", type="I_PROFILE"
+✅ Detected I_PROFILE from British/American standard: UB254x146x31
+🔍 Mapping profile type: profileName="UB254x146x31", profileType="I_PROFILE" → mappedType="I_PROFILE"
+  🔍 AK Processing - Current profile type: I_PROFILE
+  🔍 AK Processing - Profile dimensions: { length: [33m1912.15[39m, height: [33m251.4[39m, width: [33m146.1[39m }
+  🔍 Analyzing contour type for 5 points on face top_flange
+  🔍 Analyzing 5 points on face top_flange, profile length=1912.15mm, isTube=false
+  📏 Contour bounds: X[0.0, 1842.1] = 1842.1mm
+  📏 Contour height: Y[0.0, 146.1] = 146.1mm
+  🔧 Analysis: complex=false, flange=false, fullLength=false
+  🔧 ContourLength=1842.1mm vs ProfileLength=1912.15mm
+  🔍 Contour type result: CONTOUR
+📐 Contour analysis for face top_flange: {
+  bounds: [32m'X[0 to 1842.1], Y[0 to 146.1]'[39m,
+  contourLength: [33m1842.1[39m,
+  profileLength: [33m1912.15[39m,
+  startsNearZero: [33mtrue[39m,
+  endsNearLength: [33mfalse[39m,
+  isFullLength: [33mfalse[39m,
+  isPartialContour: [33mtrue[39m
+}
+  → PARTIAL CONTOUR (cut/notch) position: (921.0, 73.0)
+🔴 DSTVOriginTransform: profileType=I_PROFILE, face=top_flange, Y=73.05, height=251.4
+🔴 I-PROFILE: Converting Y from 73.05 to -52.650000000000006 (height=251.4, face=top_flange)
+🔴 DSTVOriginTransform: profileType=I_PROFILE, face=v, Y=163.2, height=251.4
+🔴 I-PROFILE: Converting Y from 163.2 to 37.499999999999986 (height=251.4, face=v)
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🔴 DSTVOriginTransform: profileType=I_PROFILE, face=v, Y=88.2, height=251.4
+🔴 I-PROFILE: Converting Y from 88.2 to -37.5 (height=251.4, face=v)
+  📐 BO normalization: hole.depth=0, normalized depth=0
+🎯 normalizeSIBlock - Input data: {
+  x: [33m2[39m,
+  y: [33m2[39m,
+  text: [32m'1002'[39m,
+  markingMethod: [32m'engrave'[39m,
+  face: [32m'web'[39m,
+  angle: [33m0[39m,
+  height: [33m10[39m,
+  depth: [33m0.1[39m,
+  workPlane: [32m'E0'[39m,
+  blockType: [32m'SI'[39m
+}
+🎯 Face value: web Type: string
+📍 Placing marking on top flange surface: X=20mm (text width≈24mm), Y=125.7mm, Z=2mm
+🎯 UNIFIED coordinate conversion complete: {
+  originalDSTV: { x: [33m2[39m, y: [33m2[39m, z: [33m0[39m },
+  standardCoords: { x: [33m20[39m, y: [33m125.7[39m, z: [33m2[39m },
+  originalFace: [32m'web'[39m,
+  standardFace: [32m'top_flange'[39m,
+  positionService: [32m'SUCCESS'[39m
+}
+  🔍 AK Processing - Current profile type: I_PROFILE
+  🔍 AK Processing - Profile dimensions: { length: [33m1912.15[39m, height: [33m251.4[39m, width: [33m146.1[39m }
+  🔍 Analyzing contour type for 9 points on face web
+  🔍 Analyzing 9 points on face web, profile length=1912.15mm, isTube=false
+  📏 Contour bounds: X[0.0, 1912.2] = 1912.2mm
+  📏 Contour height: Y[0.0, 251.4] = 251.4mm
+  🔧 Analysis: complex=true, flange=false, fullLength=true
+  🔧 ContourLength=1912.2mm vs ProfileLength=1912.15mm
+  🔧 Web cut with notches detected (M1002 pattern): Points=9, Face=web
+  🔧 Contour: 1912.2x251.4mm
+  🔍 Contour type result: CUT_WITH_NOTCHES
+  🔧 AK block detected as cut with partial notches (M1002 pattern)
+📐 Calculating center for 9 points: [
+  { x: [33m1912.15[39m, y: [33m18.6[39m },
+  { x: [33m1912.15[39m, y: [33m232.8[39m },
+  { x: [33m1842.1[39m, y: [33m232.8[39m },
+  { x: [33m1842.1[39m, y: [33m251.4[39m },
+  { x: [33m0[39m, y: [33m251.4[39m },
+  { x: [33m0[39m, y: [33m0[39m },
+  { x: [33m1842.1[39m, y: [33m0[39m },
+  { x: [33m1842.1[39m, y: [33m18.6[39m },
+  { x: [33m1912.15[39m, y: [33m18.6[39m }
+]
+📐 Contour center: (1456.0944444444444, 113.80000000000001)
+🔴 DSTVOriginTransform: profileType=I_PROFILE, face=web, Y=113.80000000000001, height=251.4
+🔴 I-PROFILE: Converting Y from 113.80000000000001 to -11.899999999999991 (height=251.4, face=web)
+  🔍 AK Processing - Current profile type: I_PROFILE
+  🔍 AK Processing - Profile dimensions: { length: [33m1912.15[39m, height: [33m251.4[39m, width: [33m146.1[39m }
+  🔍 Analyzing contour type for 5 points on face bottom_flange
+  🔍 Analyzing 5 points on face bottom_flange, profile length=1912.15mm, isTube=false
+  📏 Contour bounds: X[0.0, 1842.1] = 1842.1mm
+  📏 Contour height: Y[0.0, 146.1] = 146.1mm
+  🔧 Analysis: complex=false, flange=false, fullLength=false
+  🔧 ContourLength=1842.1mm vs ProfileLength=1912.15mm
+  🔍 Contour type result: CONTOUR
+📐 Contour analysis for face bottom_flange: {
+  bounds: [32m'X[0 to 1842.1], Y[0 to 146.1]'[39m,
+  contourLength: [33m1842.1[39m,
+  profileLength: [33m1912.15[39m,
+  startsNearZero: [33mtrue[39m,
+  endsNearLength: [33mfalse[39m,
+  isFullLength: [33mfalse[39m,
+  isPartialContour: [33mtrue[39m
+}
+  → PARTIAL CONTOUR (cut/notch) position: (921.0, 73.0)
+🔴 DSTVOriginTransform: profileType=I_PROFILE, face=bottom_flange, Y=73.05, height=251.4
+🔴 I-PROFILE: Converting Y from 73.05 to -52.650000000000006 (height=251.4, face=bottom_flange)
+[dstv-normalization] [dstv-normalization] Normalization completed {
+  featuresNormalized: [33m6[39m,
+  profileName: [32m'UB254x146x31'[39m,
+  duration: [32m'7.33ms'[39m
+}
+[dstv-normalization] Completed stage: dstv-normalization { duration: [32m'7.61ms'[39m, outputType: [32m'Object'[39m }
+[dstv-normalization] Completed stage: dstv-normalization { duration: [32m'7.93ms'[39m }
+[dstv-scene-building] Starting stage: dstv-scene-building { stageIndex: [33m5[39m, totalStages: [33m5[39m }
+[dstv-scene-building] Starting stage: dstv-scene-building {
+  description: [32m'DSTV Scene Building - Builds final 3D scene from normalized DSTV data'[39m,
+  estimatedDuration: [32m'200ms'[39m
+}
+[dstv-scene-building] [dstv-scene-building] Starting scene building { profiles: [33m1[39m, totalFeatures: [33m6[39m }
+🚨 buildProfileElements - profile type: I_PROFILE name: UB254x146x31
+📐 GeometryBridge.createProfileGeometry - profile: {
+  id: [32m'unknown_001_M1002'[39m,
+  type: [32m'I_PROFILE'[39m,
+  name: [32m'UB254x146x31'[39m,
+  dimensions: {
+    length: [33m1912.15[39m,
+    crossSection: {
+      height: [33m251.4[39m,
+      width: [33m146.1[39m,
+      webThickness: [33m8.6[39m,
+      flangeThickness: [33m6[39m,
+      radius: [33m1.08[39m
+    }
+  }
+}
+🔧 GeometryBridge: Available generators: [
+  [32m'I_PROFILE'[39m, [32m'U_PROFILE'[39m,
+  [32m'L_PROFILE'[39m, [32m'T_PROFILE'[39m,
+  [32m'C_PROFILE'[39m, [32m'Z_PROFILE'[39m,
+  [32m'TUBE_RECT'[39m, [32m'TUBE_ROUND'[39m,
+  [32m'PLATE'[39m,     [32m'FLAT_BAR'[39m
+]
+🎯 GeometryBridge: Looking for generator for type: I_PROFILE
+🏭 GeometryBridge: Using generator IProfileGenerator for profile I_PROFILE
+📝 GeometryBridge: Prepared params: {
+  length: [33m1912.15[39m,
+  height: [33m251.4[39m,
+  width: [33m146.1[39m,
+  profileType: [32m'I_PROFILE'[39m,
+  profileName: [32m'UB254x146x31'[39m,
+  webThickness: [33m8.6[39m,
+  flangeThickness: [33m6[39m,
+  radius: [33m1.08[39m,
+  material: [32m'S275JR'[39m,
+  density: [33m7850[39m
+}
+🔧 Calling IProfileGenerator with dimensions: {
+  height: [33m251.4[39m,
+  width: [33m146.1[39m,
+  profileType: [32m'I_PROFILE'[39m,
+  profileName: [32m'UB254x146x31'[39m,
+  webThickness: [33m8.6[39m,
+  flangeThickness: [33m6[39m,
+  radius: [33m1.08[39m,
+  material: [32m'S275JR'[39m,
+  density: [33m7850[39m
+} and length: [33m1912.15[39m
+✅ GeometryBridge: Generator returned geometry with vertices: [33m132[39m
+Created I_PROFILE geometry using existing generator
+🔍 SceneBuildingStage: Geometry state before applying features: {
+  profileId: [32m'unknown_001_M1002'[39m,
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  originalVertexCount: [33m132[39m,
+  geometryType: [32m'ExtrudeGeometry'[39m
+}
+📦 Applying 6 features to profile unknown_001_M1002 (sorted by DSTV priority):
+  Feature 0: id=dstv_contour_outer_1, type=contour, priority=1000, block=AK
+  Feature 1: id=dstv_contour_outer_6, type=contour, priority=1000, block=AK
+  Feature 2: id=dstv_cut-with-notches_5, type=cut_with_notches, priority=900, block=AK
+  Feature 3: id=dstv_hole_2, type=hole, priority=500, block=BO
+  Feature 4: id=dstv_hole_3, type=hole, priority=500, block=BO
+  Feature 5: id=dstv_marking_4, type=marking, priority=100, block=SI
+✅ SceneBuildingStage: Starting feature application with 132 vertices
+🎯 Processing 6 features in 4 priority groups
+
+📦 Processing priority group 1000 (AK): 2 features
+  🔧 Processing contour feature dstv_contour_outer_1
+🔧 ProcessorBridge: Applying normalized feature dstv_contour_outer_1 of type contour
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m132[39m,
+  geometryType: [32m'ExtrudeGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_contour_outer_1
+🔄 Converting 5 points for contour dstv_contour_outer_1
+🔄 Input points type: object First point: [ [33m1842.1[39m, [33m0[39m ]
+  Point 0 already in array format: [1842.1, 0]
+  Point 1 already in array format: [0, 0]
+  Point 2 already in array format: [0, 146.1]
+  Point 3 already in array format: [1842.1, 146.1]
+  Point 4 already in array format: [1842.1, 0]
+✅ Converted points result: [
+  [ [33m1842.1[39m, [33m0[39m ],
+  [ [33m0[39m, [33m0[39m ],
+  [ [33m0[39m, [33m146.1[39m ],
+  [ [33m1842.1[39m, [33m146.1[39m ],
+  [ [33m1842.1[39m, [33m0[39m ]
+]
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_contour_outer_1'[39m,
+  featureType: [32m'contour'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m125.7[39m, z: [33m921.05[39m },
+  outputPosition: { x: [33m0[39m, y: [33m125.7[39m, z: [33m921.05[39m },
+  rawFace: [32m'top_flange'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756980248021[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_contour_outer_1 type contour, using processor factory...
+📋 Feature details: {
+  type: [32m'contour'[39m,
+  id: [32m'dstv_contour_outer_1'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m125.7[39m, z: [33m921.05[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    points: [ [36m[Array][39m, [36m[Array][39m, [36m[Array][39m, [36m[Array][39m, [36m[Array][39m ],
+    closed: [33mtrue[39m,
+    contourType: [32m'outer'[39m,
+    interpolation: [32m'linear'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: contour, id: dstv_contour_outer_1
+✅ Found processor for contour, calling process...
+🎯 ContourProcessor.process called for feature dstv_contour_outer_1
+  - Feature params: {
+  points: [
+    [ [33m1842.1[39m, [33m0[39m ],
+    [ [33m0[39m, [33m0[39m ],
+    [ [33m0[39m, [33m146.1[39m ],
+    [ [33m1842.1[39m, [33m146.1[39m ],
+    [ [33m1842.1[39m, [33m0[39m ]
+  ],
+  closed: [33mtrue[39m,
+  contourType: [32m'outer'[39m,
+  interpolation: [32m'linear'[39m
+}
+  - Element: unknown_001_M1002 {
+  length: [33m1912.15[39m,
+  width: [33m146.1[39m,
+  height: [33m251.4[39m,
+  thickness: [33m8.6[39m,
+  flangeThickness: [33m6[39m
+}
+  - Validation errors: []
+✅ Validation passed for dstv_contour_outer_1
+  - Effective depth: 12.899999999999999mm
+  - Creating contour geometry with 5 points...
+🔍 createContourGeometry: Validating 5 contour points for geometry creation...
+🔍 Raw input points: [
+  [ [33m1842.1[39m, [33m0[39m ],
+  [ [33m0[39m, [33m0[39m ],
+  [ [33m0[39m, [33m146.1[39m ],
+  [ [33m1842.1[39m, [33m146.1[39m ],
+  [ [33m1842.1[39m, [33m0[39m ]
+]
+🔍 Closed: true, Depth: 12.899999999999999mm, Has bulges: no
+  Point 0: [1842.1, 0]
+  Point 1: [0, 0]
+  Point 2: [0, 146.1]
+  Point 3: [1842.1, 146.1]
+  Point 4: [1842.1, 0]
+📊 Direct input area calculation: 269130.81mm² from 5 input points
+🔍 Shape.getPoints() returned 5 points
+Raw contour points from shape: [
+  [32m'(1842.1, 0)'[39m,
+  [32m'(0, 0)'[39m,
+  [32m'(0, 146.1)'[39m,
+  [32m'(1842.1, 146.1)'[39m,
+  [32m'(1842.1, 0)'[39m
+]
+  Shoelace term 0: 1842.1*0 - 0*0 = 0 - 0 = 0
+  Shoelace term 1: 0*146.1 - 0*0 = 0 - 0 = 0
+  Shoelace term 2: 0*146.1 - 1842.1*146.1 = 0 - 269130.81 = -269130.81
+  Shoelace term 3: 1842.1*0 - 1842.1*146.1 = 0 - 269130.81 = -269130.81
+  Shoelace term 4: 1842.1*0 - 1842.1*0 = 0 - 0 = 0
+Contour area calculation: 5 points -> 269130.81mm²
+✅ Contour geometry created successfully
+  - Using corrected position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Contour positioned using feature.position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Contour positioned at: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Contour rotation: x=0.0°, y=0.0°, z=0.0°
+  - Base geometry vertices: 132
+  - Performing CSG SUBTRACTION...
+🔍 CSG Debug before operation:
+  - Base geometry vertices: 132
+  - Base geometry boundingBox: Box3 {
+  isBox3: [33mtrue[39m,
+  min: Vector3 { x: [33m-73.05000305175781[39m, y: [33m-125.69999694824219[39m, z: [33m0[39m },
+  max: Vector3 {
+    x: [33m73.05000305175781[39m,
+    y: [33m125.69999694824219[39m,
+    z: [33m1912.1500244140625[39m
+  }
+}
+  - Contour geometry vertices: 36
+  - Contour geometry boundingBox: [1mnull[22m
+  - Base brush position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Contour brush position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Distance between brushes: [33m0[39m
+  - Base box after translation: Box3 {
+  isBox3: [33mtrue[39m,
+  min: Vector3 { x: [33m-73.05000305175781[39m, y: [33m-125.69999694824219[39m, z: [33m0[39m },
+  max: Vector3 {
+    x: [33m73.05000305175781[39m,
+    y: [33m125.69999694824219[39m,
+    z: [33m1912.1500244140625[39m
+  }
+}
+  - Contour box after translation: Box3 {
+  isBox3: [33mtrue[39m,
+  min: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m },
+  max: Vector3 {
+    x: [33m1842.0999755859375[39m,
+    y: [33m146.10000610351562[39m,
+    z: [33m12.899999618530273[39m
+  }
+}
+  - Boxes intersect: [33mtrue[39m
+  - CSG operation completed
+  - Result geometry vertices: 231
+  - Vertices changed: 132 -> 231
+✅ Returning modified geometry for dstv_contour_outer_1
+📊 Processing result for dstv_contour_outer_1: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m231[39m vertices
+  🔧 Processing contour feature dstv_contour_outer_6
+🔧 ProcessorBridge: Applying normalized feature dstv_contour_outer_6 of type contour
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m231[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_contour_outer_6
+🔄 Converting 5 points for contour dstv_contour_outer_6
+🔄 Input points type: object First point: [ [33m1842.1[39m, [33m146.1[39m ]
+  Point 0 already in array format: [1842.1, 146.1]
+  Point 1 already in array format: [0, 146.1]
+  Point 2 already in array format: [0, 0]
+  Point 3 already in array format: [1842.1, 0]
+  Point 4 already in array format: [1842.1, 146.1]
+✅ Converted points result: [
+  [ [33m1842.1[39m, [33m146.1[39m ],
+  [ [33m0[39m, [33m146.1[39m ],
+  [ [33m0[39m, [33m0[39m ],
+  [ [33m1842.1[39m, [33m0[39m ],
+  [ [33m1842.1[39m, [33m146.1[39m ]
+]
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_contour_outer_6'[39m,
+  featureType: [32m'contour'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-125.7[39m, z: [33m921.05[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-125.7[39m, z: [33m921.05[39m },
+  rawFace: [32m'bottom_flange'[39m,
+  mappedFace: [32m'bottom_flange'[39m,
+  timestamp: [33m1756980248059[39m
+}
+  → TOP/BOTTOM_FLANGE face: no rotation - hole perpendicular to flange
+✅ Converted feature dstv_contour_outer_6 type contour, using processor factory...
+📋 Feature details: {
+  type: [32m'contour'[39m,
+  id: [32m'dstv_contour_outer_6'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-125.7[39m, z: [33m921.05[39m },
+  rotation: Euler { isEuler: [33mtrue[39m, _x: [33m0[39m, _y: [33m0[39m, _z: [33m0[39m, _order: [32m'XYZ'[39m },
+  parameters: {
+    points: [ [36m[Array][39m, [36m[Array][39m, [36m[Array][39m, [36m[Array][39m, [36m[Array][39m ],
+    closed: [33mtrue[39m,
+    contourType: [32m'outer'[39m,
+    interpolation: [32m'linear'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: contour, id: dstv_contour_outer_6
+✅ Found processor for contour, calling process...
+🎯 ContourProcessor.process called for feature dstv_contour_outer_6
+  - Feature params: {
+  points: [
+    [ [33m1842.1[39m, [33m146.1[39m ],
+    [ [33m0[39m, [33m146.1[39m ],
+    [ [33m0[39m, [33m0[39m ],
+    [ [33m1842.1[39m, [33m0[39m ],
+    [ [33m1842.1[39m, [33m146.1[39m ]
+  ],
+  closed: [33mtrue[39m,
+  contourType: [32m'outer'[39m,
+  interpolation: [32m'linear'[39m
+}
+  - Element: unknown_001_M1002 {
+  length: [33m1912.15[39m,
+  width: [33m146.1[39m,
+  height: [33m251.4[39m,
+  thickness: [33m8.6[39m,
+  flangeThickness: [33m6[39m
+}
+  - Validation errors: []
+✅ Validation passed for dstv_contour_outer_6
+  - Effective depth: 12.899999999999999mm
+  - Creating contour geometry with 5 points...
+🔍 createContourGeometry: Validating 5 contour points for geometry creation...
+🔍 Raw input points: [
+  [ [33m1842.1[39m, [33m146.1[39m ],
+  [ [33m0[39m, [33m146.1[39m ],
+  [ [33m0[39m, [33m0[39m ],
+  [ [33m1842.1[39m, [33m0[39m ],
+  [ [33m1842.1[39m, [33m146.1[39m ]
+]
+🔍 Closed: true, Depth: 12.899999999999999mm, Has bulges: no
+  Point 0: [1842.1, 146.1]
+  Point 1: [0, 146.1]
+  Point 2: [0, 0]
+  Point 3: [1842.1, 0]
+  Point 4: [1842.1, 146.1]
+📊 Direct input area calculation: 269130.80999999994mm² from 5 input points
+🔍 Shape.getPoints() returned 5 points
+Raw contour points from shape: [
+  [32m'(1842.1, 146.1)'[39m,
+  [32m'(0, 146.1)'[39m,
+  [32m'(0, 0)'[39m,
+  [32m'(1842.1, 0)'[39m,
+  [32m'(1842.1, 146.1)'[39m
+]
+  Shoelace term 0: 1842.1*146.1 - 0*146.1 = 269130.81 - 0 = 269130.81
+  Shoelace term 1: 0*0 - 0*146.1 = 0 - 0 = 0
+  Shoelace term 2: 0*0 - 1842.1*0 = 0 - 0 = 0
+  Shoelace term 3: 1842.1*146.1 - 1842.1*0 = 269130.81 - 0 = 269130.81
+  Shoelace term 4: 1842.1*146.1 - 1842.1*146.1 = 269130.81 - 269130.81 = 0
+Contour area calculation: 5 points -> 269130.80999999994mm²
+✅ Contour geometry created successfully
+  - Using corrected position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Contour positioned using feature.position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Contour positioned at: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Contour rotation: x=0.0°, y=0.0°, z=0.0°
+  - Base geometry vertices: 231
+  - Performing CSG SUBTRACTION...
+🔍 CSG Debug before operation:
+  - Base geometry vertices: 231
+  - Base geometry boundingBox: Box3 {
+  isBox3: [33mtrue[39m,
+  min: Vector3 { x: [33m-73.05000305175781[39m, y: [33m-125.69999694824219[39m, z: [33m0[39m },
+  max: Vector3 {
+    x: [33m73.05000305175781[39m,
+    y: [33m125.69999694824219[39m,
+    z: [33m1912.1500244140625[39m
+  }
+}
+  - Contour geometry vertices: 36
+  - Contour geometry boundingBox: [1mnull[22m
+  - Base brush position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Contour brush position: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m }
+  - Distance between brushes: [33m0[39m
+  - Base box after translation: Box3 {
+  isBox3: [33mtrue[39m,
+  min: Vector3 { x: [33m-73.05000305175781[39m, y: [33m-125.69999694824219[39m, z: [33m0[39m },
+  max: Vector3 {
+    x: [33m73.05000305175781[39m,
+    y: [33m125.69999694824219[39m,
+    z: [33m1912.1500244140625[39m
+  }
+}
+  - Contour box after translation: Box3 {
+  isBox3: [33mtrue[39m,
+  min: Vector3 { x: [33m0[39m, y: [33m0[39m, z: [33m0[39m },
+  max: Vector3 {
+    x: [33m1842.0999755859375[39m,
+    y: [33m146.10000610351562[39m,
+    z: [33m12.899999618530273[39m
+  }
+}
+  - Boxes intersect: [33mtrue[39m
+  - CSG operation completed
+  - Result geometry vertices: 237
+  - Vertices changed: 231 -> 237
+✅ Returning modified geometry for dstv_contour_outer_6
+📊 Processing result for dstv_contour_outer_6: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m237[39m vertices
+
+📦 Processing priority group 900 (AK): 1 features
+  🔧 Processing cut_with_notches feature dstv_cut-with-notches_5
+🔧 ProcessorBridge: Applying normalized feature dstv_cut-with-notches_5 of type cut_with_notches
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m237[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🎯 M1002 DEBUGGING in ProcessorBridge:
+  Feature type: cut_with_notches
+  Feature coordinates: { x: [33m0[39m, y: [33m-11.899999999999991[39m, z: [33m1456.0944444444444[39m }
+  Feature points count: [33m9[39m
+  Element dimensions: {
+  length: [33m1912.15[39m,
+  width: [33m146.1[39m,
+  height: [33m251.4[39m,
+  thickness: [33m8.6[39m,
+  flangeThickness: [33m6[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_cut-with-notches_5
+🔄 Converting 9 points for cut_with_notches dstv_cut-with-notches_5
+🔄 Input points type: object First point: [ [33m1912.15[39m, [33m18.6[39m ]
+  Point 0 already in array format: [1912.15, 18.6]
+  Point 1 already in array format: [1912.15, 232.8]
+  Point 2 already in array format: [1842.1, 232.8]
+  Point 3 already in array format: [1842.1, 251.4]
+  Point 4 already in array format: [0, 251.4]
+  Point 5 already in array format: [0, 0]
+  Point 6 already in array format: [1842.1, 0]
+  Point 7 already in array format: [1842.1, 18.6]
+  Point 8 already in array format: [1912.15, 18.6]
+✅ Converted points result: [
+  [ [33m1912.15[39m, [33m18.6[39m ],
+  [ [33m1912.15[39m, [33m232.8[39m ],
+  [ [33m1842.1[39m, [33m232.8[39m ],
+  [ [33m1842.1[39m, [33m251.4[39m ],
+  [ [33m0[39m, [33m251.4[39m ],
+  [ [33m0[39m, [33m0[39m ],
+  [ [33m1842.1[39m, [33m0[39m ],
+  [ [33m1842.1[39m, [33m18.6[39m ],
+  [ [33m1912.15[39m, [33m18.6[39m ]
+]
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_cut-with-notches_5'[39m,
+  featureType: [32m'cut_with_notches'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-11.899999999999991[39m, z: [33m1456.0944444444444[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-11.899999999999991[39m, z: [33m1456.0944444444444[39m },
+  rawFace: [32m'web'[39m,
+  mappedFace: [32m'web'[39m,
+  timestamp: [33m1756980248080[39m
+}
+  → WEB face: rotation (0, 0, π/2) - hole through web along X axis
+✅ Converted feature dstv_cut-with-notches_5 type cut, using processor factory...
+📋 Feature details: {
+  type: [32m'cut'[39m,
+  id: [32m'dstv_cut-with-notches_5'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-11.899999999999991[39m, z: [33m1456.0944444444444[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  parameters: {
+    points: [
+      [36m[Array][39m, [36m[Array][39m,
+      [36m[Array][39m, [36m[Array][39m,
+      [36m[Array][39m, [36m[Array][39m,
+      [36m[Array][39m, [36m[Array][39m,
+      [36m[Array][39m
+    ],
+    closed: [33mtrue[39m,
+    contourType: [32m'outer'[39m,
+    interpolation: [32m'linear'[39m,
+    cutType: [32m'partial_notches'[39m,
+    hasExtension: [33mtrue[39m,
+    source: [32m'contour_detection'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: cut, id: dstv_cut-with-notches_5
+✅ Found processor for cut, calling process...
+
+================================================================================
+🔪 CUT PROCESSOR - Feature: dstv_cut-with-notches_5
+================================================================================
+📋 Input: {
+  featureType: [32m'cut'[39m,
+  cutType: [32m'partial_notches'[39m,
+  pointsCount: [33m9[39m,
+  face: [32m'web'[39m,
+  geometryVertices: [33m237[39m,
+  profileDimensions: {
+    length: [33m1912.15[39m,
+    width: [33m146.1[39m,
+    height: [33m251.4[39m,
+    thickness: [33m8.6[39m,
+    flangeThickness: [33m6[39m
+  }
+}
+  📐 M1002 pattern detected:
+    - Points: 9
+    - Profile length: 1912.15mm
+    - X coordinates: [0.0, 1842.1, 1912.2]
+    - Extension detected: 1912.2mm > 1912.15mm
+🎯 M1002 PATTERN DETECTED - partial notches with extension
+   ➤ Set cutType to: partial_notches
+🔍 Detected cut type: UNRESTRICTED_CONTOUR for feature dstv_cut-with-notches_5
+✅ Handler KontourHandler can handle feature dstv_cut-with-notches_5
+🔧 Handler selected: KontourHandler
+🔍 Cut type detected: UNRESTRICTED_CONTOUR
+  🌀 Creating complex contour geometry: { type: [32m'multi_segment'[39m, segments: [33m0[39m, points: [33m9[39m, face: [32m'web'[39m }
+📊 Handler result: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  cutVertices: [33m327[39m
+}
+🔍 Should apply CSG for cut: true
+🔧 APPLYING CSG OPERATION
+📊 Base geometry: 237 vertices
+📊 Cut geometry: 327 vertices
+
+🔧 CSG OPERATION START
+   Feature: dstv_cut-with-notches_5, Type: cut
+📋 Geometry Diagnostics:
+   Base: 237 vertices, normals=true
+   Cut: 327 vertices, normals=true
+   Base bounds: -73.1,-125.7,0.0 → 73.1,125.7,1912.2
+   Cut bounds: -73.1,-125.7,0.0 → 73.1,125.7,1912.2
+⚙️ Creating Brush objects...
+⚙️ Performing CSG subtraction...
+📊 CSG Result Analysis:
+   Result vertices: 135
+   Original vertices: 237
+   Difference: -102 (-43.0%)
+✅ Added cut metadata to userData.cuts: {
+  id: [32m'dstv_cut-with-notches_5'[39m,
+  type: [32m'notch'[39m,
+  face: [32m'web'[39m,
+  bounds: { minX: [33m0[39m, maxX: [33m0[39m, minY: [33m0[39m, maxY: [33m0[39m, minZ: [33m0[39m, maxZ: [33m0[39m },
+  totalCuts: [33m1[39m
+}
+✅ CSG operation completed
+📊 Final geometry: 135 vertices
+📊 Vertex change: -102 (-102)
+📊 Processing result for dstv_cut-with-notches_5: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m135[39m vertices
+
+📦 Processing priority group 500 (BO): 2 features
+  ⚡ Batch processing 2 BO features
+    📐 Processing 2 features on face v
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_2 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m135[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_2
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_2'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m37.499999999999986[39m, z: [33m1857.15[39m },
+  outputPosition: { x: [33m0[39m, y: [33m37.499999999999986[39m, z: [33m1857.15[39m },
+  rawFace: [32m'v'[39m,
+  mappedFace: [32m'web'[39m,
+  timestamp: [33m1756980248134[39m
+}
+  → WEB face: rotation (0, 0, π/2) - hole through web along X axis
+✅ Converted feature dstv_hole_2 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_2'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m37.499999999999986[39m, z: [33m1857.15[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  parameters: {
+    diameter: [33m22[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_2
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element unknown_001_M1002
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_2'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m37.499999999999986[39m, z: [33m1857.15[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'web'[39m,
+  parameters: {
+    diameter: [33m22[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m1912.15[39m,
+  width: [33m146.1[39m,
+  height: [33m251.4[39m,
+  thickness: [33m8.6[39m,
+  flangeThickness: [33m6[39m
+}
+  - Using standard position: (0, 37.499999999999986, 1857.15)
+  - Face: web
+🎯 calculateRotationForFace called with face: web at 2025-09-04T10:04:08.136Z
+  → WEB face: rotation (0, 0, π/2)
+  → Hole on web face, depth=8.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m37.499999999999986[39m, z: [33m1857.15[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  depth: [33m8.6[39m,
+  normal: Vector3 { x: [33m1[39m, y: [33m0[39m, z: [33m0[39m },
+  face: [32m'web'[39m
+}
+    → Position Vector3: [33m0[39m [33m37.499999999999986[39m [33m1857.15[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m1.5707963267948966[39m
+  - Web face detected, webThickness: undefinedmm, using: 8.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=22mm, segments=32, depth=17.2mm, face=web
+  - Created round hole: diameter=22
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=8.6, actualDepth=17.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 17.2mm depth
+  - Position: X=0, Y=37.499999999999986, Z=1857.15
+  - Rotation: X=0, Y=0, Z=1.5707963267948966
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m37.499999999999986[39m, z: [33m1857.15[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m1.5707963267948966[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 135
+  - Result vertex count: 132
+  - Vertices REMOVED: 3
+📊 Processing result for dstv_hole_2: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m132[39m vertices
+🔧 ProcessorBridge: Applying normalized feature dstv_hole_3 of type hole
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m132[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_hole_3
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_hole_3'[39m,
+  featureType: [32m'hole'[39m,
+  inputCoords: { x: [33m0[39m, y: [33m-37.5[39m, z: [33m1857.15[39m },
+  outputPosition: { x: [33m0[39m, y: [33m-37.5[39m, z: [33m1857.15[39m },
+  rawFace: [32m'v'[39m,
+  mappedFace: [32m'web'[39m,
+  timestamp: [33m1756980248144[39m
+}
+  → WEB face: rotation (0, 0, π/2) - hole through web along X axis
+✅ Converted feature dstv_hole_3 type hole, using processor factory...
+📋 Feature details: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_3'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-37.5[39m, z: [33m1857.15[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  parameters: {
+    diameter: [33m22[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: hole, id: dstv_hole_3
+✅ Found processor for hole, calling process...
+🔨 HoleProcessor: Processing hole for element unknown_001_M1002
+  - Feature: {
+  type: [32m'hole'[39m,
+  id: [32m'dstv_hole_3'[39m,
+  position: Vector3 { x: [33m0[39m, y: [33m-37.5[39m, z: [33m1857.15[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  coordinateSystem: [32m'standard'[39m,
+  face: [32m'web'[39m,
+  parameters: {
+    diameter: [33m22[39m,
+    depth: [33m0[39m,
+    angle: [33m0[39m,
+    tolerance: [90mundefined[39m,
+    holeType: [32m'round'[39m
+  }
+}
+  - Element dimensions: {
+  length: [33m1912.15[39m,
+  width: [33m146.1[39m,
+  height: [33m251.4[39m,
+  thickness: [33m8.6[39m,
+  flangeThickness: [33m6[39m
+}
+  - Using standard position: (0, -37.5, 1857.15)
+  - Face: web
+🎯 calculateRotationForFace called with face: web at 2025-09-04T10:04:08.144Z
+  → WEB face: rotation (0, 0, π/2)
+  → Hole on web face, depth=8.6mm will traverse through material
+  - Calculated 3D position: {
+  position: Vector3 { x: [33m0[39m, y: [33m-37.5[39m, z: [33m1857.15[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m0[39m,
+    _y: [33m0[39m,
+    _z: [33m1.5707963267948966[39m,
+    _order: [32m'XYZ'[39m
+  },
+  depth: [33m8.6[39m,
+  normal: Vector3 { x: [33m1[39m, y: [33m0[39m, z: [33m0[39m },
+  face: [32m'web'[39m
+}
+    → Position Vector3: [33m0[39m [33m-37.5[39m [33m1857.15[39m
+    → Rotation Euler: [33m0[39m [33m0[39m [33m1.5707963267948966[39m
+  - Web face detected, webThickness: undefinedmm, using: 8.6mm
+  - Hole depth from feature: 0mm (0 = through hole)
+  🔩 Round hole geometry: diameter=22mm, segments=32, depth=17.2mm, face=web
+  - Created round hole: diameter=22
+  🔍 Hole depth calculation: feature.depth=0, zoneThickness=8.6, actualDepth=17.2, isThrough=true
+  - Through hole detected (depth=0), using centered position with 17.2mm depth
+  - Position: X=0, Y=-37.5, Z=1857.15
+  - Rotation: X=0, Y=0, Z=1.5707963267948966
+  - Hole brush position: Vector3 { x: [33m0[39m, y: [33m-37.5[39m, z: [33m1857.15[39m }
+  - Hole brush rotation: Euler {
+  isEuler: [33mtrue[39m,
+  _x: [33m0[39m,
+  _y: [33m0[39m,
+  _z: [33m1.5707963267948966[39m,
+  _order: [32m'XYZ'[39m,
+  _onChangeCallback: [36m[Function: onRotationChange][39m
+}
+  - Performing CSG subtraction...
+  - Original vertex count: 132
+  - Result vertex count: 132
+  - Vertices UNCHANGED: 0
+📊 Processing result for dstv_hole_3: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m132[39m vertices
+
+📦 Processing priority group 100 (SI): 1 features
+  🔧 Processing marking feature dstv_marking_4
+🔧 ProcessorBridge: Applying normalized feature dstv_marking_4 of type marking
+🔍 ProcessorBridge: Input geometry state: {
+  isNull: [33mfalse[39m,
+  isUndefined: [33mfalse[39m,
+  hasAttributes: [33mtrue[39m,
+  hasPositions: [33mtrue[39m,
+  vertexCount: [33m132[39m,
+  geometryType: [32m'BufferGeometry'[39m
+}
+🚀 NEW ProcessorBridge.convertToProcessorFeature called for dstv_marking_4
+📍 Marking position: X=20, Y=125.7, Z=2 on face top_flange
+🔄 ProcessorBridge - Feature mapping: {
+  featureId: [32m'dstv_marking_4'[39m,
+  featureType: [32m'marking'[39m,
+  inputCoords: { x: [33m20[39m, y: [33m125.7[39m, z: [33m2[39m },
+  outputPosition: { x: [33m20[39m, y: [33m125.7[39m, z: [33m2[39m },
+  rawFace: [32m'top_flange'[39m,
+  mappedFace: [32m'top_flange'[39m,
+  timestamp: [33m1756980248148[39m
+}
+  → TOP_FLANGE marking: rotation (-π/2, 0, 0) - text flat on top
+✅ Converted feature dstv_marking_4 type marking, using processor factory...
+📋 Feature details: {
+  type: [32m'marking'[39m,
+  id: [32m'dstv_marking_4'[39m,
+  position: Vector3 { x: [33m20[39m, y: [33m125.7[39m, z: [33m2[39m },
+  rotation: Euler {
+    isEuler: [33mtrue[39m,
+    _x: [33m-1.5707963267948966[39m,
+    _y: [33m0[39m,
+    _z: [33m0[39m,
+    _order: [32m'XYZ'[39m
+  },
+  parameters: {
+    text: [32m'1002'[39m,
+    height: [33m10[39m,
+    angle: [33m0[39m,
+    depth: [33m0.1[39m,
+    font: [32m'standard'[39m,
+    markingMethod: [32m'engrave'[39m,
+    originalFaceIndicator: [32m'web'[39m,
+    webThickness: [33m6[39m,
+    flangeThickness: [33m8.6[39m
+  }
+}
+🏭 FeatureProcessorFactory.process called for type: marking, id: dstv_marking_4
+✅ Found processor for marking, calling process...
+📝 Processing marking/scribbing: "1002" at position [20, 125.7, 2] with size 10mm
+   🔄 Marking rotation provided: { x: [32m'-90°'[39m, y: [32m'0°'[39m, z: [32m'0°'[39m }
+✅ Marking stored for visual display
+📊 Processing result for dstv_marking_4: {
+  success: [33mtrue[39m,
+  hasGeometry: [33mtrue[39m,
+  error: [90mundefined[39m,
+  warning: [90mundefined[39m
+}
+✅ ProcessorBridge: Feature processed successfully, returning new geometry with [33m132[39m vertices
+✅ SceneBuildingStage: Feature application completed: 132 → 132 vertices
+[dstv-scene-building] [dstv-scene-building] Features applied successfully {
+  originalVertices: [33m132[39m,
+  finalVertices: [33m132[39m,
+  verticesAdded: [33m0[39m,
+  featuresApplied: [33m6[39m
+}
+[dstv-scene-building] [dstv-scene-building] ✅ Attached processed geometry to element unknown_001_M1002 { vertexCount: [33m132[39m, hasFeatures: [33mtrue[39m }
+[dstv-scene-building] [dstv-scene-building] Scene building completed {
+  elementsCreated: [33m1[39m,
+  sceneId: [32m'dstv_scene_unknown_001_M1002_1756980248013'[39m,
+  duration: [32m'138.50ms'[39m
+}
+[dstv-scene-building] Completed stage: dstv-scene-building { duration: [32m'138.90ms'[39m, outputType: [32m'Object'[39m }
+[dstv-scene-building] Completed stage: dstv-scene-building { duration: [32m'139.19ms'[39m }
+[dstv-scene-building] Pipeline execution completed: dstv-import-pipeline { duration: [32m'161.23ms'[39m, success: [33mtrue[39m }
+🎯 DSTV Import completed successfully {
+  duration: [32m'0.00ms'[39m,
+  elements: [33m1[39m,
+  metadata: {
+    format: [32m'DSTV'[39m,
+    originalProfile: [32m'unknown_001_M1002'[39m,
+    createdDate: [32m'2025-09-04T10:04:08.013Z'[39m,
+    processingMetadata: {
+      format: [32m'DSTV'[39m,
+      version: [32m'7th Edition (1998)'[39m,
+      normalizationDate: [32m'2025-09-04T10:04:08.011Z'[39m,
+      originalConformityScore: [33m0.9657142857142856[39m,
+      coordinateSystem: [32m'right-handed'[39m,
+      units: [32m'mm'[39m,
+      profile: [36m[Object][39m,
+      processing: [36m[Object][39m
+    },
+    bounds: { min: [36m[Object][39m, max: [36m[Object][39m },
+    stats: {
+      profileCount: [33m1[39m,
+      featureCount: [33m6[39m,
+      materialCount: [33m1[39m,
+      elementCount: [33m1[39m
+    }
+  }
+}
+========================================
+⏱️  Temps d'exécution: 164ms
+
+
+📊 RÉSULTAT DE L'IMPORT:
+========================================
+  Success: ✅
+
+  📦 Éléments importés: 1
+
+  🔹 Élément 1:
+     - ID: unknown_001_M1002
+     - Type: beam
+     - Profil: undefined
+     - Matériau: [object Object]
+     - Dimensions:
+       • Longueur: 1912.15mm
+       • Largeur: 146.1mm
+       • Hauteur: 251.4mm
+     - Features: 6
+
+       📌 Feature 1:
+          Type: CONTOUR
+          ID: dstv_contour_outer_1
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 2:
+          Type: CUT
+          ID: dstv_cut-with-notches_5
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 3:
+          Type: CONTOUR
+          ID: dstv_contour_outer_6
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 4:
+          Type: HOLE
+          ID: dstv_hole_2
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 5:
+          Type: HOLE
+          ID: dstv_hole_3
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+
+       📌 Feature 6:
+          Type: MARKING
+          ID: dstv_marking_4
+          Face: N/A
+          Position: (undefined, undefined, undefined)
+     - Géométrie: ✅ Créée
+       • Vertices: 132
+
+
+========================================
+📝 METADATA DU RÉSULTAT:
+========================================
+  {
+    "format": "DSTV",
+    "originalProfile": "unknown_001_M1002",
+    "createdDate": "2025-09-04T10:04:08.013Z",
+    "processingMetadata": {
+      "format": "DSTV",
+      "version": "7th Edition (1998)",
+      "normalizationDate": "2025-09-04T10:04:08.011Z",
+      "originalConformityScore": 0.9657142857142856,
+      "coordinateSystem": "right-handed",
+      "units": "mm",
+      "profile": {
+        "name": "UB254x146x31",
+        "type": "I_PROFILE",
+        "material": "S275JR",
+        "featureCount": 6,
+        "featureTypes": {
+          "contour": 2,
+          "cut_with_notches": 1,
+          "hole": 2,
+          "marking": 1
+        }
+      },
+      "processing": {
+        "errors": 1,
+        "warnings": 2,
+        "blocksProcessed": 7
+      }
+    },
+    "bounds": {
+      "min": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "max": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    "stats": {
+      "profileCount": 1,
+      "featureCount": 6,
+      "materialCount": 1,
+      "elementCount": 1
+    }
+  }
+
+
+================================================================================
+✅ FIN DE L'IMPORT DSTV
+================================================================================
+
+
+
+[90mstderr[2m | src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts[2m > [22m[2mDSTV Import avec logs complets[2m > [22m[2mImport avec logs détaillés[2m > [22m[2mdevrait importer le fichier et afficher tous les logs[22m[39m
+⚠️ feature.position seems incorrect (distance: 929.59mm), attempting correction
+⚠️ feature.position seems incorrect (distance: 929.59mm), attempting correction
+
+ [32m✓[39m src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [33m1 skipped[39m[2m)[22m[90m 173[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (2)[39m
+[2m   Start at [22m 12:04:02
+[2m   Duration [22m 6.13s[2m (transform 2.95s, setup 196ms, collect 3.49s, tests 173ms, environment 1.53s, prepare 324ms)[22m
+

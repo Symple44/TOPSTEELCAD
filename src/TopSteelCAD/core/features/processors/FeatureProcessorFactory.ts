@@ -10,6 +10,7 @@ import { PivotElement } from '@/types/viewer';
 // Import des processors existants
 import { HoleProcessor } from './HoleProcessor';
 import { CutProcessor } from './CutProcessor';
+import { CutProcessorMigrated } from './CutProcessorMigrated'; // Nouveau processor modulaire
 import { ChamferProcessor } from './ChamferProcessor';
 import { WeldProcessor } from './WeldProcessor';
 import { MarkingProcessor } from './MarkingProcessor';
@@ -46,6 +47,7 @@ export class FeatureProcessorFactory {
   private static instance: FeatureProcessorFactory;
   private processors: Map<FeatureType, IFeatureProcessor>;
   private processorCache: Map<string, IFeatureProcessor>;
+  private useNewCutArchitecture: boolean = true; // NOUVEAU SYSTÈME ACTIVÉ PAR DÉFAUT
   
   private constructor() {
     this.processors = new Map();
@@ -198,8 +200,13 @@ export class FeatureProcessorFactory {
     this.register(FeatureType.WELD, new WeldProcessor());
     this.register(FeatureType.MARKING, new MarkingProcessor());
     
-    // Processors de découpe
-    this.register(FeatureType.CUT, new CutProcessor());
+    // Utiliser la nouvelle architecture avec CSG désactivé pour test
+    const cutProcessor = this.useNewCutArchitecture ? 
+      new CutProcessorMigrated() : 
+      new CutProcessor();
+    
+    this.register(FeatureType.CUT, cutProcessor);
+    this.register(FeatureType.END_CUT, cutProcessor);  // Utiliser le même processor pour les coupes d'extrémité
     this.register(FeatureType.CUTOUT, new CutoutProcessor());
     this.register(FeatureType.NOTCH, new NotchProcessor());
     this.register(FeatureType.SLOT, new SlotProcessor());
@@ -233,6 +240,24 @@ export class FeatureProcessorFactory {
     
     // Note: CutProcessor est maintenant mappé sur CUTOUT
     // Car "cut" n'est pas dans l'enum FeatureType
+  }
+  
+  /**
+   * Active/désactive la nouvelle architecture de coupe
+   */
+  setUseNewCutArchitecture(useNew: boolean): void {
+    this.useNewCutArchitecture = useNew;
+    // Ré-enregistrer les processors avec la nouvelle configuration
+    this.processorCache.clear();
+    this.registerDefaultProcessors();
+    console.log(`🔄 Cut architecture switched to: ${useNew ? 'NEW (modular)' : 'LEGACY (monolithic)'}`);
+  }
+  
+  /**
+   * Obtient l'état de l'architecture de coupe
+   */
+  isUsingNewCutArchitecture(): boolean {
+    return this.useNewCutArchitecture;
   }
   
   /**

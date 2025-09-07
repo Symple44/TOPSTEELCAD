@@ -44,9 +44,13 @@ export class EffectComposer {
   }
 
   render(_deltaTime?: number): void {
-    // Stub implementation - just render directly
-    if (this.renderer) {
-      // Base rendering handled by ViewerEngine
+    // Fallback: render directly without post-processing effects
+    // This ensures the scene is always visible
+    if (this.renderer && this.passes.length > 0) {
+      const renderPass = this.passes.find(p => p instanceof RenderPass) as RenderPass;
+      if (renderPass) {
+        this.renderer.render(renderPass.scene, renderPass.camera);
+      }
     }
   }
 
