@@ -480,10 +480,11 @@ export class UEBlockParser extends BaseStage<string[], UEBlockData> {
         // Approximation pour courbe de Bézier
         return straightDistance * 1.3;
         
-      case 'spline':
+      case 'spline': {
         // Approximation pour spline
         const tension = end.tension || 0.5;
         return straightDistance * (1 + tension * 0.5);
+      }
         
       default:
         return straightDistance;

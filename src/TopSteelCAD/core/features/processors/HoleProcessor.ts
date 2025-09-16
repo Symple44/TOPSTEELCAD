@@ -13,7 +13,7 @@ import {
 } from '../types';
 import { PivotElement, MaterialType } from '@/types/viewer';
 import { PositionService } from '../../services/PositionService';
-import { StandardFace } from '../../coordinates/types';
+// import { StandardFace } from '../../coordinates/types';
 
 export class HoleProcessor implements IFeatureProcessor {
   private evaluator: Evaluator;
@@ -121,7 +121,7 @@ export class HoleProcessor implements IFeatureProcessor {
       // Appliquer la position
       // IMPORTANT: Pour les trous traversants, ajuster la position selon la rotation
       // pour que le cylindre parte de la face et traverse le matériau
-      let adjustedPosition = position3D.position.clone();
+      const adjustedPosition = position3D.position.clone();
       
       // Calculer la profondeur réelle pour les ajustements
       const actualDepth = (holeDepth <= 0.1) 
@@ -181,6 +181,11 @@ export class HoleProcessor implements IFeatureProcessor {
         resultGeometry.userData.holes = [...geometry.userData.holes];
       } else {
         resultGeometry.userData.holes = [];
+      }
+      
+      // IMPORTANT: Préserver aussi les cuts (outlines des notches et contours)
+      if (geometry.userData?.cuts) {
+        resultGeometry.userData.cuts = [...geometry.userData.cuts];
       }
       
       // Ajouter les informations du nouveau trou

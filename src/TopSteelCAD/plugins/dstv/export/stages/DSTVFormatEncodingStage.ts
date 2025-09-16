@@ -195,12 +195,12 @@ export class DSTVFormatEncodingStage extends BaseStage {
     }
     
     // Supprimer les autres caractères non-ASCII
-    text = text.replace(/[^\x00-\x7F]/g, '');
+    text = text.replace(/[^\x20-\x7F]/g, '');
     
     return text;
   }
 
-  private isNumericField(text: string, blockType: string): boolean {
+  private isNumericField(text: string, _blockType: string): boolean {
     // Vérifier si le champ doit être traité comme numérique
     const numericPattern = /^-?\d+(\.\d+)?$/;
     return numericPattern.test(text.trim());
@@ -295,7 +295,7 @@ export class DSTVFormatEncodingStage extends BaseStage {
       }
       
       // Vérifier les caractères ASCII uniquement
-      if (!/^[\x00-\x7F]*$/.test(line)) {
+      if (!/^[\x20-\x7F\r\n\t]*$/.test(line)) {
         errors.push(`Line ${i + 1} contains non-ASCII characters`);
       }
     }

@@ -186,7 +186,7 @@ export interface FeatureEventListener<T extends FeatureEventName> {
  * Classe de gestion des événements de features
  */
 export class FeatureEventManager {
-  private listeners: Map<FeatureEventName, Set<Function>> = new Map();
+  private listeners: Map<FeatureEventName, Set<(...args: any[]) => any>> = new Map();
   
   /**
    * Écoute un événement

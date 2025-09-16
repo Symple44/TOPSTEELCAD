@@ -230,7 +230,7 @@ export class DSTVBlockSerializationStage extends BaseStage {
     }
     
     // Créer les blocs BO pour chaque groupe
-    for (const [face, faceHoles] of holesByFace) {
+    for (const faceHoles of holesByFace.values()) {
       for (const hole of faceHoles) {
         const lines: string[] = [];
         
@@ -247,7 +247,7 @@ export class DSTVBlockSerializationStage extends BaseStage {
         lines.push(this.formatNumber(hole.diameter, 7, 2));
         
         // Face
-        lines.push(face);
+        lines.push(hole.face);
         
         // Type de trou optionnel (SI = trou de montage, LO = trou oblong)
         if (hole.type) {
@@ -257,7 +257,7 @@ export class DSTVBlockSerializationStage extends BaseStage {
         blocks.push({
           type: 'BO',
           lines,
-          comment: `Hole on face ${face}`
+          comment: `Hole on face ${hole.face}`
         });
       }
     }
@@ -313,7 +313,7 @@ export class DSTVBlockSerializationStage extends BaseStage {
   private createCutBlocks(data: any): DSTVBlock[] {
     const blocks: DSTVBlock[] = [];
     
-    for (const cut of data.organized.byType.cuts) {
+    for (let i = 0; i < data.organized.byType.cuts.length; i++) {
       const lines: string[] = [];
       
       // Type SC (Special Cut)
@@ -372,7 +372,7 @@ export class DSTVBlockSerializationStage extends BaseStage {
     const holes: any[] = [];
     
     if (data.organized?.byType?.holes) {
-      for (const [face, faceHoles] of data.organized.byType.holes) {
+      for (const faceHoles of data.organized.byType.holes.values()) {
         holes.push(...faceHoles);
       }
     } else if (data.features?.holes) {
@@ -382,7 +382,7 @@ export class DSTVBlockSerializationStage extends BaseStage {
     return holes;
   }
 
-  private calculateMetadata(blocks: DSTVBlock[], data: any): any {
+  private calculateMetadata(blocks: DSTVBlock[], _data: any): any {
     let lineCount = 0;
     let holeCount = 0;
     let contourCount = 0;

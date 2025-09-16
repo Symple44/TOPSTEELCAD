@@ -429,6 +429,7 @@ export class FeatureSystem {
       [FeatureType.CUT]: 2,
       [FeatureType.CUTOUT]: 3,
       [FeatureType.NOTCH]: 4,
+      [FeatureType.CUT_WITH_NOTCHES]: 4,
       [FeatureType.COPING]: 5,
       [FeatureType.END_CUT]: 5,
       

@@ -253,7 +253,6 @@ export class FormatDetector {
       // Analyser seulement une partie du fichier pour les performances
       const analysisSize = Math.min(file.size, this.config.maxAnalysisSize);
       const content = await this.readFileContent(file, analysisSize);
-      const textContent = new TextDecoder().decode(content);
       
       // Exécuter les règles de détection
       for (const rule of this.rules) {

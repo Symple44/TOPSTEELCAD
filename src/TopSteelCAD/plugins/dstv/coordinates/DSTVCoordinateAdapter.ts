@@ -50,7 +50,7 @@ class DSTVOriginTransform extends BaseTransformStage {
     const { profileDimensions, profileType } = data.metadata;
     if (!profileDimensions) return data;
     
-    const { length, height, width } = profileDimensions;
+    const { height } = profileDimensions;
     
     // DSTV: origine au coin inférieur gauche
     // Standard: dépend du type de profil
@@ -405,9 +405,9 @@ export class DSTVCoordinateAdapter {
     // Conversion inverse : Standard → DSTV
     // Z Standard → X DSTV (position le long du profil)
     // Plus de centrage : Z standard commence à 0
-    let dstvX = position.z;  // Direct, car le profil commence à Z=0
+    const dstvX = position.z;  // Direct, car le profil commence à Z=0
     let dstvY = 0;
-    let dstvZ = 0;
+    const dstvZ = 0;
     
     // Ajuster Y selon la face
     switch (face) {

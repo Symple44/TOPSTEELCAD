@@ -92,8 +92,8 @@ interface DebugUIWrapperProps {
 }
 
 export const DebugUIWrapper: React.FC<DebugUIWrapperProps> = ({
-  defaultVisible = false,
-  defaultPosition = 'bottom-right',
+  defaultVisible: _defaultVisible = false,
+  defaultPosition: _defaultPosition = 'bottom-right',
   children
 }) => {
   const {

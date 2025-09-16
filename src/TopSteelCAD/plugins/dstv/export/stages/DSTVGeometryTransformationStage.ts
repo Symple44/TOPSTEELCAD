@@ -152,8 +152,8 @@ export class DSTVGeometryTransformationStage extends BaseStage {
 
   private transformPointCoordinates(
     point: { x: number; y: number },
-    face: string,
-    profile: DSTVExportData['geometry']['profile']
+    _face: string,
+    _profile: DSTVExportData['geometry']['profile']
   ): { x: number; y: number } {
     // Les coordonnées des points de contour suivent les mêmes règles
     // que les trous selon la face
@@ -162,7 +162,7 @@ export class DSTVGeometryTransformationStage extends BaseStage {
 
   private transformMarkingCoordinates(
     marking: DSTVExportData['features']['markings'][0],
-    profile: DSTVExportData['geometry']['profile']
+    _profile: DSTVExportData['geometry']['profile']
   ) {
     // Les marquages utilisent le même système que les trous
     // mais peuvent avoir un angle de rotation supplémentaire
@@ -250,7 +250,7 @@ export class DSTVGeometryTransformationStage extends BaseStage {
     }
   }
 
-  private transformLProfile(data: TransformedData) {
+  private transformLProfile(_data: TransformedData) {
     // Pour les cornières, deux ailes perpendiculaires
     // Nécessite une transformation spéciale des coordonnées
   }

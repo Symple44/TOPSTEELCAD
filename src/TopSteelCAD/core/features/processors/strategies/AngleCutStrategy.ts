@@ -7,9 +7,7 @@ import * as THREE from 'three';
 import { PivotElement } from '@/types/viewer';
 import { Feature, ProfileFace } from '../../types';
 import { ExteriorCutStrategy } from './ExteriorCutStrategy';
-import { CutType } from '../CutCategoryDetector';
-import { dstvFaceMapper, ProfileType } from '@/TopSteelCAD/plugins/dstv/coordinates/DSTVFaceMapper';
-import { faceProfileValidator } from '@/TopSteelCAD/plugins/dstv/coordinates/FaceProfileValidator';
+import { ProfileType } from '@/TopSteelCAD/3DLibrary/types/profile.types';
 
 /**
  * Stratégie pour les coupes d'angle et biseaux
@@ -250,7 +248,6 @@ export class AngleCutStrategy extends ExteriorCutStrategy {
     element: PivotElement
   ): void {
     const dims = element.dimensions || {};
-    const profileType = this.detectProfileType(element);
     
     // Utiliser le mapper DSTV pour les tubes
     switch (face) {
@@ -296,17 +293,19 @@ export class AngleCutStrategy extends ExteriorCutStrategy {
     const profileHeight = dims.height || 300;
     
     switch (face) {
-      case ProfileFace.TOP_FLANGE:
+      case ProfileFace.TOP_FLANGE: {
         // Positionner pour traverser l'aile supérieure
         const topFlangeCenter = (profileHeight / 2) - (flangeThickness / 2);
         geometry.translate(0, topFlangeCenter, 0);
         break;
+      }
         
-      case ProfileFace.BOTTOM_FLANGE:
+      case ProfileFace.BOTTOM_FLANGE: {
         // Positionner pour traverser l'aile inférieure
         const bottomFlangeCenter = -(profileHeight / 2) + (flangeThickness / 2);
         geometry.translate(0, bottomFlangeCenter, 0);
         break;
+      }
         
       case ProfileFace.WEB:
       default:
@@ -429,16 +428,16 @@ export class AngleCutStrategy extends ExteriorCutStrategy {
       return ProfileType.TUBE_ROUND;
     }
     if (upperName.includes('IPE') || upperName.includes('HE') || upperName.includes('UB') || upperName.includes('UC')) {
-      return ProfileType.I_PROFILE;
+      return ProfileType.IPE;
     }
     if (upperName.includes('L') || upperName.includes('ANGLE')) {
-      return ProfileType.L_PROFILE;
+      return ProfileType.L_EQUAL;
     }
     if (upperName.includes('UPN') || upperName.includes('CHANNEL')) {
-      return ProfileType.U_PROFILE;
+      return ProfileType.UPN;
     }
     
     // Par défaut, considérer comme profil I
-    return ProfileType.I_PROFILE;
+    return ProfileType.IPE;
   }
 }

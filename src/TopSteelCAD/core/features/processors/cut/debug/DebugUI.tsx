@@ -6,9 +6,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { performanceMonitor } from '../monitoring/PerformanceMonitor';
 import { geometryCache } from '../cache/GeometryCache';
-import { configManager, Environment } from '../config/ProductionConfig';
+import { configManager } from '../config/ProductionConfig';
 import { getCSGService } from '../services/CSGOperationService';
-import { CutType } from '../types/CutTypes';
 import './DebugUI.css';
 
 export interface DebugUIProps {

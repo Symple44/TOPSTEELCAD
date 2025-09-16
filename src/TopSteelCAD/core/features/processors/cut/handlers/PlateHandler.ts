@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature } from '../types/CoreTypes';
 import { PivotElement } from '../types/CoreTypes';
 import { CutType } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -95,7 +95,6 @@ export class PlateHandler extends BaseCutHandler {
     warnings: string[]
   ): void {
     const params = feature.parameters as any;
-    const dims = element.dimensions || {};
     
     // Vérifier l'épaisseur
     if (params.thickness) {
@@ -268,7 +267,6 @@ export class PlateHandler extends BaseCutHandler {
     const shape = new THREE.Shape();
     
     const halfWidth = config.width / 2;
-    const bendLength = (bendRadius * Math.PI * Math.abs(bendAngle)) / 180;
     
     // Partie plate gauche
     shape.moveTo(-halfWidth, 0);
@@ -332,20 +330,16 @@ export class PlateHandler extends BaseCutHandler {
    * Crée une plaque perforée
    */
   private createPerforatedPlate(params: any, element: PivotElement): THREE.BufferGeometry {
-    const config = this.extractPlateConfig(params, element);
+    this.extractPlateConfig(params, element);
     
     // Créer la plaque de base
     const baseGeometry = this.createFlatPlate(params, element);
     
     // Ajouter les perforations (simplifié pour la démo)
     // En production, cela devrait soustraire les trous avec CSG
-    const pattern = params.perforationPattern || 'grid';
-    const holeSize = params.holeSize || 10;
-    const spacing = params.spacing || 20;
     
     // Pour l'instant, retourner la plaque de base
-    // TODO: Implémenter la soustraction des perforations
-    console.log(`    Note: Perforation pattern '${pattern}' not yet implemented`);
+    console.log(`    Note: Perforation pattern '${params.pattern || 'default'}' not yet implemented`);
     
     return baseGeometry;
   }

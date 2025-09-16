@@ -225,7 +225,7 @@ export abstract class BaseStage<TInput, TOutput> implements PipelineStage<TInput
   
   abstract process(input: TInput, context: ProcessingContext): Promise<TOutput>;
   
-  async validate?(input: TInput): Promise<ValidationResult> {
+  async validate?(_input: TInput): Promise<ValidationResult> {
     return {
       isValid: true,
       errors: [],
@@ -255,8 +255,8 @@ export abstract class BaseStage<TInput, TOutput> implements PipelineStage<TInput
  * Factory de pipelines
  */
 export interface PipelineFactory {
-  createImportPipeline<T extends PivotScene>(format: string): ImportPipeline;
-  createExportPipeline<T extends ArrayBuffer | string>(format: string): ExportPipeline;
+  createImportPipeline(format: string): ImportPipeline;
+  createExportPipeline(format: string): ExportPipeline;
   createCustomPipeline<TInput, TOutput>(
     name: string, 
     stages: PipelineStage<any, any>[]

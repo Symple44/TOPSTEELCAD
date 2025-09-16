@@ -4,9 +4,8 @@
  */
 
 import { vi, expect, beforeEach } from 'vitest';
-import { Feature, FeatureType, ProfileFace } from '../../types/CoreTypes';
+import { Feature, FeatureType } from '../../types/CoreTypes';
 import { PivotElement } from '../../types/CoreTypes';
-import { CutType } from '../../types/CutTypes';
 
 /**
  * Crée un élément PivotElement de test standard

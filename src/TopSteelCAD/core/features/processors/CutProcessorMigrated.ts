@@ -40,7 +40,7 @@ export class CutProcessorMigrated implements IFeatureProcessor {
   /**
    * Valide une feature de coupe
    */
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     const params = feature.parameters as any;
     
@@ -789,7 +789,8 @@ export class CutProcessorMigrated implements IFeatureProcessor {
     handlersAvailable: number;
     supportedTypes: string[];
   } {
-    const factory = require('./cut/core/CutHandlerFactory').getCutHandlerFactory();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const factory = (require('./cut/core/CutHandlerFactory') as any).getCutHandlerFactory();
     const stats = factory.getStatistics();
     
     return {

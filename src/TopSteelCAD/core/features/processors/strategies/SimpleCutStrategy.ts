@@ -94,7 +94,6 @@ export class SimpleCutStrategy extends BaseCutStrategy {
       : face;
     
     switch (mappedFace) {
-      case ProfileFace.WEB: // v mapped to WEB
       case ProfileFace.TOP_FLANGE:
         position.y = (dims.height || 0) / 2 - (dims.flangeThickness || 10) / 2;
         break;

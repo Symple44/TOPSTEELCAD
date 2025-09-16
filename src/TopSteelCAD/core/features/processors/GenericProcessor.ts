@@ -24,7 +24,7 @@ export class GenericProcessor implements IFeatureProcessor {
   process(
     geometry: THREE.BufferGeometry,
     feature: Feature,
-    element: PivotElement
+    _element: PivotElement
   ): ProcessorResult {
     console.log(`📄 GenericProcessor: Processing ${feature.type} feature ${feature.id}`);
     console.log(`  - Parameters:`, feature.parameters);
@@ -53,7 +53,7 @@ export class GenericProcessor implements IFeatureProcessor {
     };
   }
   
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     
     if (!feature.parameters) {

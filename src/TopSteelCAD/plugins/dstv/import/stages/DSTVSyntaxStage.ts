@@ -386,7 +386,7 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
     const validTypeCodes = ['I', 'U', 'L', 'T', 'M', 'R', 'P', 'B'];  // Ajout de 'B' pour les plaques
     if (rawData[7] && !validTypeCodes.includes(rawData[7].toUpperCase())) {
       // Reconstituer le nom du profil jusqu'à trouver le code de type
-      let reconstructedName = [rawData[6]];
+      const reconstructedName = [rawData[6]];
       let i = 7;
       while (i < rawData.length && !validTypeCodes.includes(rawData[i]?.toUpperCase())) {
         reconstructedName.push(rawData[i]);
@@ -411,8 +411,6 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
     };
 
     // Mapping spécifique selon le type de profil, avec décalage d'index si nécessaire
-    const dataOffset = profileTypeIndex - 7; // Décalage causé par le nom splitté
-    
     console.log(`📊 ST Block - profileType="${profileType}", going to ${profileType === 'M' ? 'TUBE' : 'STANDARD'} branch`);
     
     if (profileType === 'M') {
@@ -879,7 +877,7 @@ export class DSTVSyntaxStage extends BaseStage<DSTVTokens, DSTVSyntaxTree> {
   /**
    * Génère les métadonnées de l'AST
    */
-  private generateSyntaxMetadata(blocks: DSTVParsedBlock[], inputMetadata: any): DSTVSyntaxTree['metadata'] {
+  private generateSyntaxMetadata(blocks: DSTVParsedBlock[], _inputMetadata: any): DSTVSyntaxTree['metadata'] {
     const stBlock = blocks.find(b => b.type === DSTVBlockType.ST);
     const featureBlocks = blocks.filter(b => 
       [DSTVBlockType.BO, DSTVBlockType.AK, DSTVBlockType.IK, 

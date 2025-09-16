@@ -136,7 +136,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
     
     const scene: PivotScene = {
       id: this.generateSceneId(primaryProfile as any),
-      name: `DSTV Scene - ${primaryProfile.id}`,
+      name: `DSTV Scene - ${primaryProfile.name || primaryProfile.id}`,
       elements: new Map(),
       metadata: {
         format: 'DSTV',
@@ -212,7 +212,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
       // Créer un élément temporaire pour les processeurs
       const tempElement: PivotElement = {
         id: profile.id,
-        name: profile.id, // Use id since name doesn't exist in profile
+        name: profile.name || profile.id, // Use name if available
         materialType: this.mapToMaterialType(profile.type),
         visible: true,
         material,
@@ -229,7 +229,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
         metadata: {
           elementType: ElementType.BEAM,
           profileType: profile.type,  // Add profile type for CutProcessor
-          profileName: profile.name   // Add profile name for CutProcessor
+          profileName: (profile as any).metadata?.profileName || profile.name   // Add original profile name for CutProcessor
         }
       };
       
@@ -290,7 +290,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
     
     const element: PivotElement = {
       id: profile.id,
-      name: profile.id, // Use id since name doesn't exist
+      name: profile.name || profile.id, // Use name if available, otherwise id
       materialType: this.mapToMaterialType(profile.type),
       visible: true,
       material,
@@ -320,7 +320,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
       metadata: {
         elementType: ElementType.BEAM,
         profileType: profile.type,  // Ex: 'TUBE_RECT', 'I_PROFILE', etc.
-        profileName: profile.name,  // Ex: 'HSS51X51X4.8' - Use profile.name not profile.profileName
+        profileName: (profile as any).metadata?.profileName || profile.name,  // Ex: 'UB254x146x31' - Use original profile name from metadata
         steelGrade: profile.material?.grade,
         originalData: profile,
         processingOrder: 0,
@@ -435,7 +435,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
           }
         };
 
-      case NormalizedFeatureType.CONTOUR:
+      case NormalizedFeatureType.CONTOUR: {
         // Convertir les points du format {x, y} vers [x, y]
         const contourPoints = feature.parameters.points ? 
           feature.parameters.points.map((p: any) => {
@@ -458,6 +458,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
             interpolation: feature.parameters.interpolation || 'linear'
           }
         };
+      }
 
       case NormalizedFeatureType.MARKING:
         return {
@@ -491,7 +492,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
   /**
    * Crée la géométrie de base du profil en utilisant vos générateurs existants
    */
-  private async createProfileBaseGeometry(profile: NormalizedProfile, context?: ProcessingContext): Promise<THREE.BufferGeometry> {
+  private async createProfileBaseGeometry(profile: NormalizedProfile, _context?: ProcessingContext): Promise<THREE.BufferGeometry> {
     try {
       // UTILISER VOS GÉNÉRATEURS DE GÉOMÉTRIE ICI
       const geometry = await this.geometryBridge.createProfileGeometry(profile);
@@ -552,7 +553,9 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
   // ================================
 
   private generateSceneId(profile: NormalizedProfile): string {
-    return `dstv_scene_${profile.id}_${Date.now()}`;
+    // Utiliser le nom du profil pour un ID plus descriptif
+    const cleanName = (profile.name || profile.id).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    return `dstv_scene_${cleanName}_${Date.now()}`;
   }
 
   private generateFeatureName(feature: NormalizedFeature): string {
@@ -650,7 +653,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
     return mapping[featureType] || null;
   }
 
-  private async resolveMaterial(materialInfo: { grade: string; properties?: Record<string, any> }, context: ProcessingContext): Promise<MaterialProperties> {
+  private async resolveMaterial(materialInfo: { grade: string; properties?: Record<string, any> }, _context: ProcessingContext): Promise<MaterialProperties> {
     const cacheKey = `material_${materialInfo.grade}`;
     
     if (this.sceneBuildingConfig.enableGeometryCache && this.geometryCache.materials.has(cacheKey)) {

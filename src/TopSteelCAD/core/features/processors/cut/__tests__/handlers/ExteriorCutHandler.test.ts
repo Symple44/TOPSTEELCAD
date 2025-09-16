@@ -448,7 +448,8 @@ describe('ExteriorCutHandler', () => {
 
       handler.createCutGeometry(feature, mockElement);
 
-      const { getGeometryService } = require('../../services/GeometryCreationService');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getGeometryService } = (require('../../services/GeometryCreationService') as any);
       const mockService = getGeometryService();
       expect(mockService.createCutGeometry).toHaveBeenCalledWith(
         expect.any(Array),

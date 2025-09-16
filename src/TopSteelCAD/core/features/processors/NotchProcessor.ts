@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {Feature, ProcessorResult, IFeatureProcessor, ProfileFace, CoordinateSystem} from '../types';
+import {Feature, FeatureType, ProcessorResult, IFeatureProcessor, ProfileFace} from '../types';
 import { PivotElement } from '@/types/viewer';
 import { Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
@@ -15,7 +15,7 @@ export class NotchProcessor implements IFeatureProcessor {
   }
 
   canProcess(type: string): boolean {
-    return type === 'notch' || type === 'extremity_cut';
+    return type === 'notch' || type === 'extremity_cut' || type === 'cut_with_notches';
   }
 
   process(
@@ -49,10 +49,27 @@ export class NotchProcessor implements IFeatureProcessor {
    * Vérifie si la feature est un contour qui représente des notches
    */
   private isContourBasedNotch(feature: Feature): boolean {
-    const coordinateSystem = 'coordinateSystem' in feature ? feature.coordinateSystem : CoordinateSystem.DSTV;
-    return feature.parameters.contourType === 'outer' && 
-           coordinateSystem === CoordinateSystem.DSTV &&
-           feature.parameters.points !== undefined;
+    // M1002 spécifique : 9 points = toujours traiter comme contour-based notch
+    if (feature.parameters.points && Array.isArray(feature.parameters.points) && feature.parameters.points.length === 9) {
+      console.log(`  🎯 M1002 pattern detected (9 points) - treating as contour-based notch`);
+      return true;
+    }
+    
+    // Vérifier si c'est une feature cut_with_notches avec des points de contour
+    // Ne plus vérifier le coordinateSystem car ProcessorBridge le change
+    const isContourBased = (feature.type === FeatureType.CUT_WITH_NOTCHES || 
+                            feature.type === FeatureType.NOTCH && feature.parameters.cutType === 'partial_notches') && 
+                           feature.parameters.points !== undefined;
+    
+    console.log(`  📊 isContourBasedNotch check:`, {
+      type: feature.type,
+      hasPoints: feature.parameters.points !== undefined,
+      pointsCount: feature.parameters.points?.length,
+      cutType: feature.parameters.cutType,
+      result: isContourBased
+    });
+    
+    return isContourBased;
   }
 
   /**
@@ -76,10 +93,20 @@ export class NotchProcessor implements IFeatureProcessor {
     feature: Feature,
     element: PivotElement
   ): ProcessorResult {
+    console.log(`  🎨 Processing contour-based notches for M1002 pattern`);
     const rawPoints = feature.parameters.points!;
     const points = this.normalizePoints(rawPoints);
     const profileLength = element.dimensions.length || 0;
-    const face = feature.parameters.face || ProfileFace.WEB;
+    // Récupérer la face depuis les différents emplacements possibles
+    const face = feature.parameters.face || feature.face || ProfileFace.WEB;
+    
+    console.log(`  📐 Contour analysis:`, {
+      pointsCount: points.length,
+      profileLength,
+      face,
+      firstPoint: points[0],
+      lastPoint: points[points.length - 1]
+    });
     
     // Analyser les points pour déterminer les zones de notch
     const bounds = this.getContourBounds(points);
@@ -88,8 +115,10 @@ export class NotchProcessor implements IFeatureProcessor {
     const contourLength = bounds.maxX - bounds.minX;
     const lengthDifference = profileLength - contourLength;
     
-    if (lengthDifference <= 1) {
-      console.log(`  ℹ️ Contour matches full profile length, not a notch`);
+    // Pour les contours complexes avec 9 points (M1002), ne pas appliquer cette règle
+    // car ils peuvent avoir la même longueur que le profil mais contenir des notches internes
+    if (lengthDifference <= 1 && points.length !== 9) {
+      console.log(`  ℹ️ Contour matches full profile length, not a notch (${points.length} points)`);
       return {
         success: true,
         geometry: geometry,
@@ -100,11 +129,11 @@ export class NotchProcessor implements IFeatureProcessor {
     console.log(`  📏 Profile length: ${profileLength}mm, Contour length: ${contourLength}mm`);
     console.log(`  ✂️ Notch depth: ${lengthDifference/2}mm at each extremity`);
     
-    // Pour les contours complexes avec 9 points (ex: face 'v' dans M1002.nc),
+    // Pour les contours complexes avec 9 points (ex: M1002 pattern),
     // analyser la forme exacte des notches
-    if (points.length === 9 && (face === 'top' || face === 'top_flange')) {
-      console.log(`  🔍 Complex contour with 9 points detected - analyzing exact notch shape`);
-      return this.createComplexNotches(geometry, points, element, face, profileLength);
+    if (points.length === 9) {
+      console.log(`  🔍 Complex contour with 9 points detected on face '${face}' - analyzing M1002 notch pattern`);
+      return this.createComplexNotches(geometry, points, element, face, profileLength, feature.id);
     }
     
     // Créer les notches aux extrémités
@@ -113,7 +142,8 @@ export class NotchProcessor implements IFeatureProcessor {
       element,
       bounds,
       face,
-      profileLength
+      profileLength,
+      feature.id
     );
   }
 
@@ -142,7 +172,7 @@ export class NotchProcessor implements IFeatureProcessor {
     baseBrush.updateMatrixWorld();
     
     // Créer les géométries de notch selon la position
-    const notchGeometries: THREE.BufferGeometry[] = [];
+    // const notchGeometries: THREE.BufferGeometry[] = [];
     
     if (position === 'start' || position === 'both') {
       // Notch au début
@@ -241,7 +271,8 @@ export class NotchProcessor implements IFeatureProcessor {
     element: PivotElement,
     contourBounds: { minX: number; maxX: number; minY: number; maxY: number },
     face: ProfileFace | undefined,
-    profileLength: number
+    profileLength: number,
+    featureId?: string
   ): ProcessorResult {
     const baseBrush = new Brush(geometry);
     baseBrush.updateMatrixWorld();
@@ -325,6 +356,37 @@ export class NotchProcessor implements IFeatureProcessor {
         console.log(`  ✅ End notch applied`);
         console.log(`  ✅ Notches processing completed successfully`);
         
+        // Ajouter les informations pour l'outline renderer
+        if (!finalGeometry.userData.cuts) {
+          finalGeometry.userData.cuts = [];
+        }
+        
+        if (featureId) {
+          const cutInfo = {
+            id: featureId,
+            type: 'contour',
+            face: face || 'web',
+            bounds: {
+              minX: contourBounds.minX - profileLength / 2,
+              maxX: contourBounds.maxX - profileLength / 2,
+              minY: contourBounds.minY - (element.dimensions?.height || 0) / 2,
+              maxY: contourBounds.maxY - (element.dimensions?.height || 0) / 2,
+              minZ: -depth / 2,
+              maxZ: depth / 2
+            },
+            contourPoints: [
+              [contourBounds.minX, contourBounds.minY],
+              [contourBounds.maxX, contourBounds.minY],
+              [contourBounds.maxX, contourBounds.maxY],
+              [contourBounds.minX, contourBounds.maxY],
+              [contourBounds.minX, contourBounds.minY]
+            ],
+            depth: depth
+          };
+          finalGeometry.userData.cuts.push(cutInfo);
+          console.log(`  📐 Added contour outline for feature ${featureId}`);
+        }
+        
         return {
           success: true,
           geometry: finalGeometry
@@ -340,6 +402,34 @@ export class NotchProcessor implements IFeatureProcessor {
     }
     
     baseBrush.geometry.dispose();
+    
+    // Ajouter les informations pour l'outline renderer si pas de notch à la fin
+    if (featureId && !modifiedGeometry.userData.cuts) {
+      modifiedGeometry.userData.cuts = [];
+      const cutInfo = {
+        id: featureId,
+        type: 'contour',
+        face: face || 'web',
+        bounds: {
+          minX: contourBounds.minX - profileLength / 2,
+          maxX: contourBounds.maxX - profileLength / 2,
+          minY: contourBounds.minY - (element.dimensions?.height || 0) / 2,
+          maxY: contourBounds.maxY - (element.dimensions?.height || 0) / 2,
+          minZ: -10,
+          maxZ: 10
+        },
+        contourPoints: [
+          [contourBounds.minX, contourBounds.minY],
+          [contourBounds.maxX, contourBounds.minY],
+          [contourBounds.maxX, contourBounds.maxY],
+          [contourBounds.minX, contourBounds.maxY],
+          [contourBounds.minX, contourBounds.minY]
+        ],
+        depth: 20
+      };
+      modifiedGeometry.userData.cuts.push(cutInfo);
+      console.log(`  📐 Added contour outline for feature ${featureId}`);
+    }
     
     return {
       success: true,
@@ -506,105 +596,150 @@ export class NotchProcessor implements IFeatureProcessor {
     points: Array<[number, number]>,
     element: PivotElement,
     face: ProfileFace | string,
-    profileLength: number
+    profileLength: number,
+    featureId?: string
   ): ProcessorResult {
-    console.log(`  🎨 Creating complex notches from contour shape`);
+    console.log(`  🎨 Creating complex M1002 notches from contour shape`);
     console.log(`  📍 Contour points:`, points.map(p => `(${p[0]}, ${p[1]})`).join(', '));
     
     try {
-      const baseBrush = new Brush(geometry);
-      baseBrush.updateMatrixWorld();
+      const dims = element.dimensions || {};
       
-      // Analyser les points pour identifier les zones de notch
-      // Pour un contour en U inversé avec 9 points, typiquement :
-      // - Points 0-2 : Extension à la fin (notch 2)
-      // - Points 3-5 : Corps principal
-      // - Points 6-8 : Extension au début (notch 1)
+      // Utiliser la méthode d'analyse dynamique de l'ancien CutProcessor
+      const notches = this.extractNotchesFromContour(points, dims);
       
-      // Trouver les coordonnées X uniques pour identifier les zones
-      const xCoords = points.map(p => p[0]);
-      const uniqueX = [...new Set(xCoords.map(x => Math.round(x)))].sort((a, b) => a - b);
-      
-      console.log(`  📏 Unique X coordinates:`, uniqueX);
-      
-      // Identifier les zones de notch en analysant les discontinuités
-      const tolerance = 1.0;
-      
-      // Zone 1: Points avec X proche de profileLength (fin)
-      const endNotchPoints: Array<[number, number]> = [];
-      // Zone 2: Points avec X proche de 0 (début) 
-      const startNotchPoints: Array<[number, number]> = [];
-      
-      for (const point of points) {
-        // Points à la fin (ex: 1912.15)
-        if (Math.abs(point[0] - profileLength) < tolerance || point[0] > profileLength - 100) {
-          endNotchPoints.push(point);
-        }
-        // Points au début (proche de 0, mais pas exactement 0)
-        else if (point[0] < 100 && Math.abs(point[0]) > tolerance) {
-          // Ce sont les points intermédiaires qui forment le notch
-          startNotchPoints.push(point);
-        }
-      }
-      
-      console.log(`  📐 End notch: ${endNotchPoints.length} points`);
-      console.log(`  📐 Start notch: ${startNotchPoints.length} points`);
-      
-      // Créer les notches basées sur la forme réelle
-      const depth = this.calculateDepthForFace(face as ProfileFace, element) * 2;
-      
-      // Notch à la fin (ex: coins à x=1912.15)
-      if (endNotchPoints.length >= 2) {
-        // Extraire la forme du notch depuis les points
-        const minY = Math.min(...endNotchPoints.map(p => p[1]));
-        const maxY = Math.max(...endNotchPoints.map(p => p[1]));
-        const notchStartX = Math.min(...endNotchPoints.map(p => p[0])) - 70; // Profondeur du notch
-        
-        console.log(`  ✂️ End notch: X from ${notchStartX} to ${profileLength}, Y from ${minY} to ${maxY}`);
-        
-        // Créer la forme exacte du notch en utilisant les points du contour
-        const notchShape = new THREE.Shape();
-        
-        // Construire le rectangle du notch qui sera soustrait
-        notchShape.moveTo(notchStartX, minY);
-        notchShape.lineTo(profileLength, minY);
-        notchShape.lineTo(profileLength, maxY);
-        notchShape.lineTo(notchStartX, maxY);
-        notchShape.closePath();
-        
-        const extrudeSettings = {
-          depth: depth,
-          bevelEnabled: false
+      if (notches.length === 0) {
+        console.log(`  ⚠️ No notches found in contour - returning original geometry`);
+        return {
+          success: true,
+          geometry: geometry
         };
-        
-        const notchGeometry = new THREE.ExtrudeGeometry(notchShape, extrudeSettings);
-        const notchBrush = new Brush(notchGeometry);
-        
-        // Positionner dans l'espace Three.js
-        const centerX = (notchStartX + profileLength) / 2 - profileLength / 2;
-        notchBrush.position.set(centerX, 0, element.dimensions.height! / 2 - 2);
-        notchBrush.rotation.x = -Math.PI / 2; // Pour la face TOP
-        notchBrush.updateMatrixWorld();
-        
-        console.log(`  📍 End notch positioned at: (${centerX}, 0, ${element.dimensions.height! / 2 - 2})`);
-        
-        const tempBrush = this.evaluator.evaluate(baseBrush, notchBrush, SUBTRACTION);
-        baseBrush.geometry.dispose();
-        baseBrush.geometry = tempBrush.geometry;
-        notchGeometry.dispose();
-        
-        console.log(`  ✅ End notch applied`);
       }
       
-      // Extraire et finaliser la géométrie
-      const resultGeometry = baseBrush.geometry.clone();
-      resultGeometry.computeVertexNormals();
-      resultGeometry.computeBoundingBox();
-      resultGeometry.computeBoundingSphere();
+      console.log(`  🔍 Found ${notches.length} notches to create`);
       
-      baseBrush.geometry.dispose();
+      // Récupérer les dimensions du profil pour dimensionner les encoches
+      const profileWidth = dims.width || 100; // Largeur totale du profil (perpendiculaire à l'extrusion)
       
-      console.log(`  ✅ Complex notches created successfully`);
+      let resultGeometry = geometry.clone();
+      // Préserver les userData existants (notamment les cuts des contours précédents)
+      if (geometry.userData) {
+        resultGeometry.userData = { ...geometry.userData };
+        if (geometry.userData.cuts) {
+          resultGeometry.userData.cuts = [...geometry.userData.cuts];
+        }
+      }
+      
+      // Créer les géométries de découpe pour chaque encoche
+      for (let i = 0; i < notches.length; i++) {
+        const notch = notches[i];
+        console.log(`    Creating notch ${i + 1}: X[${notch.xStart.toFixed(1)}, ${notch.xEnd.toFixed(1)}] Y[${notch.yStart.toFixed(1)}, ${notch.yEnd.toFixed(1)}]`);
+        
+        // IMPORTANT: Le profil est extrudé sur l'axe Z, donc:
+        // - La longueur du profil (xStart/xEnd en DSTV) correspond à Z en Three.js
+        // - La hauteur (yStart/yEnd) reste en Y
+        // - La largeur de la notch sera en X (perpendiculaire au profil)
+        //
+        // ⚠️ CONFUSION À ÉVITER:
+        // - En DSTV: X va de 0 à profileLength
+        // - En Three.js APRÈS centrage: Z va de -profileLength/2 à +profileLength/2
+        // - MAIS au moment d'appliquer les notches, vérifier si le profil est déjà centré ou non!
+        
+        // Dimensions de la notch
+        const notchLength = Math.abs(notch.xEnd - notch.xStart); // Longueur le long du profil (axe Z)
+        const notchHeight = Math.abs(notch.yEnd - notch.yStart); // Hauteur (axe Y)
+        // La notch doit traverser TOUTE la largeur du profil pour couper complètement
+        const notchWidth = profileWidth * 1.5; // Largeur perpendiculaire au profil (axe X) - 1.5x pour garantir la coupe complète
+        
+        // Créer la géométrie de la notch
+        // BoxGeometry(width, height, depth) correspond à (X, Y, Z)
+        const notchGeometry = new THREE.BoxGeometry(notchWidth, notchHeight, notchLength);
+        
+        const centerZ = (notch.xStart + notch.xEnd) / 2;
+        const centerY = (notch.yStart + notch.yEnd) / 2 - (dims.height || 0) / 2;
+        const centerX = 0;
+        
+        notchGeometry.translate(centerX, centerY, centerZ);
+        
+        console.log(`    📐 Notch ${i + 1} positioned at (X:${centerX.toFixed(1)}, Y:${centerY.toFixed(1)}, Z:${centerZ.toFixed(1)}) size ${notchWidth.toFixed(1)}x${notchHeight.toFixed(1)}x${notchLength.toFixed(1)}`);
+        
+        // Appliquer CSG
+        try {
+          const baseBrush = new Brush(resultGeometry);
+          const notchBrush = new Brush(notchGeometry);
+          
+          baseBrush.updateMatrixWorld();
+          notchBrush.updateMatrixWorld();
+          
+          const subtractedBrush = this.evaluator.evaluate(baseBrush, notchBrush, SUBTRACTION);
+          
+          resultGeometry.dispose();
+          resultGeometry = subtractedBrush.geometry.clone();
+          
+          console.log(`    ✅ Applied notch ${i + 1}/${notches.length} successfully`);
+        } catch (error) {
+          console.error(`    ❌ Failed to apply notch ${i + 1}:`, error);
+        }
+      }
+      
+      console.log(`  🎯 All ${notches.length} M1002 notches applied successfully`);
+      
+      // Ajouter les informations pour l'outline renderer
+      if (!resultGeometry.userData) {
+        resultGeometry.userData = {};
+      }
+      if (!resultGeometry.userData.cuts) {
+        resultGeometry.userData.cuts = [];
+      }
+      
+      // Ajouter un cut info pour chaque notch individuelle avec l'ID de la feature
+      // Cela permet d'avoir les outlines visibles pour chaque notch
+      for (let i = 0; i < notches.length; i++) {
+        const notch = notches[i];
+        const notchInfo = {
+          id: featureId ? `${featureId}_notch_${i + 1}` : `notch_${i + 1}_${Date.now()}`,
+          type: 'notch',
+          face: face || 'web',
+          bounds: {
+            minX: -dims.width / 2,
+            maxX: dims.width / 2,
+            minY: notch.yStart - (dims.height || 0) / 2,
+            maxY: notch.yEnd - (dims.height || 0) / 2,
+            minZ: notch.xStart,
+            maxZ: notch.xEnd
+          },
+          contourPoints: [
+            [notch.xStart, notch.yStart],
+            [notch.xEnd, notch.yStart],
+            [notch.xEnd, notch.yEnd],
+            [notch.xStart, notch.yEnd],
+            [notch.xStart, notch.yStart]
+          ],
+          depth: dims.width || 100
+        };
+        resultGeometry.userData.cuts.push(notchInfo);
+      }
+      
+      // Ajouter aussi l'info principale avec l'ID de la feature pour la sélection
+      if (featureId) {
+        const mainCutInfo = {
+          id: featureId,
+          type: 'cut',
+          face: face || 'web',
+          bounds: {
+            minX: -dims.width / 2,
+            maxX: dims.width / 2,
+            minY: points[0][1] - (dims.height || 0) / 2,
+            maxY: points[2][1] - (dims.height || 0) / 2,
+            minZ: points[0][0],
+            maxZ: points[1][0]
+          },
+          contourPoints: points,
+          depth: dims.width || 100
+        };
+        resultGeometry.userData.cuts.push(mainCutInfo);
+        console.log(`  📐 Added notch outlines for feature ${featureId}: ${notches.length} notches + main cut`);
+      }
       
       return {
         success: true,
@@ -612,15 +747,119 @@ export class NotchProcessor implements IFeatureProcessor {
       };
       
     } catch (error) {
-      console.error(`❌ Failed to create complex notches: ${error}`);
+      console.error(`  ❌ Failed to create complex notches:`, error);
       return {
         success: false,
-        error: `Failed to create complex notches: ${error}`
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
+  
+  /**
+   * Extrait les encoches individuelles du contour complexe (méthode adaptée du CutProcessor)
+   * Analyse dynamiquement les points pour identifier les encoches M1002
+   */
+  private extractNotchesFromContour(
+    contourPoints: Array<[number, number]>,
+    _dimensions: { width?: number; height?: number; length?: number }
+  ): Array<{xStart: number, xEnd: number, yStart: number, yEnd: number}> {
+    const notches: Array<{xStart: number, xEnd: number, yStart: number, yEnd: number}> = [];
+    
+    if (contourPoints.length !== 9) {
+      return notches; // Pas le bon pattern
+    }
+    
+    // Analyser les points DSTV pour M1002
+    // Trouver les coordonnées clés
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    
+    for (const [x, y] of contourPoints) {
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+    
+    // Pour M1002: il peut y avoir des notches au début ET/OU à la fin
+    // Analyser les deux extrémités
+    const sortedX = Array.from(new Set(contourPoints.map(p => p[0]))).sort((a, b) => a - b);
+    
+    // Vérifier s'il y a des notches à la FIN (droite)
+    const baseEndX = sortedX[sortedX.length - 2]; // Avant-dernière valeur X (1842.1)
+    const extensionX = maxX; // Dernière valeur X (1912.15)
+    
+    // Vérifier s'il y a des notches au DÉBUT (gauche) - à implémenter si nécessaire
+    
+    // Identifier les zones d'extension (où X = extensionX)
+    const extensionPoints = contourPoints.filter(([x, _y]) => Math.abs(x - extensionX) < 0.1);
+    const extensionYValues = extensionPoints.map(([_x, y]) => y).sort((a, b) => a - b);
+    
+    console.log(`  🔍 Extension analysis: baseX=${baseEndX}, extensionX=${extensionX}`);
+    console.log(`  🔍 Extension Y values:`, extensionYValues);
+    
+    // Pour M1002, les extensions sont aux extrémités Y
+    // Encoche haute: Y[0, 18.6] -> extension Y=18.6 mais pas à la base
+    // Encoche basse: Y[232.8, 251.4] -> extension Y=232.8 mais pas à la base
+    
+    if (extensionYValues.length >= 2) {
+      const topExtensionY = extensionYValues[0]; // 18.6
+      const bottomExtensionY = extensionYValues[extensionYValues.length - 1]; // 232.8
+      
+      // NOTCHES À LA FIN DU PROFIL (côté droit)
+      // Encoche haute: de Y=0 (minY) à Y=topExtensionY
+      if (topExtensionY > minY) {
+        notches.push({
+          xStart: baseEndX,
+          xEnd: extensionX,
+          yStart: minY,
+          yEnd: topExtensionY
+        });
+        console.log(`  📐 Detected TOP-END notch: X[${baseEndX.toFixed(1)}, ${extensionX.toFixed(1)}] Y[${minY.toFixed(1)}, ${topExtensionY.toFixed(1)}]`);
+      }
+      
+      // Encoche basse: de Y=bottomExtensionY à Y=maxY (251.4)
+      if (bottomExtensionY < maxY) {
+        notches.push({
+          xStart: baseEndX,
+          xEnd: extensionX,
+          yStart: bottomExtensionY,
+          yEnd: maxY
+        });
+        console.log(`  📐 Detected BOTTOM-END notch: X[${baseEndX.toFixed(1)}, ${extensionX.toFixed(1)}] Y[${bottomExtensionY.toFixed(1)}, ${maxY.toFixed(1)}]`);
+      }
+      
+      // NOTCHES AU DÉBUT DU PROFIL (côté gauche) - M1002 en a aussi !
+      // Vérifier s'il y a des extensions au début (X proche de 0)
+      const startExtensionPoints = contourPoints.filter(([x, _y]) => x < 100 && x > 0.1);
+      if (startExtensionPoints.length > 0) {
+        // Il y a des notches au début aussi
+        const startExtX = Math.max(...startExtensionPoints.map(p => p[0]));
+        if (topExtensionY > minY) {
+          notches.push({
+            xStart: 0,
+            xEnd: startExtX,
+            yStart: minY,
+            yEnd: topExtensionY
+          });
+          console.log(`  📐 Detected TOP-START notch: X[0, ${startExtX.toFixed(1)}] Y[${minY.toFixed(1)}, ${topExtensionY.toFixed(1)}]`);
+        }
+        if (bottomExtensionY < maxY) {
+          notches.push({
+            xStart: 0,
+            xEnd: startExtX,
+            yStart: bottomExtensionY,
+            yEnd: maxY
+          });
+          console.log(`  📐 Detected BOTTOM-START notch: X[0, ${startExtX.toFixed(1)}] Y[${bottomExtensionY.toFixed(1)}, ${maxY.toFixed(1)}]`);
+        }
+      }
+    }
+    
+    return notches;
+  }
 
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     
     // Validation basique

@@ -188,7 +188,7 @@ export class DSTVFeatureExtractionStage extends BaseStage {
   private simplifyContours(extracted: ExtractedFeatures) {
     extracted.organized.optimized.simplifiedContours = [];
     
-    for (const [key, contours] of extracted.organized.byType.contours) {
+    for (const contours of extracted.organized.byType.contours.values()) {
       for (const contour of contours) {
         const simplified = this.simplifyContour(contour);
         extracted.organized.optimized.simplifiedContours.push(simplified);

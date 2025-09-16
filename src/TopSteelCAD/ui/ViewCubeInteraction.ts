@@ -80,14 +80,14 @@ export class ViewCubeInteraction {
     }
   }
 
-  private handleMouseUp(event: MouseEvent): void {
+  private handleMouseUp(_event: MouseEvent): void {
     if (this.isDragging) {
       this.isDragging = false;
       this.container.style.cursor = 'default';
     }
   }
 
-  private handleMouseLeave(event: MouseEvent): void {
+  private handleMouseLeave(_event: MouseEvent): void {
     if (this.isDragging) {
       this.isDragging = false;
       this.container.style.cursor = 'default';
@@ -115,7 +115,7 @@ export class ViewCubeInteraction {
     }
   }
 
-  private handleDoubleClick(event: MouseEvent): void {
+  private handleDoubleClick(_event: MouseEvent): void {
     // Reset to home view on double click
     this.cameraController.setView('iso', this.options.animationDuration);
     this.options.onViewChange('iso');

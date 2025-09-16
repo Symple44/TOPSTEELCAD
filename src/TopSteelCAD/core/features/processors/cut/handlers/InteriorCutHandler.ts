@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature, ProfileFace } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType, CutCategory } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -137,7 +137,7 @@ export class InteriorCutHandler extends BaseCutHandler {
   private detectSpecificInteriorType(
     params: any,
     points: Array<[number, number]>,
-    element: PivotElement
+    _element: PivotElement
   ): string {
     // Type explicite
     if (params.interiorType) {

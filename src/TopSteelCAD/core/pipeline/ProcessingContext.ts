@@ -514,7 +514,7 @@ export class ProcessingContext implements IProcessingContext {
   /**
    * Notifie une erreur (hook pour extensions futures)
    */
-  private notifyError(error: string): void {
+  private notifyError(_error: string): void {
     // Hook pour notifications externes
     // Peut être étendu pour envoyer des événements, etc.
   }

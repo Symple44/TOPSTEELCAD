@@ -8,7 +8,6 @@ import {
   FormatPlugin,
   IPluginRegistry,
   PluginInfo,
-  SupportedFormat,
   ValidationResult
 } from '../types/EngineTypes';
 import { PluginError, PluginValidationError } from '../types/PluginTypes';

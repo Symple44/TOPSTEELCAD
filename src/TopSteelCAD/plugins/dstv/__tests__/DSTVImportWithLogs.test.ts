@@ -5,12 +5,12 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as fs from 'fs';
-import * as path from 'path';
+// path import removed - not used
 import { DSTVImportPipeline } from '../import/DSTVImportPipeline';
 
 // Désactiver les mocks Three.js pour ce test
 vi.unmock('three');
-import { MaterialType } from '@/types/viewer';
+// MaterialType import removed - not used
 
 // Récupérer le fichier depuis les arguments de la ligne de commande ou une variable d'environnement
 const TEST_FILE = process.env.DSTV_TEST_FILE || process.argv.find(arg => arg.endsWith('.nc') || arg.endsWith('.NC1'));

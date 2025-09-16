@@ -191,7 +191,7 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
     }
 
     // Format standard: nom du profil en position 6, type en position 7
-    let profileName = this.cleanField(input[6]);
+    const profileName = this.cleanField(input[6]);
     let profileTypeCode = input[7];
     let dimensionStart = 8;
 
@@ -254,7 +254,7 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
         data.height = data.thickness; // Pour une plaque, hauteur = épaisseur
         break;
         
-      case 'TUBE':
+      case 'TUBE': {
         // Format tube: longueur, hauteur, largeur, épaisseur1, épaisseur2
         data.length = this.parseNumber(input[startIdx], 0);
         data.height = this.parseNumber(input[startIdx + 1], 0);
@@ -265,6 +265,7 @@ export class STBlockParser extends BaseStage<string[], STBlockData> {
           data.wallThickness = wall2;
         }
         break;
+      }
         
       default:
         // Format standard pour I, U, L, etc.: longueur, hauteur, largeur, épaisseur âme, épaisseur aile

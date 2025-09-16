@@ -177,9 +177,6 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
    * Parse le format legacy avec indicateurs de face
    */
   private parseLegacyFormat(input: string[]): { points: Point2D[]; face: StandardFace | undefined } {
-    const points: Point2D[] = [];
-    let face: StandardFace | undefined = undefined;
-
     const format = this.detectAKDataFormat(input);
     
     if (format === 'MATRIX_7') {
@@ -728,7 +725,7 @@ export class AKBlockParser extends BaseStage<string[], AKBlockData> {
       );
       
       // Valider que les angles sont dans la plage DSTV acceptable
-      negativeAngles.forEach((angle, index) => {
+      negativeAngles.forEach((angle, _index) => {
         if (angle < -75 || angle > -15) {
           warnings.push(`Bevel angle ${angle.toFixed(1)}° is outside typical DSTV range [-75°, -15°]`);
         }

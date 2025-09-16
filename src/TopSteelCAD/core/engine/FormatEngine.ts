@@ -14,10 +14,7 @@ import {
   ExportResult,
   FormatInfo,
   FormatCapabilities,
-  SupportedFormat,
-  ValidationResult,
-  DetectionResult,
-  EngineEvents
+  SupportedFormat
 } from '../types/EngineTypes';
 import { PivotScene } from '../../../types/viewer';
 import { PluginRegistry } from './PluginRegistry';

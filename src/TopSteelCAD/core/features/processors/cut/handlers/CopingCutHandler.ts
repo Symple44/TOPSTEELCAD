@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, ProfileFace, ProfileType } from '../types/CoreTypes';
+import { Feature } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -128,13 +128,12 @@ export class CopingCutHandler extends BaseCutHandler {
    */
   createCutGeometry(feature: Feature, element: PivotElement): THREE.BufferGeometry {
     const params = feature.parameters as any;
-    const copingType = this.detectCopingType(params, element);
     
     console.log(`  🔧 Creating coping cut geometry:`);
-    console.log(`    Type: ${copingType}`);
+    console.log(`    Type: ${this.detectCopingType(params, element)}`);
     console.log(`    Connection angle: ${params.connectionAngle || 90}°`);
     
-    switch (copingType) {
+    switch (this.detectCopingType(params, element)) {
       case CopingType.BEAM_TO_BEAM:
         return this.createBeamToBeamCoping(params, element);
         

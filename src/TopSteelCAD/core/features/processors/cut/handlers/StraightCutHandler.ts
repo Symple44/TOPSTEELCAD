@@ -91,7 +91,6 @@ export class StraightCutHandler extends BaseCutHandler {
    */
   createCutGeometry(feature: Feature, element: PivotElement): THREE.BufferGeometry {
     const params = feature.parameters as any;
-    const dims = element.dimensions || {};
     
     console.log(`  📐 Creating straight cut geometry`);
     
@@ -142,7 +141,6 @@ export class StraightCutHandler extends BaseCutHandler {
    * Crée une coupe droite à partir de dimensions
    */
   private createFromDimensions(params: any, element: PivotElement): THREE.BufferGeometry {
-    const dims = element.dimensions || {};
     
     // Dimensions de la coupe
     const width = params.width || 100;
@@ -287,7 +285,6 @@ export class StraightCutHandler extends BaseCutHandler {
    * Détecte le type de coupe
    */
   protected detectCutType(feature: Feature): CutType {
-    const params = feature.parameters as any;
     
     if (feature.type === FeatureType.NOTCH) {
       return CutType.NOTCH_RECTANGULAR;

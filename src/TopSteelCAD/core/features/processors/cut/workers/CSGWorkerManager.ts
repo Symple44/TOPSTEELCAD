@@ -4,9 +4,9 @@
  */
 
 import * as THREE from 'three';
-import { CSGWorkerMessage, CSGWorkerResponse, CSG_WORKER_URL } from './CSGWorker';
+import { CSGWorkerMessage, CSG_WORKER_URL } from './CSGWorker';
 import { configManager } from '../config/ProductionConfig';
-import { performanceMonitor } from '../monitoring/PerformanceMonitor';
+// import { performanceMonitor } from '../monitoring/PerformanceMonitor';
 
 /**
  * Informations sur un worker dans le pool

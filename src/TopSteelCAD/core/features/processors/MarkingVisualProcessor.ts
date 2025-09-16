@@ -92,173 +92,215 @@ export class MarkingVisualProcessor {
     textMesh: THREE.Mesh,
     marking: MarkingData,
     element: PivotElement,
-    mesh: THREE.Mesh
+    _mesh: THREE.Mesh
   ): void {
     // IMPORTANT: Les coordonnées sont DÉJÀ converties par DSTVCoordinateAdapter
-    // Ne PAS refaire de conversion DSTV → Standard ici !
-    const dstvX = marking.position[0] || 0;  // Position X (déjà convertie)
-    const dstvY = marking.position[1] || 0;  // Position Y (déjà convertie, centrée pour profils I)
-    const dstvZ = marking.position[2] || 0;  // Position Z (déjà convertie)
+    // Les positions sont déjà dans le système Standard Three.js
+    const convertedX = marking.position[0] || 0;  // Position X déjà convertie
+    const convertedY = marking.position[1] || 0;  // Position Y déjà convertie (centrée pour profils I)
+    const convertedZ = marking.position[2] || 0;  // Position Z déjà convertie
     
     // Dimensions du profil
     const length = element.dimensions?.length || 0;
     const height = element.dimensions?.height || 0;
     const width = element.dimensions?.width || 0;
     const webThickness = element.dimensions?.webThickness || 8.6;
+    const flangeThickness = element.dimensions?.flangeThickness || 14.2;
     
     let x = 0, y = 0, z = 0;
     
     // Log pour débogage
     console.log(`   📐 Element type detection - materialType: ${element.materialType}, type: ${element.type}, dims.profileType: ${(element.dimensions as any)?.profileType}`);
+    console.log(`   📐 Converted positions: X=${convertedX}, Y=${convertedY}, Z=${convertedZ}`);
     
     // Pour les profils BEAM (I/H)
     if (element.materialType === 'beam') {
-      // Interprétation selon la face
-      if (marking.face === 'web' || marking.face === 'v') {
+      // Les coordonnées sont déjà converties : Z est le long du profil, X latéral, Y vertical
+      z = convertedZ;  // Position le long du profil (déjà convertie de DSTV X)
+      
+      // Normaliser la face
+      const normalizedFace = marking.face === 'v' ? 'web' : 
+                           marking.face === 'o' ? 'top_flange' : 
+                           marking.face === 'u' ? 'bottom_flange' : 
+                           marking.face || 'web';
+      
+      if (normalizedFace === 'web') {
         // Sur l'âme (face verticale centrale du profil I)
-        // Le texte doit être centré sur l'âme
-        z = dstvX;  // Position le long du profil
-        x = webThickness / 2 + 0.1;  // Sur la face extérieure de l'âme
-        // La conversion DSTV → Standard a déjà été faite par DSTVCoordinateAdapter
-        // Utiliser directement la position Y convertie
-        y = dstvY;  // Position Y déjà convertie
+        // Ajuster la position X pour être sur la surface de l'âme
+        const offset = 1.0; // Décalage pour garantir la visibilité
         
-        console.log(`   📍 WEB marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        // Vérifier si la position X est valide, sinon la corriger
+        if (Math.abs(convertedX) < webThickness / 2) {
+          // Position dans l'épaisseur de l'âme, la décaler sur la face externe
+          x = (convertedX >= 0 ? webThickness / 2 : -webThickness / 2) + offset;
+        } else {
+          x = convertedX + (convertedX >= 0 ? offset : -offset);
+        }
+        
+        y = convertedY;  // Position Y déjà convertie et centrée
+        
+        console.log(`   📍 WEB marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
       }
-      else if (marking.face === 'o' || marking.face === 'top_flange') {
-        // Sur l'aile supérieure:
-        // DSTV X = position le long du profil (depuis le début)
-        // DSTV Y = position latérale sur l'aile (0 = centre de l'âme)
-        z = dstvX;  // Position directe le long du profil en Z (point de départ du texte)
+      else if (normalizedFace === 'top_flange') {
+        // Sur l'aile supérieure
+        x = convertedX;  // Position latérale déjà convertie
         
-        // Position latérale : DSTV Y est depuis le centre
-        // Pour être sur l'aile, on ajoute l'épaisseur de l'âme/2 si Y est proche de 0
-        if (Math.abs(dstvY) < webThickness / 2) {
-          // Si Y est dans l'âme, on le place juste sur l'aile
-          x = (dstvY >= 0 ? webThickness / 2 : -webThickness / 2) + dstvY;
-        } else {
-          // Sinon on utilise directement la coordonnée Y
-          x = dstvY;
-        }
+        // Garantir que le texte est visible sur la surface supérieure
+        const surfaceY = height / 2 - flangeThickness / 2;  // Centre de l'aile supérieure
+        const offset = flangeThickness / 2 + 1.0;  // Au-dessus de la surface
+        y = surfaceY + offset;
         
-        y = height / 2 + 0.1;  // Sur le dessus de l'aile supérieure (légèrement au-dessus)
-        
-        console.log(`   📍 TOP FLANGE marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        console.log(`   📍 TOP FLANGE marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
       } 
-      else if (marking.face === 'u' || marking.face === 'bottom_flange') {
-        // Sur l'aile inférieure:
-        // DSTV X = position le long du profil (depuis le début)
-        // DSTV Y = position latérale sur l'aile (0 = centre de l'âme)
-        z = dstvX;  // Position directe le long du profil en Z (point de départ du texte)
+      else if (normalizedFace === 'bottom_flange') {
+        // Sur l'aile inférieure
+        x = convertedX;  // Position latérale déjà convertie
         
-        // Position latérale : même logique que l'aile supérieure
-        if (Math.abs(dstvY) < webThickness / 2) {
-          x = (dstvY >= 0 ? webThickness / 2 : -webThickness / 2) + dstvY;
-        } else {
-          x = dstvY;
-        }
+        // Garantir que le texte est visible sur la surface inférieure
+        const surfaceY = -height / 2 + flangeThickness / 2;  // Centre de l'aile inférieure
+        const offset = flangeThickness / 2 + 1.0;  // En-dessous de la surface
+        y = surfaceY - offset;
         
-        y = -height / 2 - 0.1;  // Sur le dessous de l'aile inférieure (légèrement en dessous)
-        
-        console.log(`   📍 BOTTOM FLANGE marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        console.log(`   📍 BOTTOM FLANGE marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
       }
       else {
-        // Face non reconnue, utiliser les valeurs par défaut
-        z = dstvX;
-        x = 0;
-        y = dstvY;
-        console.log(`   📍 DEFAULT marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        // Face non reconnue, placer sur l'âme par défaut
+        const offset = webThickness / 2 + 1.0;
+        x = offset;
+        y = convertedY;
+        z = convertedZ;
+        console.log(`   📍 DEFAULT marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
       }
       
-      console.log(`   📍 Face: ${marking.face || 'web'}, Dimensions: L=${length}, H=${height}, W=${width}`);
+      console.log(`   📍 Face: ${normalizedFace}, Dimensions: L=${length}, H=${height}, W=${width}`);
     }
     // Pour les plaques
     else if (element.materialType === 'plate' || element.materialType === 'sheet') {
       const thickness = element.dimensions?.thickness || 15;
       
-      // Position sur la plaque (DSTV utilise le système direct)
-      x = dstvX;
-      z = dstvY;
-      y = thickness / 2 + 0.1;  // Sur la surface supérieure
+      // Les coordonnées sont déjà converties correctement
+      x = convertedX;
+      z = convertedZ;
       
-      console.log(`   📍 PLATE marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+      // Garantir que le texte est visible sur la surface supérieure
+      const offset = 1.0;  // Décalage au-dessus de la surface
+      y = thickness / 2 + offset;
+      
+      console.log(`   📍 PLATE marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
     }
     // Pour les tubes rectangulaires
     else if (element.materialType === 'tube') {
-      // Pour les tubes rectangulaires, interpréter selon la face
-      if (marking.face === 'v' || marking.face === 'top_flange' || marking.face === 'top') {
+      // Les coordonnées sont déjà converties
+      z = convertedZ;  // Position le long du tube
+      
+      // Normaliser la face
+      const normalizedFace = marking.face === 'v' ? 'top' :
+                           marking.face === 'u' ? 'bottom' :
+                           marking.face === 'o' ? 'front' :
+                           marking.face || 'side';
+      
+      const wallThickness = element.dimensions?.wallThickness || 5;
+      const offset = wallThickness + 1.0;  // Décalage pour visibilité
+      
+      if (normalizedFace === 'top') {
         // Sur la face supérieure du tube
-        z = dstvX;  // Position le long du tube (depuis le début)
-        x = dstvY;  // Position directe en X
-        y = height + 0.1;  // Sur le dessus du tube (tube va de 0 à height)
+        x = convertedX;
+        // Garantir la visibilité sur le dessus
+        y = height / 2 + offset;
         
-        console.log(`   📍 TUBE TOP marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        console.log(`   📍 TUBE TOP marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
       }
-      else if (marking.face === 'u' || marking.face === 'bottom_flange' || marking.face === 'bottom') {
+      else if (normalizedFace === 'bottom') {
         // Sur la face inférieure du tube
-        z = dstvX;  // Position le long du tube
-        x = dstvY;  // Position directe en X
-        y = -0.1;  // Sous le tube (le bas du tube est à Y=0)
+        x = convertedX;
+        // Garantir la visibilité en dessous
+        y = -height / 2 - offset;
         
-        console.log(`   📍 TUBE BOTTOM marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        console.log(`   📍 TUBE BOTTOM marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
       }
       else {
         // Sur la face latérale (défaut)
-        z = dstvX;  // Position le long du tube
-        // Pour un tube positionné avec le bas à Y=0, dstvY est directement la position Y
-        y = dstvY;  // Position directe en Y (depuis le bas du tube à Y=0)
-        x = width / 2 + 0.1;  // Sur le côté droit du tube
+        // Garantir la visibilité sur le côté
+        x = width / 2 + offset;
+        y = convertedY;
         
-        console.log(`   📍 TUBE SIDE marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+        console.log(`   📍 TUBE SIDE marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
       }
     }
     // Pour les cornières (profils L)
     else if (element.materialType === 'angle' || (element as any).profileType === 'L_PROFILE' || 
              (element.dimensions as any)?.profileType === 'L_PROFILE' || element.type === 'L_PROFILE') {
-      // Les cornières sont maintenant extrudées le long de Z comme les autres profils
-      // Profil L dans le plan XY, extrusion le long de Z
+      // Les coordonnées sont déjà converties
+      z = convertedZ;  // Position le long de la cornière
       
-      z = dstvX;  // Position le long de la cornière
+      const legThickness = element.dimensions?.legThickness || 10;
+      const offset = legThickness / 2 + 1.0;  // Décalage pour visibilité
       
-      if (marking.face === 'web' || marking.face === 'v') {
-        // Face extérieure de l'aile verticale (X=0 pour le profil L)
-        // Le texte doit être collé à la surface
-        x = 0;        // Directement sur la face à X=0
-        y = dstvY;    // Position Y depuis le DSTV
-      } else if (marking.face === 'h' || marking.face === 'front') {
-        // Face avant de l'aile horizontale  
-        x = dstvY;    // Position sur l'aile horizontale
-        y = 0.1;      // Légèrement au-dessus de l'aile horizontale
+      // Normaliser la face
+      const normalizedFace = marking.face === 'v' ? 'vertical' :
+                           marking.face === 'h' ? 'horizontal' :
+                           marking.face || 'vertical';
+      
+      if (normalizedFace === 'vertical') {
+        // Face extérieure de l'aile verticale
+        // Garantir la visibilité sur la face externe
+        x = -offset;  // Décalage négatif pour être à l'extérieur
+        y = convertedY;
+      } else if (normalizedFace === 'horizontal') {
+        // Face supérieure de l'aile horizontale
+        x = convertedX;
+        y = offset;  // Au-dessus de l'aile horizontale
       } else {
         // Par défaut sur l'aile verticale
-        x = 0.1;
-        y = dstvY;
+        x = -offset;
+        y = convertedY;
       }
       
-      console.log(`   📍 L-PROFILE marking: DSTV[${dstvX}, ${dstvY}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+      console.log(`   📍 L-PROFILE marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
     }
     // Pour tous les autres types de profils non gérés spécifiquement
     else {
-      // Utiliser les coordonnées depuis marking.position
-      z = dstvX;  // Position le long du profil
-      x = dstvY;  // Position latérale
-      y = 0.1;    // Légèrement devant la surface
+      // Utiliser les coordonnées converties directement
+      z = convertedZ;
+      x = convertedX;
+      y = convertedY;
       
-      console.log(`   📍 DEFAULT marking: DSTV[${dstvX}, ${dstvY}, ${dstvZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+      // Ajouter un petit décalage pour garantir la visibilité
+      const defaultOffset = 1.0;
+      if (Math.abs(y) < defaultOffset) {
+        y = defaultOffset;  // Décaler vers le haut si trop proche du centre
+      }
+      
+      console.log(`   📍 DEFAULT marking: Converted[${convertedX}, ${convertedY}, ${convertedZ}] -> Three.js[${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
     }
     
-    // Appliquer la position (point de départ DSTV = coin inférieur gauche)
+    // Appliquer les offsets de centrage si présents
+    if (marking.centerOffset) {
+      console.log(`   🔄 Applying centerOffset:`, marking.centerOffset);
+      // Les offsets sont appliqués dans le plan XY avant positionnement
+      x -= marking.centerOffset.x || 0;
+      y -= marking.centerOffset.y || 0;
+    }
+    
+    // Appliquer la position finale
     textMesh.position.set(x, y, z);
     
     // Appliquer la rotation selon la face
     this.applyMarkingRotation(textMesh, marking, element);
     
-    // Décaler le texte pour que le point DSTV soit le début du texte, pas le centre
-    // Le décalage dépend de la rotation appliquée
-    const textWidth = (marking.size || 10) * (marking.text?.length || 1) * 0.7;
+    // Ajuster l'alignement du texte pour qu'il commence au point DSTV
+    // Plutôt que d'être centré sur ce point
+    const textWidth = (marking.size || 10) * (marking.text?.length || 1) * 0.35;
     
-    // Le point DSTV est le point de départ du texte, pas son centre
-    // Pas de décalage nécessaire - le texte commence à la position DSTV
+    // Décaler le mesh de la moitié de sa largeur selon sa rotation
+    // pour que le texte commence au point DSTV au lieu d'être centré
+    if (Math.abs(textMesh.rotation.y - Math.PI / 2) < 0.1) {
+      // Texte aligné le long de Z, décaler en Z
+      textMesh.position.z += textWidth;
+    } else {
+      // Texte aligné le long de X, décaler en X
+      textMesh.position.x += textWidth;
+    }
   }
 
   /**
@@ -272,7 +314,8 @@ export class MarkingVisualProcessor {
     console.log(`   🔄 Checking marking rotation:`, {
       hasRotation: !!marking.rotation,
       isArray: Array.isArray(marking.rotation),
-      rotation: marking.rotation
+      rotation: marking.rotation,
+      angle: marking.angle
     });
     
     // Si une rotation est fournie explicitement, l'utiliser directement
@@ -287,27 +330,33 @@ export class MarkingVisualProcessor {
     
     const markingAngle = marking.angle || 0;
     
+    // Normaliser la face pour un traitement uniforme
+    const normalizedFace = marking.face === 'v' ? 'web' : 
+                         marking.face === 'o' ? 'top_flange' : 
+                         marking.face === 'u' ? 'bottom_flange' : 
+                         marking.face || 'web';
+    
     if (element.materialType === 'beam') {
-      if (marking.face === 'v' || marking.face === 'top_flange') {
+      if (normalizedFace === 'web') {
+        // Sur l'âme - rotation pour faire face à X+
+        textMesh.rotation.y = Math.PI / 2;
+        if (markingAngle !== 0) {
+          textMesh.rotation.z = (markingAngle * Math.PI) / 180;
+        }
+      } else if (normalizedFace === 'top_flange') {
         // Sur l'aile supérieure - le texte doit être aligné le long de la poutre
         // Rotation de 90° autour de Y pour aligner avec l'axe Z (longueur de la poutre)
         textMesh.rotation.y = Math.PI / 2;
+        textMesh.rotation.x = -Math.PI / 2;  // Plaquer sur la surface horizontale
         // Rotation additionnelle si spécifiée dans le marquage
         if (markingAngle !== 0) {
           textMesh.rotation.z = (markingAngle * Math.PI) / 180;
         }
-      } else if (marking.face === 'u' || marking.face === 'bottom_flange') {
+      } else if (normalizedFace === 'bottom_flange') {
         // Sur l'aile inférieure - aligné le long de la poutre et retourné
         // Rotation de 90° autour de Y pour aligner avec l'axe Z
         textMesh.rotation.y = Math.PI / 2;
-        // Rotation de 180° autour de X pour être visible du dessous
-        textMesh.rotation.x = Math.PI;
-        if (markingAngle !== 0) {
-          textMesh.rotation.z = (markingAngle * Math.PI) / 180;
-        }
-      } else if (marking.face === 'web' || marking.face === 'o' || !marking.face) {
-        // Sur l'âme - rotation pour faire face à X+
-        textMesh.rotation.y = Math.PI / 2;
+        textMesh.rotation.x = Math.PI / 2;  // Plaquer sur la surface horizontale, visible du dessous
         if (markingAngle !== 0) {
           textMesh.rotation.z = (markingAngle * Math.PI) / 180;
         }
@@ -319,8 +368,12 @@ export class MarkingVisualProcessor {
         textMesh.rotation.z = (markingAngle * Math.PI) / 180;
       }
     } else if (element.materialType === 'tube') {
-      // Sur un tube rectangulaire
-      if (marking.face === 'v' || marking.face === 'top_flange') {
+      // Normaliser la face
+      const tubeFace = marking.face === 'v' ? 'top' :
+                      marking.face === 'u' ? 'bottom' :
+                      marking.face || 'side';
+      
+      if (tubeFace === 'top') {
         // Sur la face supérieure du tube - texte plaqué sur la surface
         // Rotation Y pour aligner le texte avec l'axe Z (longueur du tube)
         textMesh.rotation.y = Math.PI / 2;
@@ -330,17 +383,15 @@ export class MarkingVisualProcessor {
           // Rotation additionnelle spécifiée dans le DSTV
           textMesh.rotation.z = (markingAngle * Math.PI) / 180;
         }
-      } else if (marking.face === 'u' || marking.face === 'bottom_flange') {
+      } else if (tubeFace === 'bottom') {
         // Sur la face inférieure du tube - texte plaqué sur la surface
         // Rotation Y pour aligner le texte avec l'axe Z (longueur du tube)
         textMesh.rotation.y = Math.PI / 2;
         // Rotation X pour plaquer le texte horizontalement sous le tube
-        textMesh.rotation.x = -Math.PI / 2;
-        // Rotation Z de 180° pour retourner le texte (visible du dessous)
-        textMesh.rotation.z = Math.PI;
+        textMesh.rotation.x = Math.PI / 2;
         if (markingAngle !== 0) {
           // Rotation additionnelle spécifiée dans le DSTV
-          textMesh.rotation.z += (markingAngle * Math.PI) / 180;
+          textMesh.rotation.z = (markingAngle * Math.PI) / 180;
         }
       } else {
         // Sur les faces verticales (côtés) - texte plaqué contre la face

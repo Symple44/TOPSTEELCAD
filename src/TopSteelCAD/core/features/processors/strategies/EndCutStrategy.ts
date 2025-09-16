@@ -4,6 +4,7 @@
  */
 
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PivotElement } from '@/types/viewer';
 import { Feature, ProfileFace } from '../../types';
 import { ExteriorCutStrategy } from './ExteriorCutStrategy';
@@ -138,7 +139,6 @@ export class EndCutStrategy extends ExteriorCutStrategy {
     } else {
       // Fusionner les coupes avec BufferGeometryUtils
       try {
-        const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils.js');
         return BufferGeometryUtils.mergeGeometries(geometries, false);
       } catch (error) {
         // Fallback: retourner la première géométrie

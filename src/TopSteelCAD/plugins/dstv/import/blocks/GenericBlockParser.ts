@@ -3,7 +3,7 @@
  * Utilisé pour les blocs moins courants
  */
 
-import { BaseBlockParser } from './BaseBlockParser';
+// BaseBlockParser import removed - not used
 import { DSTVToken as LexicalDSTVToken } from '../stages/DSTVLexicalStage';
 import { DSTVToken, DSTVTokenType, DSTVBlockType } from '../types/dstv-types';
 import { IBlockParser, ValidationResult, ParserConfig } from './interfaces/IBlockParser';
@@ -34,7 +34,7 @@ export class GenericBlockParser implements IBlockParser<GenericBlockData> {
   /**
    * Parse depuis des données brutes (interface IBlockParser)
    */
-  async parse(rawData: string[] | DSTVToken[] | LexicalDSTVToken[], context?: ProcessingContext): Promise<GenericBlockData> {
+  async parse(rawData: string[] | DSTVToken[] | LexicalDSTVToken[], _context?: ProcessingContext): Promise<GenericBlockData> {
     // Si on reçoit des strings, les convertir en tokens
     const tokens = this.isTokenArray(rawData) 
       ? rawData as DSTVToken[]

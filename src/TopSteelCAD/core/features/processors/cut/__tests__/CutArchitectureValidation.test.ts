@@ -10,7 +10,6 @@ import {
   getCutHandlerFactory,
   getCutProcessorAdapter,
   AdapterMode,
-  CutType,
   cutLogger,
   LogLevel,
   initializeCutSystem,

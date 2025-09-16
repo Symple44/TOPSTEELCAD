@@ -3,9 +3,9 @@
  * Analyse la géométrie et les paramètres pour identifier le type de coupe approprié
  */
 
-import { Feature, FeatureType, ProfileFace } from '../../../types';
+import { Feature } from '../../../types';
 import { PivotElement } from '@/types/viewer';
-import { CutType, CutParameters, ProfileType, DSTVFace } from '../types/CutTypes';
+import { CutType, CutParameters, ProfileType } from '../types/CutTypes';
 
 /**
  * Classe pour détecter automatiquement le type de coupe
@@ -30,27 +30,27 @@ export class CutTypeDetector {
     const params = feature.parameters as CutParameters;
     
     // 1. Vérifications prioritaires basées sur les paramètres explicites
-    if (feature.type === FeatureType.END_CUT || params.cutType === 'end_cut') {
+    if (params.cutType === 'end_cut') {
       return this.detectEndCutType(params, element);
     }
     
-    if (feature.type === FeatureType.BEVEL) {
+    if (params.cutType === 'bevel') {
       return CutType.BEVEL_CUT;
     }
     
-    if (feature.type === FeatureType.CHAMFER) {
+    if (params.cutType === 'chamfer') {
       return CutType.CHAMFER_CUT;
     }
     
-    if (feature.type === FeatureType.SLOT) {
+    if (params.cutType === 'slot') {
       return CutType.SLOT_CUT;
     }
     
-    if (feature.type === FeatureType.COPING) {
+    if (params.cutType === 'coping') {
       return CutType.COPING_CUT;
     }
     
-    if (feature.type === FeatureType.NOTCH || params.cutType === 'notch') {
+    if (params.cutType === 'notch') {
       return this.detectNotchType(params, element);
     }
     
@@ -75,7 +75,7 @@ export class CutTypeDetector {
   /**
    * Détecte le sous-type de coupe d'extrémité
    */
-  private detectEndCutType(params: CutParameters, element: PivotElement): CutType {
+  private detectEndCutType(params: CutParameters, _element: PivotElement): CutType {
     // Angle de coupe défini
     if (params.angle && params.angle !== 90) {
       if (params.chamferSize) {
@@ -125,7 +125,6 @@ export class CutTypeDetector {
    */
   private detectFromContour(params: CutParameters, element: PivotElement): CutType {
     const points = params.points!;
-    const bounds = this.calculateBounds(points);
     const dims = element.dimensions || {};
     
     // Détection de bevel cut (coupe biseautée)
@@ -139,6 +138,7 @@ export class CutTypeDetector {
     }
     
     // Détection selon la position relative
+    const bounds = this.calculateBounds(points);
     if (this.isExteriorCut(bounds, dims)) {
       return CutType.EXTERIOR_CUT;
     }
@@ -377,8 +377,8 @@ export class CutTypeDetector {
    */
   private getProfileThickness(element: PivotElement): number {
     const dims = element.dimensions || {};
-    const profileType = element.metadata?.profileType as ProfileType;
     
+    const profileType = this.getProfileType(element);
     switch (profileType) {
       case ProfileType.PLATE:
         return dims.thickness || 10;

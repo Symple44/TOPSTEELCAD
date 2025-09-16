@@ -11,9 +11,6 @@ import * as THREE from 'three';
 import { PivotElement } from '@/types/viewer';
 import { Feature, ProfileFace } from '../../types';
 import { ExteriorCutStrategy } from './ExteriorCutStrategy';
-import { CutType } from '../CutCategoryDetector';
-import { dstvFaceMapper, ProfileType } from '@/TopSteelCAD/plugins/dstv/coordinates/DSTVFaceMapper';
-import { faceProfileValidator } from '@/TopSteelCAD/plugins/dstv/coordinates/FaceProfileValidator';
 
 /**
  * Paramètres spécifiques aux bevel cuts
@@ -163,10 +160,15 @@ export class BevelCutStrategy extends ExteriorCutStrategy {
     const dims = element.dimensions || {};
     const profileLength = dims.length || 1000;
     const profileHeight = dims.height || 50;
-    const profileWidth = dims.width || 50;
     const wallThickness = dims.thickness || 5;
     
-    const bounds = this.getContourBounds(points);
+    // Calculer les bounds à partir des points
+    const bounds = {
+      minX: Math.min(...points.map(p => p[0])),
+      maxX: Math.max(...points.map(p => p[0])),
+      minY: Math.min(...points.map(p => p[1])),
+      maxY: Math.max(...points.map(p => p[1]))
+    };
     
     // Calculer la profondeur du chanfrein basée sur l'angle
     const angleRad = (bevelParams.bevelAngle * Math.PI) / 180;
@@ -232,8 +234,6 @@ export class BevelCutStrategy extends ExteriorCutStrategy {
     const profileHeight = dims.height || 300;
     const flangeThickness = dims.flangeThickness || 10;
     const webThickness = dims.webThickness || 8;
-    
-    const bounds = this.getContourBounds(points);
     
     // Calculer la profondeur du chanfrein
     const angleRad = (bevelParams.bevelAngle * Math.PI) / 180;
@@ -339,17 +339,19 @@ export class BevelCutStrategy extends ExteriorCutStrategy {
     const flangeThickness = dims.flangeThickness || 10;
     
     switch (face) {
-      case ProfileFace.TOP_FLANGE:
+      case ProfileFace.TOP_FLANGE: {
         // Positionner sur l'aile supérieure
         const topY = (profileHeight / 2) - (flangeThickness / 2);
         geometry.translate(0, topY, 0);
         break;
+      }
         
-      case ProfileFace.BOTTOM_FLANGE:
+      case ProfileFace.BOTTOM_FLANGE: {
         // Positionner sur l'aile inférieure
         const bottomY = -(profileHeight / 2) + (flangeThickness / 2);
         geometry.translate(0, bottomY, 0);
         break;
+      }
         
       case ProfileFace.WEB:
       default:

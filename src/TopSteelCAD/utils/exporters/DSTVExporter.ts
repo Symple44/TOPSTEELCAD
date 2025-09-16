@@ -2,7 +2,7 @@ import { PivotElement, PivotScene } from '@/types/viewer';
 import { ExportOptions, ExportResult } from '../FileExporter';
 import { ProfileDatabase } from '../../3DLibrary/database/ProfileDatabase';
 import { ProfileFace } from '../../core/features/types';
-import { DSTVPlugin } from '../../plugins/dstv/DSTVPlugin';
+// import { DSTVPlugin } from '../../plugins/dstv/DSTVPlugin';
 import { DSTVExportPipeline } from '../../plugins/dstv/export/DSTVExportPipeline';
 
 /**
@@ -124,14 +124,14 @@ export class DSTVExporter {
   ): Promise<ExportResult> {
     try {
       // Créer le plugin et le pipeline
-      const plugin = new DSTVPlugin({
-        strictMode: false,
-        enableDebugLogs: false,
-        enableAdvancedHoles: options.includeFeatures !== false,
-        enableWeldingPreparation: options.includeFeatures !== false,
-        enablePlaneDefinition: options.includeFeatures !== false,
-        enableBendingSupport: options.includeFeatures !== false
-      });
+      // const plugin = new DSTVPlugin({
+      //   strictMode: false,
+      //   enableDebugLogs: false,
+      //   enableAdvancedHoles: options.includeFeatures !== false,
+      //   enableWeldingPreparation: options.includeFeatures !== false,
+      //   enablePlaneDefinition: options.includeFeatures !== false,
+      //   enableBendingSupport: options.includeFeatures !== false
+      // });
       
       // Create the pipeline directly instead of through the plugin interface
       const pipeline = new DSTVExportPipeline({
@@ -144,11 +144,11 @@ export class DSTVExporter {
       });
       
       // Créer une scène depuis les éléments
-      const scene: PivotScene = {
-        id: 'export-scene',
-        name: fileName,
-        elements: new Map(elements.map(el => [el.id, el]))
-      };
+      // const scene: PivotScene = {
+      //   id: 'export-scene',
+      //   name: fileName,
+      //   elements: new Map(elements.map(el => [el.id, el]))
+      // };
       
       // Charger JSZip
       const JSZip = await import('jszip').then(m => m.default);

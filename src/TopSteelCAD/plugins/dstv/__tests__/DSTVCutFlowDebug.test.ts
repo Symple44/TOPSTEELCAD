@@ -5,7 +5,7 @@
 import { describe, test, expect } from 'vitest';
 import { DSTVPlugin } from '../DSTVPlugin';
 import { FeatureProcessorFactory } from '../../../core/features/processors/FeatureProcessorFactory';
-import { FeatureType } from '../../../core/features/types';
+// FeatureType import removed - not used
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -77,7 +77,7 @@ describe('DSTV Cut Flow Debug - H5004', () => {
     let cutFeaturesRouted = 0;
     let cutFeaturesValidated = 0;
     
-    for (const [elementId, element] of elementsMap) {
+    for (const [, element] of elementsMap) {
       console.log(`\n🔸 Element: ${element.id} (${element.type})`);
       console.log(`  📋 Features: ${element.features?.length || 0}`);
       

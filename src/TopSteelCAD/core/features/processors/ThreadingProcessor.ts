@@ -32,15 +32,12 @@ export class ThreadingProcessor implements IFeatureProcessor {
       const diameter = feature.parameters.diameter || 20;
       const depth = feature.parameters.depth || element.dimensions.thickness || 10;
       const pitch = feature.parameters.pitch || 2.5; // Pas du filetage
-      const threadType = feature.parameters.threadType || 'metric'; // metric, imperial, etc.
-      const position = feature.parameters.position || [0, 0, 0];
       const face = feature.parameters.face || ProfileFace.TOP;
       
       console.log(`  📐 Thread parameters:`);
       console.log(`    - Diameter: ${diameter}mm`);
       console.log(`    - Depth: ${depth}mm`);
       console.log(`    - Pitch: ${pitch}mm`);
-      console.log(`    - Type: ${threadType}`);
       console.log(`    - Face: ${face}`);
       
       // Créer la géométrie du trou fileté
@@ -153,7 +150,6 @@ export class ThreadingProcessor implements IFeatureProcessor {
   ): { x: number; y: number; z: number } {
     const length = element.dimensions.length || 0;
     const width = element.dimensions.width || 0;
-    const height = element.dimensions.height || 0;
     
     // Conversion basique DSTV -> Three.js
     // DSTV: origine au coin, Three.js: origine au centre
@@ -196,7 +192,7 @@ export class ThreadingProcessor implements IFeatureProcessor {
     }
   }
 
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     
     // Validation basique

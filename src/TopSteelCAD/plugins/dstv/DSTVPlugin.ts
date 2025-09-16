@@ -441,7 +441,7 @@ export class DSTVPlugin extends BaseFormatPlugin {
   /**
    * Met à jour les stats de validation
    */
-  private updateValidationStats(isValid: boolean, duration: number): void {
+  private updateValidationStats(isValid: boolean, _duration: number): void {
     // Stats basiques pour monitoring
     if (!isValid) {
       this.stats.errorCount++;

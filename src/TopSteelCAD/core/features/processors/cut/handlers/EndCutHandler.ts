@@ -89,8 +89,6 @@ export class EndCutHandler extends BaseCutHandler {
    */
   createCutGeometry(feature: Feature, element: PivotElement): THREE.BufferGeometry {
     const params = feature.parameters as any;
-    const dims = element.dimensions || {};
-    const profileLength = dims.length || 1000;
     
     // Déterminer le type spécifique de coupe d'extrémité
     const cutType = this.detectCutType(feature);

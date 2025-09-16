@@ -299,7 +299,6 @@ export class UnrestrictedContourProcessor implements IFeatureProcessor {
   ): { x: number; y: number; z: number } {
     const length = element.dimensions.length || 0;
     const width = element.dimensions.width || 0;
-    const height = element.dimensions.height || 0;
     
     // Conversion basique DSTV -> Three.js
     return {
@@ -341,7 +340,7 @@ export class UnrestrictedContourProcessor implements IFeatureProcessor {
     }
   }
 
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     
     // Validation basique

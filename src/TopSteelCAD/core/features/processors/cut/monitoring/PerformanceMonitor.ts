@@ -3,7 +3,7 @@
  * Collecte et analyse les métriques de performance en temps réel
  */
 
-import { Feature, FeatureType } from '../types/CoreTypes';
+import { Feature } from '../types/CoreTypes';
 import { CutType } from '../types/CutTypes';
 import { ICutHandler } from '../types/ICutHandler';
 

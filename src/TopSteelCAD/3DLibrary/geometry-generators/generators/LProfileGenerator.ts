@@ -126,15 +126,13 @@ export class LProfileGenerator extends BaseProfileGenerator {
     rootRadius: number;
     toeRadius: number;
   }): Shape {
-    const { height, width, thickness, rootRadius, toeRadius } = params;
+    const { height, width, thickness } = params;
     
     const shape = new Shape();
     
     const h = height;
     const w = width;
     const t = thickness;
-    const r1 = rootRadius;
-    const r2 = toeRadius;
     
     // Dessiner la cornière dans le plan YZ
     // L'origine est au coin intérieur de la cornière

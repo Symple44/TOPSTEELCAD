@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature, ProfileFace } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType, CutCategory } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -103,7 +103,6 @@ export class TransverseCutHandler extends BaseCutHandler {
    */
   createCutGeometry(feature: Feature, element: PivotElement): THREE.BufferGeometry {
     const params = feature.parameters as any;
-    const dims = element.dimensions || {};
     
     console.log(`  ⊥ Creating transverse cut geometry:`);
     console.log(`    Position: ${params.position || 'center'}`);
@@ -151,7 +150,7 @@ export class TransverseCutHandler extends BaseCutHandler {
     const position = this.calculateTransversePosition(params, dims);
     
     // Créer la géométrie de base
-    let geometry = new THREE.BoxGeometry(width, height, depth);
+    const geometry = new THREE.BoxGeometry(width, height, depth);
     
     // Appliquer l'angle si nécessaire
     if (params.angle && Math.abs(params.angle) > 0.1) {
@@ -208,7 +207,6 @@ export class TransverseCutHandler extends BaseCutHandler {
    */
   private adjustForFace(geometry: THREE.BufferGeometry, face: ProfileFace, element: PivotElement): void {
     const dims = element.dimensions || {};
-    const matrix = new THREE.Matrix4();
     
     switch (face) {
       case ProfileFace.TOP_FLANGE:

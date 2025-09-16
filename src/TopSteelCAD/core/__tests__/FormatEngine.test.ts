@@ -33,7 +33,7 @@ class MockDSTVPlugin extends BaseFormatPlugin {
       readonly name = 'mock-parse';
       readonly description = 'Mock parsing stage';
       
-      async process(input: ArrayBuffer, context: ProcessingContext): Promise<PivotScene> {
+      async process(input: ArrayBuffer, _context: ProcessingContext): Promise<PivotScene> {
         // Simuler un traitement
         await new Promise(resolve => setTimeout(resolve, 10));
         

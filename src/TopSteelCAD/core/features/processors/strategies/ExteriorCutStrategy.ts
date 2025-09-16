@@ -5,9 +5,8 @@
 
 import * as THREE from 'three';
 import { PivotElement } from '@/types/viewer';
-import { Feature, ProfileFace, Point2D, pointsToArray } from '../../types';
+import { Feature, ProfileFace, Point2D } from '../../types';
 import { BaseCutStrategy } from './CutStrategy';
-import { CutCategory, CutType } from '../CutCategoryDetector';
 
 /**
  * Stratégie de base pour les coupes extérieures
@@ -16,9 +15,7 @@ import { CutCategory, CutType } from '../CutCategoryDetector';
 export abstract class ExteriorCutStrategy extends BaseCutStrategy {
   
   canHandle(feature: Feature): boolean {
-    // Vérifier que c'est bien une coupe extérieure via l'analyse des points
-    const params = feature.parameters || {};
-    const points = params.points || params.contourPoints || [];
+    // const points = params.points || params.contourPoints || [];
     
     // Une coupe extérieure est généralement aux extrémités ou sur les bords
     // On vérifie basiquement si c'est une coupe AK (contour)

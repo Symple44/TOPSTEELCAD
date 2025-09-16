@@ -5,7 +5,7 @@
  * Détecte les incohérences et suggère des corrections
  */
 
-import { ProfileFace } from '@/TopSteelCAD/core/features/types';
+// ProfileFace import removed - not used
 import { ProfileType, dstvFaceMapper } from './DSTVFaceMapper';
 
 /**
@@ -350,7 +350,7 @@ export class FaceProfileValidator {
       name: 'i-profile-back-face-warning',
       description: 'Avertit pour l\'utilisation de la face arrière sur profils I',
       applies: (ctx) => ctx.profileType === ProfileType.I_PROFILE && ctx.dstvFace === 'h',
-      validate: (ctx) => ({
+      validate: (_ctx) => ({
         isValid: true,
         errors: [],
         warnings: ['La face arrière (h) est rarement utilisée sur les profils I'],
@@ -364,7 +364,7 @@ export class FaceProfileValidator {
       description: 'Vérifie la symétrie des trous sur tubes',
       applies: (ctx) => (ctx.profileType === ProfileType.TUBE_RECT || ctx.profileType === ProfileType.TUBE_ROUND) 
                         && ctx.featureType === 'HOLE',
-      validate: (ctx) => {
+      validate: (_ctx) => {
         // Cette règle pourrait vérifier la symétrie des trous
         // Pour l'instant, juste un placeholder
         return {

@@ -152,7 +152,7 @@ export class UnifiedCoordinateSystem {
    * Calcule la rotation à partir du mapping d'axes
    */
   private calculateRotationFromAxisMapping(
-    axisMap: Record<string, string>
+    _axisMap: Record<string, string>
   ): THREE.Euler {
     // Pour l'instant, pas de rotation nécessaire
     // Les axes sont gérés par le remapping des coordonnées

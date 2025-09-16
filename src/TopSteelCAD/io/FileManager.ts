@@ -5,7 +5,7 @@
  */
 
 import { PivotElement, PivotScene, FileParser } from '@/types/viewer';
-import { DSTVPlugin } from '../plugins/dstv/DSTVPlugin';
+// import { DSTVPlugin } from '../plugins/dstv/DSTVPlugin';
 import { EventBus } from '../core/EventBus';
 
 /**

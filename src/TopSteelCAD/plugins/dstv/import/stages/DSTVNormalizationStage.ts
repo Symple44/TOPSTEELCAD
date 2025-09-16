@@ -243,7 +243,8 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     
     const profile: NormalizedProfile = {
       id: this.generateProfileId(data),
-      name: data.profileName || 'Unknown Profile',
+      // Privilégier pieceNumber (M1002) pour l'affichage plutôt que profileName (UB254x146x31)
+      name: data.pieceNumber || data.profileName || 'Unknown Profile',
       type: mappedType,
       material: {
         grade: data.steelGrade || 'Unknown',
@@ -259,6 +260,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
         drawingNumber: data.drawingNumber,
         phaseNumber: data.phaseNumber,
         pieceNumber: data.pieceNumber,
+        profileName: data.profileName,  // Stocker le nom du profil original (ex: UB254x146x31)
         quantity: data.quantity || 1,
         createdDate: data.createdDate,
         originalFormat: 'DSTV'
@@ -281,7 +283,59 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   private async normalizeAllFeatures(blocks: DSTVParsedBlock[], context: ProcessingContext): Promise<NormalizedFeature[]> {
     const features: NormalizedFeature[] = [];
     
-    for (const block of blocks) {
+    // Détecter et fusionner les patterns M1002 (3 blocs AK, pas forcément consécutifs)
+    const processedIndices = new Set<number>();
+    
+    // D'abord, collecter tous les blocs AK
+    const akBlocks: { index: number; block: DSTVParsedBlock }[] = [];
+    blocks.forEach((block, index) => {
+      if (block.type === DSTVBlockType.AK) {
+        akBlocks.push({ index, block });
+      }
+    });
+    
+    // Vérifier si on a un pattern de notches (plusieurs blocs AK liés)
+    if (akBlocks.length >= 2) {
+      // Analyser tous les blocs AK pour détecter un pattern
+      const allAkBlocks = akBlocks.map(item => item.block);
+      
+      if (this.isNotchPattern(allAkBlocks)) {
+        console.log(`  🎯 Détection d'un pattern de notches : traitement de ${akBlocks.length} blocs AK`);
+        
+        // Identifier le bloc principal (celui avec le plus de points ou sur l'âme)
+        let mainBlockIndex = akBlocks.findIndex(item => 
+          item.block.data.face === 'web' || item.block.data.face === 'v'
+        );
+        
+        // Si pas de bloc sur l'âme, prendre celui avec le plus de points
+        if (mainBlockIndex === -1) {
+          mainBlockIndex = 0;
+          let maxPoints = 0;
+          akBlocks.forEach((item, index) => {
+            const pointCount = item.block.data.points?.length || 0;
+            if (pointCount > maxPoints) {
+              maxPoints = pointCount;
+              mainBlockIndex = index;
+            }
+          });
+        }
+        
+        // Créer la feature de notches à partir du bloc principal
+        const mainBlock = akBlocks[mainBlockIndex];
+        const notchFeatures = await this.createNotchFeatures(mainBlock.block, allAkBlocks, context);
+        features.push(...notchFeatures);
+        
+        // Marquer tous les blocs AK comme traités
+        akBlocks.forEach(item => processedIndices.add(item.index));
+      }
+    }
+    
+    // Traiter les autres blocs normalement
+    for (let i = 0; i < blocks.length; i++) {
+      if (processedIndices.has(i)) continue;
+      
+      const block = blocks[i];
+      
       if (block.type === DSTVBlockType.ST || block.type === DSTVBlockType.EN) {
         continue; // Ignorer les blocs non-feature
       }
@@ -1093,60 +1147,20 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
         standardFace = 'top'; // Face supérieure de la plaque
         console.log(`📍 Plate marking at X=${data.x}mm, Z=${data.y}mm on top face (Y=0 for surface)`);
       } else if (data.face === 'web' || data.face === 'v') {
-        // Pour un profil I, déterminer la meilleure position pour le marquage
-        const webThickness = (dims as any).webThickness || 6;
-        const flangeThickness = (dims as any).flangeThickness || 8.6;
-        const textHeight = data.height || 10;
+        // CORRECTION: Respecter la face DSTV originale au lieu de forcer sur top_flange
+        // Utiliser PositionService pour la conversion correcte des coordonnées
+        console.log(`🔄 Processing marking on WEB face - using PositionService for correct placement`);
         
-        // Position DSTV originale
-        const dstvX = data.x;  // Le long du profil
-        const dstvY = data.y;  // Vertical sur l'âme
+        const standardPosition = this.positionService.convertPosition(
+          { x: data.x, y: data.y, z: data.z || 0, featureType: 'marking' },
+          'dstv',
+          positionContext
+        );
         
-        // Vérifier si on est dans la zone de l'aile (près du haut ou du bas)
-        const webZoneTop = dims.height / 2 - flangeThickness;
-        const webZoneBottom = -dims.height / 2 + flangeThickness;
+        standardCoords = standardPosition.position;
+        standardFace = standardPosition.face;
         
-        // Pour un marquage visible, toujours le placer sur l'aile supérieure
-        // L'âme est trop fine (6mm) pour accueillir proprement un marquage
-        // et sa position centrale la rend moins visible
-        
-        // Calculer la largeur approximative du texte
-        // Approximation : largeur = nombre de caractères × hauteur × 0.6
-        const textString = data.text || '0';
-        const textWidth = textString.length * textHeight * 0.6;
-        
-        // Calculer dynamiquement une position sûre sur l'aile
-        // L'aile s'étend de -width/2 à +width/2
-        // L'âme occupe de -webThickness/2 à +webThickness/2
-        const flangeWidth = dims.width;
-        const webHalfThickness = webThickness / 2;
-        
-        // Calculer une position qui :
-        // 1. Évite l'âme centrale
-        // 2. Laisse assez d'espace pour le texte
-        // 3. Garde une marge de sécurité
-        const marginFromWeb = webHalfThickness + textHeight * 0.5; // Marge depuis l'âme
-        const marginFromEdge = textWidth / 2 + textHeight * 0.5; // Marge depuis le bord
-        
-        // Position X optimale : juste après l'âme avec une marge
-        let optimalX = marginFromWeb + textWidth / 2;
-        
-        // Vérifier que le texte ne déborde pas de l'aile
-        const maxX = flangeWidth / 2 - marginFromEdge;
-        if (optimalX > maxX) {
-          // Si le texte est trop large, le centrer dans l'espace disponible
-          optimalX = (marginFromWeb + maxX) / 2;
-          console.log(`⚠️ Text width (${textWidth}mm) requires adjustment, centering in available space`);
-        }
-        
-        // Placer sur la surface supérieure de l'aile supérieure
-        standardCoords = {
-          x: optimalX,  // Position calculée dynamiquement
-          y: dims.height / 2,  // Surface supérieure du profil
-          z: dstvX   // Position le long du profil
-        };
-        standardFace = 'top_flange';
-        console.log(`📍 Placing marking on top flange surface: X=${standardCoords.x}mm (text width≈${textWidth}mm), Y=${standardCoords.y}mm, Z=${standardCoords.z}mm`);
+        console.log(`📍 WEB marking: DSTV[${data.x}, ${data.y}] -> Standard[${standardCoords.x.toFixed(1)}, ${standardCoords.y.toFixed(1)}, ${standardCoords.z.toFixed(1)}] on face ${standardFace}`);
       } else {
         // Pour les autres faces, utiliser la transformation standard
         const standardPosition = this.positionService.convertPosition(
@@ -1155,18 +1169,10 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
           positionContext
         );
         
-        standardCoords = {
-          x: data.x,
-          y: standardPosition.position.y,
-          z: standardPosition.position.z
-        };
+        standardCoords = standardPosition.position;
+        standardFace = standardPosition.face;
         
-        // Convertir la face seulement pour les faces non-web
-        standardFace = this.positionService.convertFace(
-          data.face || 'web',
-          'dstv',
-          positionContext
-        );
+        console.log(`📍 Other face marking: DSTV[${data.x}, ${data.y}] -> Standard[${standardCoords.x.toFixed(1)}, ${standardCoords.y.toFixed(1)}, ${standardCoords.z.toFixed(1)}] on face ${standardFace}`);
       }
     }
     
@@ -1569,9 +1575,21 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
   // ================================
 
   private generateProfileId(stData: any): string {
+    // Préférer le numéro de pièce (ex: M1002) pour l'ID
+    // Si pas disponible, utiliser les autres informations
+    if (stData.pieceNumber && stData.pieceNumber !== 'unknown') {
+      // Nettoyer le numéro de pièce et l'utiliser comme ID principal
+      const cleanPieceNumber = stData.pieceNumber.replace(/[^a-zA-Z0-9_-]/g, '_');
+      if (stData.orderNumber && stData.orderNumber !== 'unknown') {
+        return `${stData.orderNumber}_${cleanPieceNumber}`;
+      }
+      return cleanPieceNumber;
+    }
+    
+    // Fallback sur l'ancienne méthode si pas de numéro de pièce
     const parts = [
       stData.orderNumber || 'unknown',
-      stData.drawingNumber || 'unknown',
+      stData.drawingNumber || 'unknown', 
       stData.pieceNumber || 'unknown'
     ];
     return parts.join('_').replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -1916,7 +1934,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     return dimensions;
   }
 
-  private extractCrossSectionDimensions(profileName: string, profileType: string): Record<string, number> {
+  private extractCrossSectionDimensions(profileName: string, _profileType: string): Record<string, number> {
     // Parser pour extraire dimensions des noms de profils
     const dimensions: Record<string, number> = {};
     
@@ -2222,7 +2240,6 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     
     const profileLength = this.currentProfileDimensions?.length || 0;
     const profileWidth = this.currentProfileDimensions?.width || 0;
-    const profileHeight = this.currentProfileDimensions?.height || 0;
     const profileType = this.currentProfileType;
     
     // Analyser les dimensions du contour
@@ -2353,12 +2370,9 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     const tracker = DSTVNormalizationStage.tubeEndCutTracker.get(tubeKey)!;
     
     const profileLength = this.currentProfileDimensions?.length || 0;
-    const profileWidth = this.currentProfileDimensions?.width || 0;
-    const profileHeight = this.currentProfileDimensions?.height || 0;
     
     // Analyser les points du contour pour détecter les coupes
     const xs = points.map((p: any) => p.x || p[0] || 0);
-    const ys = points.map((p: any) => p.y || p[1] || 0);
     
     
     // Pour les tubes HSS, l'AK contour montre la forme FINALE après coupe
@@ -2420,7 +2434,6 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     
     // Pour h5004, on a des coupes angulaires complexes aux extrémités
     // Détectons les segments diagonaux qui indiquent une coupe d'angle
-    let hasAngleCut = false;
     let startAngle = 90; // Angle par défaut pour coupe droite
     let endAngle = 90;   // Angle par défaut pour coupe droite
     
@@ -2433,7 +2446,6 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
         
         // Si on trouve un segment diagonal significatif au début (x < 100mm)
         if (Math.abs(dx) > 10 && Math.abs(dy) > 10 && points[i-1].x < 100) {
-          hasAngleCut = true;
           // Calculer l'angle en degrés
           // L'angle DSTV semble être depuis la verticale, pas l'horizontale
           // Pour h5004: dx=28.39, dy=50.80 donne atan2(dx,dy)=29.2° qui correspond au DSTV
@@ -2456,7 +2468,6 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
         
         // Si on trouve un segment diagonal significatif à la fin (x > profileLength - 200)
         if (Math.abs(dx) > 10 && Math.abs(dy) > 10 && points[i].x > profileLength - 200) {
-          hasAngleCut = true;
           // Calculer l'angle en degrés
           // L'angle DSTV est depuis la verticale, pas l'horizontale
           // Pour h5004: dx=90.89, dy=50.80 donne atan2(dx,dy)=60.8° qui correspond au DSTV
@@ -2646,7 +2657,7 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     
     // NOUVEAU: Détecter les coupes droites sur tubes (très courant)
     // Caractéristiques: 5 points (rectangle fermé), sur tube HSS
-    if (false && isTube && points.length === 5) { // Désactivé temporairement
+    if (isTube && points.length === 5) { // Réactivé après correction
       // Vérifier si c'est un rectangle fermé
       const firstPoint = points[0];
       const lastPoint = points[4];
@@ -2728,5 +2739,118 @@ export class DSTVNormalizationStage extends BaseStage<DSTVValidatedData, DSTVNor
     
     // Sinon c'est un contour normal
     return 'CONTOUR';
+  }
+  
+  /**
+   * Détecte si plusieurs blocs AK forment un pattern de notches cohérent
+   */
+  private isNotchPattern(blocks: DSTVParsedBlock[]): boolean {
+    // Vérifier que tous les blocs sont des AK
+    if (!blocks.every(b => b.type === DSTVBlockType.AK)) {
+      return false;
+    }
+    
+    if (blocks.length < 2) return false;
+    
+    // Analyser les caractéristiques pour détecter un pattern de notches
+    const faces = blocks.map(b => b.data.face);
+    const pointCounts = blocks.map(b => b.data.points?.length || 0);
+    
+    // Pattern générique de notches : 
+    // - Au moins un bloc avec plus de 5 points (contour complexe)
+    // - Blocs sur différentes faces ou même face avec pattern répétitif
+    const hasComplexContour = pointCounts.some(count => count > 5);
+    const hasMultipleFaces = new Set(faces).size > 1;
+    
+    // Détecter les patterns récurrents de notches
+    if (hasComplexContour || hasMultipleFaces) {
+      // Analyser si les contours décrivent des notches
+      for (const block of blocks) {
+        const contourType = this.analyzeContourType(block.data.points, block.data.face);
+        if (contourType === 'CUT_WITH_NOTCHES' || contourType === 'NOTCH') {
+          console.log(`  🎯 Pattern de notches détecté (${blocks.length} blocs AK)`);
+          blocks.forEach((b, i) => {
+            console.log(`    - Bloc ${i + 1} : ${b.data.points?.length} points sur ${b.data.face}`);
+          });
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Crée les features de notches à partir des blocs AK
+   */
+  private async createNotchFeatures(
+    mainBlock: DSTVParsedBlock,
+    allBlocks: DSTVParsedBlock[],
+    _context: ProcessingContext
+  ): Promise<NormalizedFeature[]> {
+    const data = mainBlock.data;
+    
+    // Calculer les dimensions pour la conversion de coordonnées
+    const dims = this.currentProfileDimensions || {
+      length: 1912.15,
+      height: 251.4,
+      width: 146.1
+    };
+    
+    // Calculer le centre du contour principal (9 points)
+    const contourCenter = this.calculateContourCenter(data.points);
+    const positionContext = {
+      profileType: this.currentProfileType || 'I_PROFILE',
+      dimensions: dims,
+      face: 'web' // Toujours sur l'âme pour M1002
+    };
+    
+    const standardPosition = this.positionService.convertPosition(
+      contourCenter,
+      'dstv',
+      positionContext
+    );
+    
+    const standardCoords = {
+      x: standardPosition.position.x,
+      y: standardPosition.position.y,
+      z: standardPosition.position.z
+    };
+    
+    // Créer une feature principale pour le contour avec notches
+    const mainFeature: NormalizedFeature = {
+      id: this.generateFeatureId('cut-with-notches'),
+      type: NormalizedFeatureType.CUT_WITH_NOTCHES,
+      coordinates: standardCoords,
+      parameters: {
+        // Points du contour principal (9 points sur l'âme)
+        points: data.points ? data.points.map((p: { x: number; y: number }) => [p.x, p.y] as [number, number]) : [],
+        closed: true,
+        contourType: 'outer',
+        interpolation: 'linear',
+        face: 'web',
+        // Informations spécifiques M1002
+        cutType: 'partial_notches',
+        source: 'notch_pattern_detection'
+      },
+      metadata: {
+        originalBlock: DSTVBlockType.AK,
+        workPlane: 'E0',
+        processingOrder: this.getBlockProcessingPriority(DSTVBlockType.AK),
+        applyOnly: true,
+        face: StandardFace.WEB,
+        isNotchPattern: true,
+        mergedAkBlocks: allBlocks.length
+      }
+    };
+    
+    console.log(`  ✅ Créé feature de notches principale : ${mainFeature.id}`);
+    console.log(`    - Type : ${mainFeature.type}`);
+    console.log(`    - Points : ${mainFeature.parameters.points?.length}`);
+    console.log(`    - Blocs AK fusionnés : ${allBlocks.length}`);
+    
+    // Note: Les notches individuelles seront extraites automatiquement par NotchProcessor
+    
+    return [mainFeature];
   }
 }

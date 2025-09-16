@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import * as THREE from 'three';
 import { PlateHandler } from '../../handlers/PlateHandler';
 import { CutType } from '../../types/CutTypes';
-import { ProfileFace, Feature, FeatureType } from '../../types/CoreTypes';
+import { Feature, FeatureType } from '../../types/CoreTypes';
 import { PivotElement } from '../../types/CoreTypes';
 
 // Mock THREE.js
@@ -528,7 +528,7 @@ describe('PlateHandler', () => {
         { points: [[0,0], [1,0], [1,1], [0,1], [0.5,0.5]], expected: 'custom' },
       ];
 
-      testCases.forEach(({ expected, ...params }) => {
+      testCases.forEach(({ expected: _expected, ...params }) => {
         const mockGeometry = {
           dispose: vi.fn(),
           applyMatrix4: vi.fn(),

@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature, ProfileFace } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -99,13 +99,12 @@ export class AngleCutHandler extends BaseCutHandler {
    */
   createCutGeometry(feature: Feature, element: PivotElement): THREE.BufferGeometry {
     const params = feature.parameters as any;
-    const cutType = this.detectCutType(feature);
     
     console.log(`  📐 Creating angled cut geometry:`);
-    console.log(`    Type: ${cutType}`);
+    console.log(`    Type: ${this.detectCutType(feature)}`);
     console.log(`    Angle: ${params.angle || 0}°`);
     
-    switch (cutType) {
+    switch (this.detectCutType(feature)) {
       case CutType.BEVEL_CUT:
         return this.createBevelCut(params, element);
       
@@ -121,7 +120,6 @@ export class AngleCutHandler extends BaseCutHandler {
    * Crée une coupe angulaire standard
    */
   private createStandardAngledCut(params: any, element: PivotElement): THREE.BufferGeometry {
-    const dims = element.dimensions || {};
     const angle = params.angle || 45;
     const face = params.face || ProfileFace.WEB;
     
@@ -183,7 +181,6 @@ export class AngleCutHandler extends BaseCutHandler {
    * Crée une coupe biseautée (pour préparation de soudure)
    */
   private createBevelCut(params: any, element: PivotElement): THREE.BufferGeometry {
-    const dims = element.dimensions || {};
     const bevelAngle = params.bevelAngle || params.angle || 45;
     const face = params.face || ProfileFace.WEB;
     
@@ -199,6 +196,7 @@ export class AngleCutHandler extends BaseCutHandler {
     }
     
     // Sinon, créer un biseau standard
+    const dims = element.dimensions || {};
     const width = params.width || 50;
     const height = params.height || dims.height || 300;
     const depth = params.depth || 20;
@@ -226,7 +224,6 @@ export class AngleCutHandler extends BaseCutHandler {
    * Crée un chanfrein
    */
   private createChamferCut(params: any, element: PivotElement): THREE.BufferGeometry {
-    const dims = element.dimensions || {};
     const chamferSize = params.chamferSize || 10;
     const chamferAngle = params.chamferAngle || params.angle || 45;
     
@@ -254,7 +251,7 @@ export class AngleCutHandler extends BaseCutHandler {
     y: number,
     size: number,
     angle: number,
-    element: PivotElement
+    _element: PivotElement
   ): THREE.BufferGeometry {
     // Créer une forme triangulaire pour couper le coin
     const shape = new THREE.Shape();

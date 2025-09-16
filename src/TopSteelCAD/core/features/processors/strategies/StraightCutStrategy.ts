@@ -7,9 +7,6 @@ import * as THREE from 'three';
 import { PivotElement } from '@/types/viewer';
 import { Feature, ProfileFace } from '../../types';
 import { ExteriorCutStrategy } from './ExteriorCutStrategy';
-import { CutType } from '../CutCategoryDetector';
-import { dstvFaceMapper, ProfileType } from '@/TopSteelCAD/plugins/dstv/coordinates/DSTVFaceMapper';
-import { faceProfileValidator } from '@/TopSteelCAD/plugins/dstv/coordinates/FaceProfileValidator';
 
 /**
  * Stratégie pour les coupes droites (perpendiculaires)
@@ -159,10 +156,11 @@ export class StraightCutStrategy extends ExteriorCutStrategy {
     
     switch (face) {
       case ProfileFace.TOP_FLANGE:
-      case ProfileFace.BOTTOM_FLANGE:
+      case ProfileFace.BOTTOM_FLANGE: {
         // Pour les ailes, créer une découpe qui traverse l'épaisseur
         const flangeThickness = element.dimensions?.flangeThickness || 50;
         return new THREE.BoxGeometry(cutWidth, flangeThickness, cutHeight);
+      }
         
       case ProfileFace.WEB:
       default:

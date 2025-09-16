@@ -342,7 +342,6 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             // Ajouter des indicateurs de coordonnées à intervalles réguliers
             const addCoordinateMarkers = () => {
               const intervals = [500, 1000];
-              const markerSize = 20;
               
               intervals.forEach(distance => {
                 // Marqueurs sur l'axe X (rouge)

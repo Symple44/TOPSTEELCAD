@@ -231,7 +231,7 @@ export class DSTVSemanticStage extends BaseStage<DSTVSyntaxTree, DSTVValidatedDa
   /**
    * Valide un bloc spécifique selon son type
    */
-  private async validateBlock(block: DSTVParsedBlock, context: ProcessingContext): Promise<BlockValidationResult> {
+  private async validateBlock(block: DSTVParsedBlock, _context: ProcessingContext): Promise<BlockValidationResult> {
     const result: BlockValidationResult = {
       blockType: block.type,
       isValid: true,
@@ -680,7 +680,7 @@ export class DSTVSemanticStage extends BaseStage<DSTVSyntaxTree, DSTVValidatedDa
   /**
    * Valide la séquence logique des blocs
    */
-  private validateBlockSequence(blocks: DSTVParsedBlock[], errors: string[], context: ProcessingContext): void {
+  private validateBlockSequence(blocks: DSTVParsedBlock[], _errors: string[], _context: ProcessingContext): void {
     // La norme DSTV a une séquence recommandée mais pas strictement obligatoire
     // ST doit être en premier, EN en dernier si présent
     
@@ -699,7 +699,7 @@ export class DSTVSemanticStage extends BaseStage<DSTVSyntaxTree, DSTVValidatedDa
     
     // Avertissements sur l'organisation
     if (hasGeometryBlocks && hasMarkingBlocks) {
-      context.info('File contains both geometry and marking blocks - good practice');
+      _context.info('File contains both geometry and marking blocks - good practice');
     }
   }
 
@@ -709,7 +709,7 @@ export class DSTVSemanticStage extends BaseStage<DSTVSyntaxTree, DSTVValidatedDa
   private generateValidationResult(
     blocks: DSTVParsedBlock[], 
     validationResults: BlockValidationResult[], 
-    context: ProcessingContext
+    _context: ProcessingContext
   ): DSTVValidatedData {
     const allErrors: string[] = [];
     const allWarnings: string[] = [];

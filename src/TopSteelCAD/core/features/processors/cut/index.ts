@@ -12,6 +12,10 @@ export { BaseCutHandler } from './core/BaseCutHandler';
 export { CutTypeDetector } from './core/CutTypeDetector';
 export { CutHandlerFactory, getCutHandlerFactory, resetCutHandlerFactory } from './core/CutHandlerFactory';
 
+// Internal imports for initialization functions
+import { getCutHandlerFactory } from './core/CutHandlerFactory';
+import { getCSGService } from './services/CSGOperationService';
+
 // Services
 export { 
   CSGOperationService,
@@ -82,7 +86,6 @@ export interface CutSystemConfig {
  * Initialise le système de coupe avec une configuration personnalisée
  */
 export function initializeCutSystem(config?: CutSystemConfig): void {
-  const { getCutHandlerFactory } = require('./core/CutHandlerFactory');
   const factory = getCutHandlerFactory();
   
   // Enregistrer les handlers personnalisés si fournis
@@ -94,7 +97,7 @@ export function initializeCutSystem(config?: CutSystemConfig): void {
   
   // Configurer les options CSG par défaut
   if (config?.defaultCSGOptions) {
-    const csgService = require('./services/CSGOperationService').getCSGService(config.defaultCSGOptions);
+    getCSGService(config.defaultCSGOptions);
     // Service configuré automatiquement
   }
   
@@ -117,7 +120,6 @@ export function getCutSystemStatus(): {
   servicesReady: boolean;
   initialized: boolean;
 } {
-  const { getCutHandlerFactory } = require('./core/CutHandlerFactory');
   const factory = getCutHandlerFactory();
   const stats = factory.getStatistics();
   

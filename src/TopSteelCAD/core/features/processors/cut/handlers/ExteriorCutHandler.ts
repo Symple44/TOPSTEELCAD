@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature, ProfileFace } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType, CutCategory } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -181,7 +181,6 @@ export class ExteriorCutHandler extends BaseCutHandler {
     face: ProfileFace
   ): THREE.BufferGeometry {
     // Pour un coping, on crée une forme complexe qui suit le contour
-    const bounds = this.getContourBounds(points);
     
     // Créer une série de boîtes pour approximer la courbe
     const geometries: THREE.BufferGeometry[] = [];

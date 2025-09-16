@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature, ProfileFace } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -161,7 +161,6 @@ export class BevelCutHandler extends BaseCutHandler {
     const angle = params.bevelAngle || 30; // Angle par rapport à la verticale
     const depth = params.thickness || dims.webThickness || 10;
     const rootGap = params.rootGap || 2;
-    const rootFace = params.rootFace || 2;
     const length = params.length || 100;
     
     // Créer le profil en V
@@ -172,10 +171,10 @@ export class BevelCutHandler extends BaseCutHandler {
     
     shape.moveTo(-topWidth / 2, 0);
     shape.lineTo(topWidth / 2, 0);
-    shape.lineTo(rootGap / 2, -depth + rootFace);
+    shape.lineTo(rootGap / 2, -depth + rootGap);
     shape.lineTo(rootGap / 2, -depth);
     shape.lineTo(-rootGap / 2, -depth);
-    shape.lineTo(-rootGap / 2, -depth + rootFace);
+    shape.lineTo(-rootGap / 2, -depth + rootGap);
     shape.closePath();
     
     // Extruder le long de la longueur
@@ -198,10 +197,7 @@ export class BevelCutHandler extends BaseCutHandler {
    */
   private createXGroove(params: any, element: PivotElement): THREE.BufferGeometry {
     const dims = element.dimensions || {};
-    const angle = params.bevelAngle || 30;
     const depth = params.thickness || dims.webThickness || 10;
-    const rootGap = params.rootGap || 2;
-    const length = params.length || 100;
     
     // Créer deux chanfreins en V opposés
     const geometries: THREE.BufferGeometry[] = [];
@@ -240,12 +236,12 @@ export class BevelCutHandler extends BaseCutHandler {
     const dims = element.dimensions || {};
     const radius = params.radius || 5;
     const depth = params.thickness || dims.webThickness || 10;
-    const rootGap = params.rootGap || 2;
     const length = params.length || 100;
     
     // Créer le profil en U avec des coins arrondis
     const shape = new THREE.Shape();
     
+    const rootGap = params.rootGap || 2;
     const width = radius * 2 + rootGap;
     
     // Commencer en haut à gauche
@@ -418,7 +414,6 @@ export class BevelCutHandler extends BaseCutHandler {
     params: any,
     element: PivotElement
   ): void {
-    const dims = element.dimensions || {};
     const x = params.x || params.position?.x || 0;
     const y = params.position?.y || 0;
     const z = params.position?.z || 0;

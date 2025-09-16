@@ -268,10 +268,9 @@ export class CSGOperationService {
       brush2.updateMatrixWorld();
       
       // Effectuer l'opération
-      let resultBrush: Brush;
       const csgOperation = this.getCSGOperationType(operation);
       
-      resultBrush = this.evaluator.evaluate(brush1, brush2, csgOperation);
+      const resultBrush = this.evaluator.evaluate(brush1, brush2, csgOperation);
       
       if (!resultBrush || !resultBrush.geometry) {
         throw new Error('CSG operation produced no result');
@@ -439,7 +438,7 @@ export class CSGOperationService {
   /**
    * Fusionne les vertices proches (simplification)
    */
-  private mergeVertices(geometry: THREE.BufferGeometry, tolerance: number = 0.0001): void {
+  private mergeVertices(geometry: THREE.BufferGeometry, _tolerance: number = 0.0001): void {
     // Implémenter une fusion de vertices pour simplifier la géométrie
     // Cette optimisation est complexe et dépend du cas d'usage
     // Pour l'instant, on ne fait rien pour éviter de corrompre la géométrie

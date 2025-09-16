@@ -97,7 +97,7 @@ export class UProfileGenerator extends BaseProfileGenerator {
     const w = width;
     const tw = webThickness;
     const tf = flangeThickness;
-    const hw = w / 2;
+    // const hw = w / 2;  // Non utilisé actuellement
     const hh = h / 2;
     
     // Profil U orienté avec l'âme à gauche et les ailes à droite

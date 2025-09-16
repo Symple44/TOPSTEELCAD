@@ -178,7 +178,7 @@ export class GeometryBridge {
         break;
 
       case 'TUBE_RECT':
-      case 'TUBE_ROUND':
+      case 'TUBE_ROUND': {
         // Pour les tubes, 'thickness' et 'wallThickness' peuvent être utilisés indifféremment
         const thickness = crossSection.thickness || crossSection.wallThickness;
         params.wallThickness = validateDimension(thickness, 5, 'wallThickness');
@@ -193,6 +193,7 @@ export class GeometryBridge {
           params.isRound = false;
         }
         break;
+      }
 
       case 'T_PROFILE':
         params.webThickness = validateDimension(crossSection.webThickness, 10, 'webThickness');
@@ -293,7 +294,7 @@ export class GeometryBridge {
    */
   applyPostProcessing(
     geometry: THREE.BufferGeometry,
-    profile: NormalizedProfile
+    _profile: NormalizedProfile
   ): THREE.BufferGeometry {
     // Appliquer des transformations si nécessaire
     

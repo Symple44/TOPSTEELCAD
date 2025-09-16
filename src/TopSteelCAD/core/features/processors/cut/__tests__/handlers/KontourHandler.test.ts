@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import * as THREE from 'three';
 import { KontourHandler } from '../../handlers/KontourHandler';
-import { CutType, CutCategory } from '../../types/CutTypes';
+import { CutType } from '../../types/CutTypes';
 import { ProfileFace, Feature, FeatureType } from '../../../types';
 import { PivotElement } from '../../types/CoreTypes';
 
@@ -691,7 +691,8 @@ describe('KontourHandler', () => {
         attributes: {},
       };
 
-      const { getGeometryService } = require('../../services/GeometryCreationService');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getGeometryService } = (require('../../services/GeometryCreationService') as any);
       const mockService = getGeometryService();
       mockService.createCutGeometry.mockReturnValue(mockGeometry);
 
@@ -746,7 +747,7 @@ describe('KontourHandler', () => {
         },
       ];
 
-      testCases.forEach(({ params, expectedType }) => {
+      testCases.forEach(({ params, expectedType: _expectedType }) => {
         const mockGeometry = {
           dispose: vi.fn(),
           applyMatrix4: vi.fn(),

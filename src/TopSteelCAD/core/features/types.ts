@@ -32,6 +32,7 @@ export enum FeatureType {
   CONTOUR = 'contour',
   UNRESTRICTED_CONTOUR = 'unrestricted_contour',
   NOTCH = 'notch',
+  CUT_WITH_NOTCHES = 'cut_with_notches',
   COPING = 'coping',
   END_CUT = 'end_cut',
   

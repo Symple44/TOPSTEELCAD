@@ -4,7 +4,7 @@
  */
 
 import { DSTVBlockType } from '../../types/dstv-types';
-import { IBlockParser, ParserConstructor } from '../interfaces/IBlockParser';
+import { ParserConstructor } from '../interfaces/IBlockParser';
 import { BlockParserFactory } from '../factory/BlockParserFactory';
 
 /**
@@ -82,7 +82,7 @@ export class ExampleParserPlugin implements IParserPlugin {
   readonly name = 'ExamplePlugin';
   readonly version = '1.0.0';
   
-  register(registry: typeof ParserRegistry): void {
+  register(_registry: typeof ParserRegistry): void {
     // Exemple d'enregistrement de parsers personnalisés
     // registry.registerCustomParser(DSTVBlockType.CUSTOM_XY, CustomXYParser);
     // registry.registerCustomParser(DSTVBlockType.CUSTOM_ZZ, CustomZZParser);

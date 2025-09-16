@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fs from 'fs';
-import * as path from 'path';
+// path import removed - not used
 import { DSTVImportPipeline } from '../import/DSTVImportPipeline';
 
 // Désactiver les mocks Three.js pour ce test

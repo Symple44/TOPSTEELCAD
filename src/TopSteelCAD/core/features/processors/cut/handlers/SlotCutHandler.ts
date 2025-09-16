@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature, ProfileFace } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -320,21 +320,16 @@ export class SlotCutHandler extends BaseCutHandler {
   /**
    * Crée une rainure en T
    */
-  private createTSlot(params: any, element: PivotElement): THREE.BufferGeometry {
-    const dims = element.dimensions || {};
+  private createTSlot(params: any, _element: PivotElement): THREE.BufferGeometry {
     
     const topWidth = params.topWidth || 30;
     const bottomWidth = params.bottomWidth || 15;
     const topHeight = params.topHeight || 10;
     const totalHeight = params.totalHeight || 20;
     const length = params.length || 100;
-    const depth = params.depth || dims.webThickness || 10;
     
     // Créer la forme en T
     const shape = new THREE.Shape();
-    
-    // Base du T
-    const baseOffset = (topWidth - bottomWidth) / 2;
     
     shape.moveTo(-bottomWidth / 2, 0);
     shape.lineTo(-bottomWidth / 2, totalHeight - topHeight);
@@ -374,20 +369,15 @@ export class SlotCutHandler extends BaseCutHandler {
   /**
    * Crée une rainure en queue d'aronde
    */
-  private createDovetailSlot(params: any, element: PivotElement): THREE.BufferGeometry {
-    const dims = element.dimensions || {};
+  private createDovetailSlot(params: any, _element: PivotElement): THREE.BufferGeometry {
     
     const topWidth = params.topWidth || 15;
     const bottomWidth = params.bottomWidth || 25;
     const height = params.height || 15;
     const length = params.length || 100;
-    const depth = params.depth || dims.webThickness || 10;
-    const angle = params.angle || 60;
     
     // Créer la forme en queue d'aronde
     const shape = new THREE.Shape();
-    
-    const offset = (bottomWidth - topWidth) / 2;
     
     shape.moveTo(-bottomWidth / 2, 0);
     shape.lineTo(-topWidth / 2, height);
@@ -469,7 +459,7 @@ export class SlotCutHandler extends BaseCutHandler {
   /**
    * Détecte le type de coupe
    */
-  protected detectCutType(feature: Feature): CutType {
+  protected detectCutType(_feature: Feature): CutType {
     return CutType.SLOT_CUT;
   }
 

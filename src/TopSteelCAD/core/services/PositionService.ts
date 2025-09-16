@@ -171,21 +171,23 @@ class PositionValidator {
         }
         break;
         
-      case StandardFace.TOP_FLANGE:
+      case StandardFace.TOP_FLANGE: {
         // Semelle supérieure devrait être proche de Y=height/2
         const expectedY = dimensions.height / 2;
         if (Math.abs(position.y - expectedY) > tolerance) {
           errors.push(`Position Y (${position.y}) incohérente pour TOP_FLANGE (attendu proche de ${expectedY})`);
         }
         break;
+      }
         
-      case StandardFace.BOTTOM_FLANGE:
+      case StandardFace.BOTTOM_FLANGE: {
         // Semelle inférieure devrait être proche de Y=-height/2
         const expectedYBottom = -dimensions.height / 2;
         if (Math.abs(position.y - expectedYBottom) > tolerance) {
           errors.push(`Position Y (${position.y}) incohérente pour BOTTOM_FLANGE (attendu proche de ${expectedYBottom})`);
         }
         break;
+      }
     }
     
     return errors;
@@ -412,11 +414,10 @@ export class PositionService {
         }
       }
       
-      let finalPosition = featurePosition instanceof THREE.Vector3 ? featurePosition : new THREE.Vector3(featurePosition.x, featurePosition.y, featurePosition.z || 0);
+      const finalPosition = featurePosition instanceof THREE.Vector3 ? featurePosition : new THREE.Vector3(featurePosition.x, featurePosition.y, featurePosition.z || 0);
       
       // IMPORTANT: Keep holes positioned ON the face, not centered in material
       // The hole depth will ensure it traverses through the material
-      const profileType = element.type || element.profileType || element.materialType;
       console.log(`  → Hole on ${standardFace} face, depth=${depth}mm will traverse through material`);
       
       return {

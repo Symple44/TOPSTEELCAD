@@ -4,9 +4,9 @@
  */
 
 import * as THREE from 'three';
-import { Feature, FeatureType, ProfileFace } from '../../../types';
+import { Feature, ProfileFace } from '../../../types';
 import { PivotElement } from '../types/CoreTypes';
-import { CutType, CutCategory } from '../types/CutTypes';
+import { CutType } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
 import { getGeometryService } from '../services/GeometryCreationService';
 import { getCSGService } from '../services/CSGOperationService';

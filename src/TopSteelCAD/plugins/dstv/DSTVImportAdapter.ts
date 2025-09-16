@@ -19,7 +19,7 @@ class FormatEngine {
     this.plugins.set('dstv', plugin);
   }
   
-  async import(file: File, options?: any): Promise<any> {
+  async import(file: File, _options?: any): Promise<any> {
     const plugin = this.plugins.get('dstv');
     if (!plugin) {
       throw new Error('DSTV plugin not registered');

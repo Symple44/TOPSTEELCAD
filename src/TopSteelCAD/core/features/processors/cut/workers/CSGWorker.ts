@@ -3,8 +3,9 @@
  * Décharge les calculs CSG complexes du thread principal
  */
 
-import * as THREE from 'three';
-import { Evaluator, Brush, SUBTRACTION, ADDITION, INTERSECTION, DIFFERENCE } from 'three-bvh-csg';
+// Worker code contains its own THREE import
+// import * as THREE from 'three';
+// import { Evaluator, Brush, SUBTRACTION, ADDITION, INTERSECTION, DIFFERENCE } from 'three-bvh-csg';
 
 /**
  * Types de messages entre le thread principal et le worker

@@ -108,7 +108,7 @@ const createMockBufferGeometry = (): any => ({
   clone: vi.fn().mockImplementation(() => createMockBufferGeometry()),
   setAttribute: vi.fn().mockReturnThis(),
   deleteAttribute: vi.fn().mockReturnThis(),
-  getAttribute: vi.fn().mockImplementation((name) => createMockBufferAttribute()),
+  getAttribute: vi.fn().mockImplementation((_name) => createMockBufferAttribute()),
   setIndex: vi.fn().mockReturnThis(),
   computeBoundingBox: vi.fn().mockImplementation(function(this: any) {
     this.boundingBox = createMockBox3();
@@ -213,7 +213,7 @@ class MockFile {
     return this._bits.join('');
   }
 
-  slice(start = 0, end: number = this.size, contentType = '') {
+  slice(_start = 0, _end: number = this.size, contentType = '') {
     return new MockFile(['sliced content'], this.name, { type: contentType });
   }
 
@@ -233,7 +233,7 @@ class MockFile {
 
 // Mock URL.createObjectURL and URL.revokeObjectURL for tests
 if (typeof URL.createObjectURL === 'undefined') {
-  (URL as any).createObjectURL = vi.fn((blob: Blob) => {
+  (URL as any).createObjectURL = vi.fn((_blob: Blob) => {
     return `blob:mock-url-${Math.random().toString(36).substr(2, 9)}`;
   });
 }
@@ -335,10 +335,10 @@ vi.mock('three', () => ({
   })),
   
   // Buffer attributes
-  BufferAttribute: vi.fn().mockImplementation((array, itemSize, normalized = false) => 
+  BufferAttribute: vi.fn().mockImplementation((array, itemSize, _normalized = false) => 
     createMockBufferAttribute(array, itemSize)
   ),
-  Float32BufferAttribute: vi.fn().mockImplementation((array, itemSize, normalized = false) =>
+  Float32BufferAttribute: vi.fn().mockImplementation((array, itemSize, _normalized = false) =>
     createMockBufferAttribute(array, itemSize)
   ),
   

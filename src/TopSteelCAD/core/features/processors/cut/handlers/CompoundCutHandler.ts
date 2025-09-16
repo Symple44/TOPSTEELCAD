@@ -5,12 +5,12 @@
 
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
 import { getGeometryService } from '../services/GeometryCreationService';
-import { getCSGService, CSGOperation } from '../services/CSGOperationService';
+import { getCSGService } from '../services/CSGOperationService';
 
 /**
  * Structure pour une coupe composée
@@ -236,9 +236,7 @@ export class CompoundCutHandler extends BaseCutHandler {
     }
     
     // Stratégie de combinaison
-    const combineStrategy = params.combineStrategy || 'union';
-    
-    switch (combineStrategy) {
+    switch (params.combineStrategy || 'union') {
       case 'union':
         return this.unionGeometries(geometries);
         
@@ -478,13 +476,7 @@ export class CompoundCutHandler extends BaseCutHandler {
   /**
    * Détecte le type de coupe
    */
-  protected detectCutType(feature: Feature): CutType {
-    const params = feature.parameters as any;
-    
-    if (feature.type === FeatureType.NOTCH) {
-      return CutType.NOTCH_COMPOUND;
-    }
-    
+  protected detectCutType(_feature: Feature): CutType {
     return CutType.END_COMPOUND;
   }
 

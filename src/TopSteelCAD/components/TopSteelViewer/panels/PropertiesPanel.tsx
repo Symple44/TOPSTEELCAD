@@ -226,6 +226,14 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 <p className={`text-sm ${themeClasses.text}`}>{getMaterialTypeLabel(element.materialType)}</p>
               </div>
               
+              {/* Afficher le type de profil si disponible */}
+              {element.metadata?.profileName && (
+                <div>
+                  <label className={`text-xs ${themeClasses.textSecondary}`}>Profil</label>
+                  <p className={`text-sm ${themeClasses.text} font-medium`}>{element.metadata.profileName}</p>
+                </div>
+              )}
+              
               <div>
                 <label className={`text-xs ${themeClasses.textSecondary}`}>Référence</label>
                 {isEditing ? (

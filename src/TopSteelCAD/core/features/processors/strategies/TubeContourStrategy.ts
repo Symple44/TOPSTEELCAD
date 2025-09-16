@@ -7,9 +7,6 @@ import * as THREE from 'three';
 import { PivotElement } from '@/types/viewer';
 import { Feature, ProfileFace } from '../../types';
 import { ExteriorCutStrategy } from './ExteriorCutStrategy';
-import { CutType } from '../CutCategoryDetector';
-import { dstvFaceMapper, ProfileType } from '@/TopSteelCAD/plugins/dstv/coordinates/DSTVFaceMapper';
-import { faceProfileValidator } from '@/TopSteelCAD/plugins/dstv/coordinates/FaceProfileValidator';
 
 /**
  * Stratégie pour la redéfinition des contours de tubes
@@ -139,10 +136,6 @@ export class TubeContourStrategy extends ExteriorCutStrategy {
     const boxWidth = bounds.maxX - bounds.minX;
     const boxHeight = bounds.maxY - bounds.minY;
     const boxDepth = wallThickness * 2; // Traverser la paroi
-    
-    const dims = element.dimensions || {};
-    const profileLength = dims.length || 1000;
-    const profileHeight = dims.height || 300;
     
     // Créer la géométrie selon l'orientation de la face avec support face 'h'
     let geometry: THREE.BufferGeometry;

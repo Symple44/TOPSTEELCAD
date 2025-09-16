@@ -2,7 +2,7 @@
  * Types de base pour le Format Engine
  */
 
-import { PivotScene, PivotElement } from '../../../types/viewer';
+import { PivotScene } from '../../../types/viewer';
 import type { ImportPipeline, ExportPipeline } from './PipelineTypes';
 
 // ================================

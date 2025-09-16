@@ -5,22 +5,21 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as THREE from 'three';
+// THREE import removed - not used
 import { describe, it, expect, beforeAll } from 'vitest';
 
 // Import du système DSTV
-import { DSTVPlugin } from '../DSTVPlugin';
+// DSTVPlugin import removed - not used
 import { DSTVImportPipeline } from '../import/DSTVImportPipeline';
 import { FeatureProcessorFactory } from '../../../core/features/processors/FeatureProcessorFactory';
 import { Feature, FeatureType } from '../../../core/features/types';
 import { PivotElement } from '@/types/viewer';
 
 describe('DSTV Cut Architecture Migration', () => {
-  let plugin: DSTVPlugin;
   let factory: FeatureProcessorFactory;
   
   beforeAll(() => {
-    plugin = new DSTVPlugin();
+    // plugin removed - not used
     factory = FeatureProcessorFactory.getInstance();
   });
   
@@ -149,7 +148,7 @@ describe('DSTV Cut Architecture Migration', () => {
         return;
       }
       
-      const baseGeometry = new THREE.BoxGeometry(100, 100, 100);
+      // baseGeometry removed - not used
       
       for (const feature of cutFeatures) {
         // Test with legacy

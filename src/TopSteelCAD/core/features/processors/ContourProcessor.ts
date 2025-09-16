@@ -31,6 +31,66 @@ export class ContourProcessor implements IFeatureProcessor {
     console.log(`  - Element:`, element.id, element.dimensions);
     
     try {
+      // Détecter les contours M1002 redondants (semelles avec notches)
+      // Ces contours sont sur les faces top_flange/bottom_flange avec 5 points
+      // et font partie d'un pattern M1002 qui est déjà traité par NotchProcessor
+      const points = feature.parameters.points || [];
+      const featureFace = feature.parameters.face || feature.face;
+      const isM1002FlangContour = points.length === 5 && 
+                                  (featureFace === 'top_flange' || featureFace === 'bottom_flange' || 
+                                   featureFace === (ProfileFace.TOP_FLANGE as string) || featureFace === (ProfileFace.BOTTOM_FLANGE as string));
+      
+      if (isM1002FlangContour) {
+        console.log(`  ⚠️ Ignoring M1002 flange contour ${feature.id} - handled by NotchProcessor`);
+        // IMPORTANT: Cloner la géométrie pour pouvoir modifier les userData
+        const resultGeometry = geometry.clone();
+        
+        // Copier les userData existants
+        if (geometry.userData) {
+          resultGeometry.userData = { ...geometry.userData };
+          if (geometry.userData.cuts) {
+            resultGeometry.userData.cuts = [...geometry.userData.cuts];
+          }
+        } else {
+          resultGeometry.userData = {};
+        }
+        
+        if (!resultGeometry.userData.cuts) {
+          resultGeometry.userData.cuts = [];
+        }
+        
+        // Ajouter quand même l'outline pour la sélection
+        const minX = Math.min(...points.map(p => Array.isArray(p) ? p[0] : p.x));
+        const maxX = Math.max(...points.map(p => Array.isArray(p) ? p[0] : p.x));
+        const minY = Math.min(...points.map(p => Array.isArray(p) ? p[1] : p.y));
+        const maxY = Math.max(...points.map(p => Array.isArray(p) ? p[1] : p.y));
+        
+        const contourInfo = {
+          id: feature.id,
+          type: 'contour',
+          face: featureFace,
+          bounds: {
+            minX: minX - (element.dimensions?.length || 0) / 2,
+            maxX: maxX - (element.dimensions?.length || 0) / 2,
+            minY: minY - (element.dimensions?.height || 0) / 2,
+            maxY: maxY - (element.dimensions?.height || 0) / 2,
+            minZ: -10,
+            maxZ: 10
+          },
+          contourPoints: points,
+          depth: 20
+        };
+        resultGeometry.userData.cuts.push(contourInfo);
+        console.log(`  📐 Added M1002 flange contour outline for feature ${feature.id}`);
+        console.log(`  📄 userData.cuts now contains ${resultGeometry.userData.cuts.length} items`);
+        
+        return {
+          success: true,
+          geometry: resultGeometry,
+          warning: 'M1002 flange contour - geometry not modified, handled by NotchProcessor'
+        };
+      }
+      
       // Pour les contours DSTV de type "outer", vérifier s'ils doivent être appliqués
       if (feature.coordinateSystem === CoordinateSystem.DSTV && feature.parameters.contourType === 'outer') {
         // Vérifier si le contour représente une découpe
@@ -70,7 +130,6 @@ export class ContourProcessor implements IFeatureProcessor {
       
       // Pour les contours DSTV, normaliser les points autour de l'origine
       let normalizedPoints = feature.parameters.points! as Array<[number, number]>;
-      let contourCenterOffset = { x: 0, y: 0 };
       
       if (feature.coordinateSystem === CoordinateSystem.DSTV) {
         // Pour les contours DSTV, les points sont en coordonnées absolues le long du profil
@@ -129,8 +188,6 @@ export class ContourProcessor implements IFeatureProcessor {
             point[0] - centerX,
             point[1] - centerY
           ] as [number, number]);
-          
-          contourCenterOffset = { x: centerX, y: centerY };
         }
         
         console.log(`  - Contour bounds: X[${minX} to ${maxX}], Y[${minY} to ${maxY}]`);
@@ -322,6 +379,40 @@ export class ContourProcessor implements IFeatureProcessor {
       console.log(`  - Vertices changed: ${geometry.attributes.position.count} -> ${resultGeometry.attributes.position.count}`);
       
       resultBrush.geometry.dispose();
+      
+      // Ajouter les informations pour l'outline renderer
+      if (!resultGeometry.userData) {
+        resultGeometry.userData = {};
+      }
+      if (!resultGeometry.userData.cuts) {
+        resultGeometry.userData.cuts = [];
+      }
+      
+      // Calculer les bounds du contour
+      const contourPoints = feature.parameters.points! as Array<[number, number]>;
+      const minX = Math.min(...contourPoints.map(p => p[0]));
+      const maxX = Math.max(...contourPoints.map(p => p[0]));
+      const minY = Math.min(...contourPoints.map(p => p[1]));
+      const maxY = Math.max(...contourPoints.map(p => p[1]));
+      
+      // Ajouter l'info du contour pour l'outline
+      const contourInfo = {
+        id: feature.id,
+        type: 'contour',
+        face: feature.parameters.face || feature.face || 'web',
+        bounds: {
+          minX: minX - (element.dimensions?.length || 0) / 2,
+          maxX: maxX - (element.dimensions?.length || 0) / 2,
+          minY: minY - (element.dimensions?.height || 0) / 2,
+          maxY: maxY - (element.dimensions?.height || 0) / 2,
+          minZ: -effectiveDepth / 2,
+          maxZ: effectiveDepth / 2
+        },
+        contourPoints: contourPoints,
+        depth: effectiveDepth
+      };
+      resultGeometry.userData.cuts.push(contourInfo);
+      console.log(`  📐 Added contour outline for feature ${feature.id}`);
       
       console.log(`✅ Returning modified geometry for ${feature.id}`);
       return {

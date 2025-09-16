@@ -3,7 +3,7 @@
  * Gère l'enregistrement, la sélection et l'instanciation des handlers
  */
 
-import { Feature, FeatureType } from '../../../types';
+import { Feature } from '../../../types';
 import { PivotElement } from '@/types/viewer';
 import { ICutHandler, ICutHandlerFactory } from '../types/ICutHandler';
 import { CutType } from '../types/CutTypes';

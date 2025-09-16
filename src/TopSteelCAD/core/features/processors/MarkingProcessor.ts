@@ -8,8 +8,7 @@ import { Evaluator, Brush, SUBTRACTION } from 'three-bvh-csg';
 import { 
   Feature, 
   IFeatureProcessor, 
-  ProcessorResult,
-  ProfileFace
+  ProcessorResult
 } from '../types';
 import { PivotElement, MaterialType } from '@/types/viewer';
 import { PositionService } from '../../services/PositionService';
@@ -98,8 +97,8 @@ export class MarkingProcessor implements IFeatureProcessor {
         id: feature.id,  // Ajouter l'ID de la feature DSTV
         text: parsedText,
         position: [
-          position.x,  // Garder les coordonnées DSTV originales
-          position.y,  // Elles seront converties dans SceneManager
+          position.x,  // Coordonnées converties (pas les originales DSTV)
+          position.y,  // Déjà converties par DSTVCoordinateAdapter
           position.z
         ],
         size,
@@ -107,7 +106,8 @@ export class MarkingProcessor implements IFeatureProcessor {
         rotation: feature.rotation ? [feature.rotation.x, feature.rotation.y, feature.rotation.z] : [0, 0, 0],
         type: text.includes('r') ? 'scribbing' : 'marking',
         centerOffset: existingCenterOffset, // Préserver le centerOffset
-        isMirrored: isMirrored // Préserver le flag de miroir
+        isMirrored: isMirrored, // Préserver le flag de miroir
+        angle: feature.parameters.angle || 0  // Ajouter l'angle de rotation du texte
       });
       
       console.log(`✅ Marking stored for visual display`);
@@ -142,8 +142,6 @@ export class MarkingProcessor implements IFeatureProcessor {
         
         // Position basée sur les coordonnées DSTV (depuis le coin)
         // Convertir vers le système Three.js (centré)
-        const length = element.dimensions.length || 220;
-        const width = element.dimensions.width || 120;
         
         engravingBrush.position.set(
           position.x,  // Position X directe (profil commence à 0 maintenant)
@@ -235,10 +233,11 @@ export class MarkingProcessor implements IFeatureProcessor {
       
       geometry.userData.markings.push({
         text: this.parseMarkingText(feature.parameters.text || ''),
-        position: feature.position,
+        position: Array.isArray(feature.position) ? feature.position : [feature.position.x, feature.position.y, feature.position.z],
         size: feature.parameters.size || 10,
-        face: feature.face,
-        type: 'marking'
+        face: feature.parameters.face || feature.face || 'web',
+        type: 'marking',
+        angle: feature.parameters.angle || 0
       });
       
       return {
@@ -418,9 +417,9 @@ export class MarkingProcessor implements IFeatureProcessor {
   
   private parseMarkingText(text: string): string {
     // Extraire le texte réel du format DSTV
-    // Format typique: "v    2.00u    2.00  0.00  10r14"
-    // Le "10r14" signifie un repère "14" avec rayon de 10mm
-    // Mais aussi "10rF1000" signifie un repère "F1000" avec rayon de 10mm
+    // Le texte peut déjà être parsé par SIBlockParser
+    // Si c'est le cas, il sera déjà sous forme "F1000" ou "14"
+    // Sinon, on extrait depuis le format DSTV brut
     
     // Chercher le pattern pour scribbing/marking avec texte alphanumérique
     // Pattern amélioré pour capturer des repères alphanumériques comme "F1000"

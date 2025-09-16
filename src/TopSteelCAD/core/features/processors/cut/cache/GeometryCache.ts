@@ -437,7 +437,7 @@ export class GeometryCache {
         try {
           const data = localStorage.getItem(key);
           if (data) {
-            const entry = JSON.parse(data);
+            JSON.parse(data);
             // Reconstruire la géométrie depuis les données sérialisées
             // Note: Ceci est simplifié, une vraie implémentation devrait sérialiser/désérialiser correctement
             console.log(`Loaded cache entry from storage: ${key}`);

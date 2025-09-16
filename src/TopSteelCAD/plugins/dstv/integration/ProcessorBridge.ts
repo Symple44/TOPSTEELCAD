@@ -16,7 +16,7 @@ import { IKBlockData } from '../import/blocks/IKBlockParser';
 import { SIBlockData } from '../import/blocks/SIBlockParser';
 import { SCBlockData } from '../import/blocks/SCBlockParser';
 import { StandardFace } from '../../../core/coordinates/types';
-import { dstvFeaturePriority, DSTVPriority } from '../import/DSTVFeaturePriority';
+import { dstvFeaturePriority } from '../import/DSTVFeaturePriority';
 
 /**
  * Convertit StandardFace en ProfileFace
@@ -351,7 +351,7 @@ export class ProcessorBridge {
       [NormalizedFeatureType.END_CUT]: FeatureType.END_CUT,  // Coupe droite d'extrémité (pas un contour)
       [NormalizedFeatureType.CONTOUR]: FeatureType.CONTOUR,
       [NormalizedFeatureType.NOTCH]: FeatureType.NOTCH,
-      [NormalizedFeatureType.CUT_WITH_NOTCHES]: FeatureType.CUT,  // Router vers CutProcessor
+      [NormalizedFeatureType.CUT_WITH_NOTCHES]: FeatureType.NOTCH,  // Router vers NotchProcessor spécialisé
       [NormalizedFeatureType.MARKING]: FeatureType.MARKING,
       [NormalizedFeatureType.PUNCH]: FeatureType.DRILL_PATTERN,
       [NormalizedFeatureType.WELD_PREP]: FeatureType.WELD,
@@ -405,7 +405,7 @@ export class ProcessorBridge {
     
     // Les coordonnées sont déjà ajustées dans DSTVNormalizationStage
     // Pas besoin d'ajustement supplémentaire ici
-    let adjustedZ = normalizedFeature.coordinates.z || 0;
+    const adjustedZ = normalizedFeature.coordinates.z || 0;
     const isMarking = normalizedFeature.type === NormalizedFeatureType.MARKING;
     
     // Log pour vérification
@@ -698,7 +698,7 @@ export class ProcessorBridge {
     geometry: THREE.BufferGeometry,
     features: NormalizedFeature[],
     element: PivotElement,
-    priority: number
+    _priority: number
   ): Promise<THREE.BufferGeometry> {
     let currentGeometry = geometry;
     

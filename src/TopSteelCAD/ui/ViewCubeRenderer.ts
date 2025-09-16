@@ -44,7 +44,6 @@ export class ViewCubeRenderer {
     this.scene.background = null;
     
     // Setup orthographic camera for consistent cube view
-    const aspect = 1;
     const frustumSize = 2.5;
     this.camera = new THREE.OrthographicCamera(
       -frustumSize / 2,
@@ -295,8 +294,8 @@ export class ViewCubeRenderer {
     context.fillRect(0, 0, canvas.width, canvas.height);
     
     // Configuration pour le texte - toujours noir pour meilleur contraste sur fond clair
-    let textColor = '#000000';  // Noir pour les deux thèmes (fond toujours clair)
-    let strokeColor = '#ffffff';  // Contour blanc pour contraste
+    const textColor = '#000000';  // Noir pour les deux thèmes (fond toujours clair)
+    const strokeColor = '#ffffff';  // Contour blanc pour contraste
     
     // Police grande et nette
     context.font = 'bold 280px Arial, sans-serif';

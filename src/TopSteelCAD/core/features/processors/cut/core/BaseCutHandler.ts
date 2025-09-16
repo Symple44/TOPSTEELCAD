@@ -110,7 +110,7 @@ export abstract class BaseCutHandler implements ICutHandler {
   applyCut(
     baseGeometry: THREE.BufferGeometry,
     cutGeometry: THREE.BufferGeometry,
-    feature: Feature
+    _feature: Feature
   ): THREE.BufferGeometry {
     try {
       // Validation des géométries
@@ -226,7 +226,7 @@ export abstract class BaseCutHandler implements ICutHandler {
     const dims = element.dimensions || {};
     
     // Position par défaut au centre
-    let position = new THREE.Vector3(0, 0, 0);
+    const position = new THREE.Vector3(0, 0, 0);
     
     if (params.position) {
       position.x = params.position.x - (dims.length || 0) / 2;
@@ -240,14 +240,14 @@ export abstract class BaseCutHandler implements ICutHandler {
   /**
    * Génération des métadonnées
    */
-  generateMetadata(feature: Feature, element: PivotElement): CutMetadata {
-    const params = feature.parameters as CutParameters;
+  generateMetadata(_feature: Feature, element: PivotElement): CutMetadata {
+    const params = _feature.parameters as CutParameters;
     const bounds = this.calculateBounds(params.points || [], element);
     
     return {
-      id: feature.id || `cut_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: this.detectCutType(feature),
-      category: this.detectCategory(feature, element),
+      id: _feature.id || `cut_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type: this.detectCutType(_feature),
+      category: this.detectCategory(_feature, element),
       face: params.face,
       bounds,
       contourPoints: params.points,

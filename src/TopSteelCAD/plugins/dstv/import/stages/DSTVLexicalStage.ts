@@ -133,12 +133,10 @@ export class DSTVLexicalStage extends BaseStage<ArrayBuffer, DSTVTokens> {
     const lines = content.split(/\r?\n/);
     
     let lineNumber = 1;
-    let totalTokens = 0;
 
     for (const line of lines) {
       const lineTokens = this.tokenizeLine(line, lineNumber, context);
       tokens.push(...lineTokens);
-      totalTokens += lineTokens.length;
       lineNumber++;
 
       // Progress reporting pour gros fichiers
@@ -293,11 +291,8 @@ export class DSTVLexicalStage extends BaseStage<ArrayBuffer, DSTVTokens> {
   private consumeNumber(line: string, position: number, lineNumber: number, column: number): DSTVToken {
     let endPos = position;
     let hasDecimalPoint = false;
-    let hasSign = false;
-
     // Sign optionnel au début
     if (line[endPos] === '+' || line[endPos] === '-') {
-      hasSign = true;
       endPos++;
     }
 
@@ -389,7 +384,7 @@ export class DSTVLexicalStage extends BaseStage<ArrayBuffer, DSTVTokens> {
   /**
    * Consomme un caractère spécial
    */
-  private consumeSpecialCharacter(line: string, position: number, lineNumber: number, column: number, context: ProcessingContext): DSTVToken {
+  private consumeSpecialCharacter(line: string, position: number, lineNumber: number, column: number, _context: ProcessingContext): DSTVToken {
     const char = line[position];
     
     // Délimiteurs DSTV (espaces, tabs principalement)

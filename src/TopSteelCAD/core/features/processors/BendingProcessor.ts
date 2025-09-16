@@ -75,30 +75,26 @@ export class BendingProcessor implements IFeatureProcessor {
     position: number,
     axis: string,
     direction: string,
-    element: PivotElement
+    _element: PivotElement
   ): void {
     const positions = geometry.attributes.position;
     const angleRad = (angle * Math.PI) / 180;
     
     // Déterminer l'axe et le plan de pliage
     let bendAxisIndex = 0; // x par défaut
-    let perpAxis1 = 1; // y
     let perpAxis2 = 2; // z
     
     switch (axis.toLowerCase()) {
       case 'x':
         bendAxisIndex = 0;
-        perpAxis1 = 1;
         perpAxis2 = 2;
         break;
       case 'y':
         bendAxisIndex = 1;
-        perpAxis1 = 0;
         perpAxis2 = 2;
         break;
       case 'z':
         bendAxisIndex = 2;
-        perpAxis1 = 0;
         perpAxis2 = 1;
         break;
     }
@@ -137,7 +133,7 @@ export class BendingProcessor implements IFeatureProcessor {
     positions.needsUpdate = true;
   }
 
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     
     // Validation basique

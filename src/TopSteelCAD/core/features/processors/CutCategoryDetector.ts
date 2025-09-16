@@ -60,7 +60,6 @@ export class CutCategoryDetector {
     const contourPoints = feature.parameters?.points || [];
     const cutType = feature.parameters?.cutType;
     const face = feature.face;
-    const profileType = element.metadata?.profileType;
     
     // Vérification explicite du type de coupe si défini
     if (cutType === 'partial_notches' || cutType === 'cut_with_notches') {
@@ -171,7 +170,7 @@ export class CutCategoryDetector {
   /**
    * Détecte si c'est une encoche
    */
-  private isNotch(points: Array<[number, number]>, element: PivotElement, face?: ProfileFace): boolean {
+  private isNotch(points: Array<[number, number]>, element: PivotElement, _face?: ProfileFace): boolean {
     if (points.length < 4) return false;
     
     const dims = element.dimensions || {};
@@ -189,7 +188,7 @@ export class CutCategoryDetector {
   /**
    * Détecte si c'est une coupe mixte (avec encoches préservées)
    */
-  private isMixedCut(points: Array<[number, number]>, element: PivotElement): boolean {
+  private isMixedCut(points: Array<[number, number]>, _element: PivotElement): boolean {
     // Pattern M1002 : 8-9 points avec forme complexe
     if (points.length >= 8 && points.length <= 9) {
       // Vérifier la complexité de la forme
@@ -242,7 +241,6 @@ export class CutCategoryDetector {
   private detectExteriorType(points: Array<[number, number]>, element: PivotElement): CutType {
     const dims = element.dimensions || {};
     const length = dims.length || 1000;
-    const width = dims.width || 100;
     
     // Rectangle sur semelle qui commence à 0 = CONTOUR de redéfinition
     if (points.length === 5 && this.isRectangular(points)) {
@@ -354,7 +352,6 @@ export class CutCategoryDetector {
     const bounds = this.getContourBounds(points);
     const dims = element.dimensions || {};
     const profileLength = dims.length || 1000;
-    const profileHeight = dims.height || 300;
     
     // Une coupe d'angle complète est aux extrémités du profil
     const isAtStart = bounds.minX < 100;
@@ -467,7 +464,9 @@ export class CutCategoryDetector {
     // Les platines peuvent avoir une analyse géométrique pour bevel cuts si nécessaire
     
     // Pour les platines, on peut ajouter ici des analyses géométriques spécifiques
-    if (false) { // Code désactivé temporairement
+    // Code désactivé temporairement
+    // eslint-disable-next-line no-constant-condition
+    if (false) {
       const normalizedPts = this.normalizePoints(points);
       const bounds = this.getContourBounds(normalizedPts);
       const dims = element.dimensions || {};

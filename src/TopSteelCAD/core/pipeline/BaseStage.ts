@@ -159,7 +159,7 @@ export abstract class BaseStage<TInput, TOutput> implements PipelineStage<TInput
   /**
    * Validation de sortie spécifique - à surcharger si nécessaire
    */
-  protected async validateOutput(output: TOutput, context: ProcessingContext): Promise<ValidationResult> {
+  protected async validateOutput(output: TOutput, _context: ProcessingContext): Promise<ValidationResult> {
     // Validation basique: vérifier que la sortie n'est pas null/undefined
     if (output === null || output === undefined) {
       return this.createValidationError('Output cannot be null or undefined');
@@ -289,7 +289,7 @@ export abstract class BaseStage<TInput, TOutput> implements PipelineStage<TInput
   /**
    * Hook de nettoyage en cas d'erreur - à surcharger si nécessaire
    */
-  protected async onErrorCleanup(error: Error, context: ProcessingContext): Promise<void> {
+  protected async onErrorCleanup(_error: Error, _context: ProcessingContext): Promise<void> {
     // Implémentation par défaut: ne rien faire
     // Les classes dérivées peuvent surcharger pour nettoyer des ressources
   }

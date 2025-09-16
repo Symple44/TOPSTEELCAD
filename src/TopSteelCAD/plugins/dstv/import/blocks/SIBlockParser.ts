@@ -12,7 +12,7 @@
  */
 
 import { BaseStage } from '../../../../core/pipeline/BaseStage';
-import { StandardFace } from '../../../../core/coordinates/types';
+// StandardFace import removed - not used
 
 /**
  * Structure des données d'un marquage SI

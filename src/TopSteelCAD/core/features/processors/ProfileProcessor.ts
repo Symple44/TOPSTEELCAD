@@ -376,7 +376,7 @@ export class ProfileProcessor implements IFeatureProcessor {
     );
   }
 
-  validateFeature(feature: Feature, element: PivotElement): string[] {
+  validateFeature(feature: Feature, _element: PivotElement): string[] {
     const errors: string[] = [];
     
     // Validation basique

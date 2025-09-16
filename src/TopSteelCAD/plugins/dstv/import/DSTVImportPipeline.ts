@@ -9,7 +9,7 @@
  * 5. Scene Building - Construction de la scène 3D finale
  */
 
-import { ImportPipeline } from '../../../core/types/PipelineTypes';
+// ImportPipeline import removed - not used
 import { ProcessingPipeline } from '../../../core/pipeline/ProcessingPipeline';
 import { ProcessingContext } from '../../../core/pipeline/ProcessingContext';
 import { PivotScene } from '@/types/viewer';

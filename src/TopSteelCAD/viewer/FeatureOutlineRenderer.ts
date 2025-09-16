@@ -354,7 +354,6 @@ export class FeatureOutlineRenderer {
     const position = hole.position || [0, 0, 0];
     const rotation = hole.rotation || [0, 0, 0];
     const face = hole.face || 'web';
-    const profileLength = hole.profileLength || 1912.15;
     
     // Use the depth that was calculated in createFeatureOutlines based on actual profile dimensions
     // This should already be the correct material thickness (8mm for L-profiles)
@@ -593,18 +592,51 @@ export class FeatureOutlineRenderer {
   private highlightFeature(elementId: string, featureId: string, highlight: boolean, color?: string): void {
     console.log(`🎯 highlightFeature called:`, { elementId, featureId, highlight, color });
     
-    const elementOutlines = this.featureOutlines.get(elementId);
+    let elementOutlines = this.featureOutlines.get(elementId);
+    
+    // Si pas trouvé avec l'ID exact, essayer de trouver par préfixe (sans le timestamp)
     if (!elementOutlines) {
-      console.warn(`⚠️ No outlines found for element ${elementId}`);
-      console.log('Available elements:', Array.from(this.featureOutlines.keys()));
-      return;
+      // Extraire le préfixe de l'ID (avant le timestamp)
+      const elementPrefix = elementId.split('_').slice(0, 3).join('_'); // Ex: "unknown_001_M1002"
+      
+      // Chercher un élément qui correspond au préfixe
+      for (const [key, value] of this.featureOutlines.entries()) {
+        if (key.startsWith(elementPrefix)) {
+          elementOutlines = value;
+          console.log(`🔄 Found element by prefix: ${key}`);
+          break;
+        }
+      }
+      
+      if (!elementOutlines) {
+        console.warn(`⚠️ No outlines found for element ${elementId}`);
+        console.log('Available elements:', Array.from(this.featureOutlines.keys()));
+        return;
+      }
     }
     
-    const outline = elementOutlines.get(featureId);
+    let outline = elementOutlines.get(featureId);
+    
+    // Si pas trouvé avec l'ID exact, essayer des variantes
     if (!outline) {
-      console.warn(`⚠️ No outline found for feature ${featureId} in element ${elementId}`);
-      console.log('Available features:', Array.from(elementOutlines.keys()));
-      return;
+      // Essayer de trouver par préfixe ou pattern similaire
+      for (const [key, value] of elementOutlines.entries()) {
+        // Vérifier si les IDs sont similaires (même base mais suffixes différents)
+        if (key === featureId || 
+            key.includes(featureId) || 
+            featureId.includes(key) ||
+            (key.replace(/_notch_\d+$/, '') === featureId.replace(/_notch_\d+$/, ''))) {
+          outline = value;
+          console.log(`🔄 Found feature by pattern match: ${key}`);
+          break;
+        }
+      }
+      
+      if (!outline) {
+        console.warn(`⚠️ No outline found for feature ${featureId} in element ${elementId}`);
+        console.log('Available features:', Array.from(elementOutlines.keys()));
+        return;
+      }
     }
     
     console.log(`✅ Found outline for feature ${featureId}, applying highlight:`, highlight);
@@ -806,7 +838,7 @@ export class FeatureOutlineRenderer {
     
     console.log(`🎯 Processing ${element.features.length} DSTV features for element ${element.id}`);
     
-    element.features.forEach((feature: any, index: number) => {
+    element.features.forEach((feature: any, _index: number) => {
       // Normaliser le type en majuscules
       const featureType = (feature.type || '').toUpperCase();
       
@@ -854,7 +886,7 @@ export class FeatureOutlineRenderer {
   /**
    * Crée un outline pour un trou DSTV
    */
-  private createDSTVHoleOutline(feature: any, meshYOffset: number, element: PivotElement): THREE.Object3D | null {
+  private createDSTVHoleOutline(feature: any, meshYOffset: number, _element: PivotElement): THREE.Object3D | null {
     // La position peut être un tableau [x, y, z] ou un objet {x, y, z}
     const position = feature.position;
     const params = feature.metadata || feature.parameters;

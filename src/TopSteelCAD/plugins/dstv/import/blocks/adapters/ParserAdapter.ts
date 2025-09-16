@@ -3,7 +3,7 @@
  * Pattern Adapter pour la migration progressive
  */
 
-import { DSTVBlockType, DSTVTokenType } from '../../types/dstv-types';
+import { DSTVBlockType } from '../../types/dstv-types';
 import { DSTVToken } from '../../stages/DSTVLexicalStage';
 import { IBlockParser, ValidationResult, ParserConfig, StandardFeatureFormat } from '../interfaces/IBlockParser';
 import { ProcessingContext } from '../../../../../core/pipeline/ProcessingContext';
@@ -26,9 +26,9 @@ export class BaseStageParserAdapter<T> implements IBlockParser<T> {
     this.description = parser.description || `Parser for ${blockType} block`;
   }
   
-  async parse(rawData: string[], context?: ProcessingContext): Promise<T> {
+  async parse(rawData: string[], _context?: ProcessingContext): Promise<T> {
     // Utiliser le contexte fourni ou en créer un nouveau
-    const ctx = context || new ProcessingContext();
+    const ctx = _context || new ProcessingContext();
     
     try {
       // Appeler la méthode process du BaseStage
@@ -144,7 +144,7 @@ export class BaseBlockParserAdapter<T> implements IBlockParser<T> {
     this.description = `Parser for ${blockType} block`;
   }
   
-  async parse(rawData: string[], context?: ProcessingContext): Promise<T> {
+  async parse(rawData: string[], _context?: ProcessingContext): Promise<T> {
     try {
       // Convertir les strings en tokens pour BaseBlockParser
       const tokens = this.convertToTokens(rawData);
@@ -282,7 +282,7 @@ export class GenericParserAdapter implements IBlockParser<any> {
     private config?: ParserConfig
   ) {}
   
-  async parse(rawData: string[], context?: ProcessingContext): Promise<any> {
+  async parse(rawData: string[], _context?: ProcessingContext): Promise<any> {
     // Parser générique simple
     const result: any = {
       blockType: this.blockType,

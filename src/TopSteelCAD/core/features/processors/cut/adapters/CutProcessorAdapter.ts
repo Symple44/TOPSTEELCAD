@@ -91,7 +91,6 @@ export class CutProcessorAdapter {
     feature: Feature,
     element: PivotElement
   ): Promise<ProcessResult> {
-    const startTime = performance.now();
     
     // Déterminer quelle architecture utiliser
     switch (this.config.mode) {

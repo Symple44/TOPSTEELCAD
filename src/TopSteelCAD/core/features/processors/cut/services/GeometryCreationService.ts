@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import { Feature, ProfileFace, ProfileType, PivotElement } from '../types/CoreTypes';
+import { ProfileFace, PivotElement } from '../types/CoreTypes';
 import { PositionService } from '../../../../services/PositionService';
 
 /**
@@ -79,8 +79,7 @@ export class GeometryCreationService {
       depth = this.getDefaultDepth(element, options.face),
       face = ProfileFace.WEB,
       isTransverse = false,
-      cutType
-    } = options;
+      } = options;
 
     // Délégation selon le type de coupe
     if (isTransverse && face !== ProfileFace.WEB && face !== ProfileFace.BOTTOM_FLANGE) {
@@ -111,9 +110,8 @@ export class GeometryCreationService {
     contourPoints: Array<[number, number]>,
     depth: number,
     element: PivotElement,
-    options: GeometryCreationOptions
+    _options: GeometryCreationOptions
   ): THREE.BufferGeometry {
-    const dims = element.dimensions || {};
     const bounds = this.getContourBounds(contourPoints);
     
     console.log(`  📐 Creating web cut geometry:`);
@@ -134,7 +132,7 @@ export class GeometryCreationService {
     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     
     // Appliquer les transformations selon le système de coordonnées DSTV
-    this.applyDSTVTransform(geometry, options.face || ProfileFace.WEB, element, bounds);
+    this.applyDSTVTransform(geometry, _options.face || ProfileFace.WEB, element, bounds);
     
     return geometry;
   }
@@ -146,10 +144,9 @@ export class GeometryCreationService {
     contourPoints: Array<[number, number]>,
     depth: number,
     element: PivotElement,
-    options: GeometryCreationOptions
+    _options: GeometryCreationOptions
   ): THREE.BufferGeometry {
     const dims = element.dimensions || {};
-    const bounds = this.getContourBounds(contourPoints);
     
     console.log(`  📐 Creating top flange cut geometry`);
     
@@ -181,10 +178,9 @@ export class GeometryCreationService {
     contourPoints: Array<[number, number]>,
     depth: number,
     element: PivotElement,
-    options: GeometryCreationOptions
+    _options: GeometryCreationOptions
   ): THREE.BufferGeometry {
     const dims = element.dimensions || {};
-    const bounds = this.getContourBounds(contourPoints);
     
     console.log(`  📐 Creating bottom flange cut geometry`);
     
@@ -215,7 +211,7 @@ export class GeometryCreationService {
   createTransverseCut(
     contourPoints: Array<[number, number]>,
     element: PivotElement,
-    options: GeometryCreationOptions = {}
+    _options: GeometryCreationOptions = {}
   ): THREE.BufferGeometry {
     const dims = element.dimensions || {};
     const bounds = this.getContourBounds(contourPoints);
@@ -248,8 +244,8 @@ export class GeometryCreationService {
   private createGenericCut(
     contourPoints: Array<[number, number]>,
     depth: number,
-    element: PivotElement,
-    options: GeometryCreationOptions
+    _element: PivotElement,
+    _options: GeometryCreationOptions
   ): THREE.BufferGeometry {
     console.log(`  📐 Creating generic cut geometry`);
     
@@ -303,9 +299,8 @@ export class GeometryCreationService {
   private adaptPointsForFlange(
     points: Array<[number, number]>,
     face: ProfileFace,
-    element: PivotElement
+    _element: PivotElement
   ): Array<[number, number]> {
-    const dims = element.dimensions || {};
     const adapted: Array<[number, number]> = [];
     
     // Pour les semelles, on peut avoir besoin de transformer les coordonnées
@@ -313,8 +308,8 @@ export class GeometryCreationService {
     for (const point of points) {
       // Les coordonnées X restent identiques (le long de la poutre)
       // Les coordonnées Y peuvent nécessiter une adaptation
-      let x = point[0];
-      let y = point[1];
+      const x = point[0];
+      const y = point[1];
       
       // Pour les semelles, Y représente la largeur, pas la hauteur
       if (face === ProfileFace.TOP_FLANGE || face === ProfileFace.BOTTOM_FLANGE) {
@@ -335,7 +330,7 @@ export class GeometryCreationService {
     geometry: THREE.BufferGeometry,
     face: ProfileFace,
     element: PivotElement,
-    bounds: ContourBounds
+    _bounds: ContourBounds
   ): void {
     const dims = element.dimensions || {};
     
@@ -420,7 +415,7 @@ export class GeometryCreationService {
     angle: number,
     position: 'start' | 'end',
     element: PivotElement,
-    options: GeometryCreationOptions = {}
+    _options: GeometryCreationOptions = {}
   ): THREE.BufferGeometry {
     const dims = element.dimensions || {};
     const profileLength = dims.length || 1000;

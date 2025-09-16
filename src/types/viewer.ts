@@ -172,6 +172,9 @@ export interface MetalDimensions {
   webThickness?: number;    // Épaisseur de l'âme (mm)
   webHeight?: number;       // Hauteur de l'âme (mm)
   rootRadius?: number;      // Rayon de congé (mm)
+  
+  // Index signature pour compatibilité avec Record<string, unknown>
+  [key: string]: number | undefined;
 }
 
 /**

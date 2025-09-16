@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Feature, FeatureType, ProfileFace } from '../types/CoreTypes';
+import { Feature, ProfileFace } from '../types/CoreTypes';
 import { PivotElement } from '@/types/viewer';
 import { CutType } from '../types/CutTypes';
 import { BaseCutHandler } from '../core/BaseCutHandler';
@@ -27,7 +27,7 @@ export class PartialNotchHandler extends BaseCutHandler {
     feature: Feature,
     element: PivotElement,
     errors: string[],
-    warnings: string[]
+    _warnings: string[]
   ): void {
     const params = feature.parameters as any;
     
@@ -110,7 +110,6 @@ export class PartialNotchHandler extends BaseCutHandler {
     // Dimensions du profil
     const profileLength = element.dimensions?.length || 1912.15;
     const profileHeight = element.dimensions?.height || 251.4;
-    const profileWidth = element.dimensions?.width || 146.1;
     const webThickness = element.dimensions?.webThickness || 8.6;
     
     // Analyse des points pour déterminer les zones de notches

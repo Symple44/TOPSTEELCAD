@@ -237,7 +237,7 @@ export class DSTVValidator {
   private validateCut(
     feature: NormalizedFeature,
     errors: ValidationError[],
-    warnings: ValidationWarning[]
+    _warnings: ValidationWarning[]
   ): void {
     const width = feature.parameters?.width;
     const height = feature.parameters?.height;
