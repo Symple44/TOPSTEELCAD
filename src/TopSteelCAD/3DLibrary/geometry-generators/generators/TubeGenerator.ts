@@ -5,7 +5,8 @@
 // Import direct de Three.js pour éviter les mocks
 import * as THREE from 'three';
 import { BufferGeometry } from '../../../lib/three-exports';
-import { ProfileType, ProfileDimensions } from '../../types/profile.types';
+import { ProfileType } from '../../types/profile.types';
+import type { ProfileDimensions } from '../../types/profile.types';
 import { BaseProfileGenerator } from '../interfaces/ProfileGeometryGenerator';
 
 export class TubeGenerator extends BaseProfileGenerator {

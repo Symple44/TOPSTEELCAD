@@ -4,7 +4,8 @@
  */
 
 import { BufferGeometry } from '../../../lib/three-exports';
-import { ProfileType, ProfileDimensions } from '../../types/profile.types';
+import { ProfileType } from '../../types/profile.types';
+import type { ProfileDimensions } from '../../types/profile.types';
 
 /**
  * Interface que tous les générateurs doivent implémenter

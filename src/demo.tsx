@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { MinimalViewer } from './TopSteelCAD/MinimalViewer';
 import { StandardViewer } from './TopSteelCAD/StandardViewer';
 import { ProfessionalViewer } from './TopSteelCAD/ProfessionalViewer';
+import { PartBuilderSimple } from './TopSteelCAD/part-builder/PartBuilderSimple';
 import { PivotElement, MaterialType } from './types/viewer';
 
 // Initialiser le logger
@@ -145,7 +146,7 @@ const createTestElements = (): PivotElement[] => {
 };
 
 // Types de modes disponibles
-type ViewerMode = 'minimal' | 'standard' | 'professional';
+type ViewerMode = 'minimal' | 'standard' | 'professional' | 'part-builder';
 
 // Composant de démonstration
 const DemoApp: React.FC = () => {
@@ -246,12 +247,13 @@ const DemoApp: React.FC = () => {
                 <option value="minimal">🔹 Mode Minimal</option>
                 <option value="standard">🔷 Mode Standard</option>
                 <option value="professional">🔶 Mode Professionnel</option>
+                <option value="part-builder">🏗️ Part Builder (Nouveau!)</option>
               </select>
             </div>
             
             <button
               onClick={handleLoadTestElements}
-              disabled={isLoadingElements}
+              disabled={isLoadingElements || mode === 'part-builder'}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: isLoadingElements 
@@ -398,6 +400,10 @@ const DemoApp: React.FC = () => {
             theme={theme}
           />
         )}
+
+        {mode === 'part-builder' && (
+          <PartBuilderSimple />
+        )}
       </div>
 
       {/* Info bar */}
@@ -418,6 +424,7 @@ const DemoApp: React.FC = () => {
           {mode === 'minimal' && '🔹 Interface épurée avec seulement les outils essentiels'}
           {mode === 'standard' && '🔷 Interface équilibrée avec navigation et outils de base'}
           {mode === 'professional' && '🔶 Interface complète avec tous les outils CAO avancés'}
+          {mode === 'part-builder' && '🏗️ Module de création de pièces métalliques de A à Z'}
         </div>
       </div>
     </div>

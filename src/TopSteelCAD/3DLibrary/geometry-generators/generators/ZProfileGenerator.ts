@@ -3,7 +3,8 @@
  */
 
 import { Shape, ExtrudeGeometry, BufferGeometry } from '../../../lib/three-exports';
-import { ProfileType, ProfileDimensions } from '../../types/profile.types';
+import { ProfileType } from '../../types/profile.types';
+import type { ProfileDimensions } from '../../types/profile.types';
 import { BaseProfileGenerator } from '../interfaces/ProfileGeometryGenerator';
 
 export class ZProfileGenerator extends BaseProfileGenerator {

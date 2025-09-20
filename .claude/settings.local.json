@@ -53,7 +53,8 @@
       "Bash(DSTV_TEST_FILE=test-files/dstv/h5004.nc1 DSTV_LOG_LEVEL=DEBUG npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVCutFlowDebug.test.ts --reporter=verbose)",
       "Bash(DSTV_TEST_FILE=test-files/dstv/M1002.nc npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts --reporter=verbose)",
       "Bash(del \".eslintrc.override.json\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(del test-part-builder-demo.html test-direct.html test-import.html test-minimal.html)"
     ],
     "deny": [],
     "ask": [],
