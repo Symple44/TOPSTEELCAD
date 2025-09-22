@@ -54,7 +54,12 @@
       "Bash(DSTV_TEST_FILE=test-files/dstv/M1002.nc npx vitest run src/TopSteelCAD/plugins/dstv/__tests__/DSTVImportWithLogs.test.ts --reporter=verbose)",
       "Bash(del \".eslintrc.override.json\")",
       "Bash(find:*)",
-      "Bash(del test-part-builder-demo.html test-direct.html test-import.html test-minimal.html)"
+      "Bash(del test-part-builder-demo.html test-direct.html test-import.html test-minimal.html)",
+      "Bash(for f in PartBuilder.tsx PartBuilderTable.tsx PartBuilderPro.tsx PartBuilderSimple.tsx)",
+      "Bash(do if [ -f \"$f\" ])",
+      "Bash(then mv \"$f\" \"$f.back\")",
+      "Bash(fi)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": [],

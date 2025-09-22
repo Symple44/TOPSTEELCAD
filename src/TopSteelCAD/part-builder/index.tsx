@@ -1,5 +1,11 @@
-export { PartBuilderTable } from './PartBuilderTable';
-export { PartBuilderTable as default } from './PartBuilderTable';
+// Export principal
+export { PartBuilder as default, PartBuilder } from './PartBuilder';
 
-// Legacy exports for compatibility
-export type { Part, Hole, Notch, ProfileType, FaceType } from './types';
+// Export des composants
+export { default as PartDataTable } from './components/PartDataTable';
+export { default as PartDetailModal } from './components/PartDetailModal';
+export { default as HoleAddingInterface } from './components/HoleAddingInterface';
+
+// Export des types
+export * from './types/partBuilder.types';
+export type { ProfileType, ProfileDimensions } from './types/index';

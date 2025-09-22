@@ -54,14 +54,120 @@ export class HoleProcessor implements IFeatureProcessor {
       // Les coordonnées sont déjà converties au format standard dans DSTVNormalizationStage
       // Plus besoin d'ajustement spécifique DSTV ici
       console.log(`  - Using standard position: (${featurePos.x}, ${featurePos.y}, ${featurePos.z})`);
-      console.log(`  - Face: ${feature.face || feature.parameters?.face || 'default'}`)
-      
-      const position3D = this.positionService.calculateFeaturePosition(
-        element,
-        featurePos,
-        feature.face,
-        feature.coordinateSystem || CoordinateSystem.STANDARD  // Utiliser le système de coordonnées de la feature
-      );
+      console.log(`  - Face: ${feature.face || feature.parameters?.face || 'default'}`);
+
+      // Pour les coordonnées 'local', ne pas utiliser le PositionService
+      let position3D: any;
+
+      if (feature.coordinateSystem === 'local' || !feature.coordinateSystem || feature.coordinateSystem === CoordinateSystem.STANDARD) {
+        // Transformation des coordonnées DSTV vers Three.js selon la face
+        const face = feature.face || feature.parameters?.face;
+        let transformedPos = new THREE.Vector3();
+        let rotation = new THREE.Euler(0, 0, 0);
+
+        // MAPPING DSTV → Three.js selon la face
+        // Note: CylinderGeometry a son axe le long de Y par défaut (vertical)
+
+        // IMPORTANT: Conversion DSTV → Three.js
+        // DSTV: X=0 au début du profil, X=length à la fin
+        // Three.js: X=-length/2 au début, X=0 au milieu, X=length/2 à la fin
+        // Formule: X_threejs = X_dstv - length/2
+        const xOffset = element.dimensions.length / 2;
+
+        if (face === ProfileFace.TOP || face === ProfileFace.TOP_FLANGE) {
+          // Semelle supérieure - trou vertical traversant de haut en bas
+          transformedPos.set(
+            featurePos.x - xOffset,  // X avec décalage pour centrage Three.js
+            (element.dimensions.height || 0) / 2,  // Y = sommet du profil
+            featurePos.y   // Y DSTV devient Z Three.js (transversal)
+          );
+          // Pas de rotation nécessaire, le cylindre est déjà vertical (axe Y)
+          rotation = new THREE.Euler(0, 0, 0);
+
+        } else if (face === ProfileFace.BOTTOM || face === ProfileFace.BOTTOM_FLANGE) {
+          // Semelle inférieure - trou vertical traversant de bas en haut
+          transformedPos.set(
+            featurePos.x - xOffset,  // X avec décalage pour centrage Three.js
+            -(element.dimensions.height || 0) / 2,  // Y = bas du profil
+            featurePos.y   // Y DSTV → Z Three.js
+          );
+          // Pas de rotation nécessaire, le cylindre est déjà vertical
+          rotation = new THREE.Euler(0, 0, 0);
+
+        } else if (face === ProfileFace.WEB) {
+          // Âme (web) - trou horizontal traversant de l'avant vers l'arrière
+          transformedPos.set(
+            featurePos.x - xOffset,  // X avec décalage pour centrage Three.js
+            featurePos.y,  // Y reste Y (hauteur)
+            0              // Z = 0 (centre de l'âme)
+          );
+          // Rotation de 90° autour de X pour rendre le trou horizontal (perpendiculaire à l'âme)
+          rotation = new THREE.Euler(Math.PI / 2, 0, 0);
+
+        } else if (face === ProfileFace.LEFT || face === ProfileFace.LEFT_LEG) {
+          // Face latérale gauche - trou sur le côté gauche de l'âme
+          // Pour un profil I, l'âme est centrée avec une épaisseur de webThickness
+          const webThickness = element.dimensions.webThickness || element.dimensions.thickness || 10;
+          transformedPos.set(
+            featurePos.x - xOffset,  // X avec décalage pour centrage Three.js
+            featurePos.y,  // Y = position verticale
+            -webThickness / 2  // Z = côté gauche de l'âme
+          );
+          // Rotation de 90° autour de Y pour rendre le trou horizontal (traverse l'âme)
+          rotation = new THREE.Euler(0, Math.PI / 2, 0);
+
+        } else if (face === ProfileFace.RIGHT || face === ProfileFace.RIGHT_LEG) {
+          // Face latérale droite - trou sur le côté droit de l'âme
+          const webThickness = element.dimensions.webThickness || element.dimensions.thickness || 10;
+          transformedPos.set(
+            featurePos.x - xOffset,  // X avec décalage pour centrage Three.js
+            featurePos.y,  // Y = position verticale
+            webThickness / 2  // Z = côté droit de l'âme
+          );
+          // Rotation de 90° autour de Y pour rendre le trou horizontal (traverse l'âme)
+          rotation = new THREE.Euler(0, -Math.PI / 2, 0);
+
+        } else if (face === ProfileFace.FRONT) {
+          // Face horizontale (pour profils L) - trou vertical
+          transformedPos.set(
+            featurePos.x - xOffset,  // X avec décalage
+            featurePos.y,  // Y = position sur l'aile horizontale
+            featurePos.z   // Z = position transversale
+          );
+          // Pas de rotation, trou vertical
+          rotation = new THREE.Euler(0, 0, 0);
+
+        } else {
+          // Face radiale (pour tubes circulaires) - trou radial
+          transformedPos.set(
+            featurePos.x - xOffset,  // X avec décalage
+            featurePos.y,  // Y = position radiale
+            featurePos.z   // Z = position radiale
+          );
+          // Rotation selon l'angle radial
+          const angle = Math.atan2(featurePos.y, featurePos.z);
+          rotation = new THREE.Euler(0, 0, angle);
+        }
+
+        position3D = {
+          position: transformedPos,
+          rotation: rotation,
+          depth: 0  // La profondeur sera gérée par feature.parameters.depth
+        };
+
+        console.log(`  - Using local/standard coordinates with transformation`);
+        console.log(`    Face: ${face}, Original: (${featurePos.x}, ${featurePos.y}, ${featurePos.z})`);
+        console.log(`    Transformed: (${transformedPos.x}, ${transformedPos.y}, ${transformedPos.z})`);
+      } else {
+        // Utiliser le service de position pour d'autres systèmes de coordonnées (DSTV, etc.)
+        position3D = this.positionService.calculateFeaturePosition(
+          element,
+          featurePos,
+          feature.face,
+          feature.coordinateSystem
+        );
+        console.log(`  - Calculated 3D position via PositionService`);
+      }
       console.log(`  - Calculated 3D position:`, position3D);
       console.log(`    → Position Vector3:`, position3D.position.x, position3D.position.y, position3D.position.z);
       console.log(`    → Rotation Euler:`, position3D.rotation.x, position3D.rotation.y, position3D.rotation.z);
@@ -413,53 +519,90 @@ export class HoleProcessor implements IFeatureProcessor {
     return geometry;
   }
   
-  private isPositionValid(position: THREE.Vector3, element: PivotElement, face?: ProfileFace | undefined): boolean {
+  private normalizeFace(face?: ProfileFace | undefined | string): string | ProfileFace {
+    if (!face) return 'default';
+
+    // Si c'est déjà une valeur ProfileFace, la retourner
+    if (Object.values(ProfileFace).includes(face as ProfileFace)) {
+      return face as ProfileFace;
+    }
+
+    // Mapper les codes DSTV vers les faces
+    const dstvMapping: Record<string, ProfileFace | string> = {
+      'o': ProfileFace.TOP,      // Top flange
+      'u': ProfileFace.BOTTOM,   // Bottom flange
+      'v': ProfileFace.WEB,      // Web (âme)
+      'l': ProfileFace.LEFT,     // Left
+      'r': ProfileFace.RIGHT,    // Right
+      'h': ProfileFace.BACK,     // Back
+      'web': ProfileFace.WEB
+    };
+
+    return dstvMapping[face as string] || face;
+  }
+
+  private isPositionValid(position: THREE.Vector3, element: PivotElement, face?: ProfileFace | undefined | string): boolean {
     const dims = element.dimensions;
     const materialType = element.materialType;
-    
+
     // Dimensions de base
     const length = dims.length || 1000;
     const width = dims.width || 100;
     const height = dims.height || 100;
     const thickness = dims.thickness || 10;
-    
+
     // Permettre une petite marge pour les trous sur les bords
     const margin = 10;
-    
+
     // IMPORTANT: Nouveau système de coordonnées pour DSTV
     // Le profil I est créé dans le plan XY et extrudé le long de Z
     // - X = largeur du profil
-    // - Y = hauteur du profil  
+    // - Y = hauteur du profil
     // - Z = longueur du profil (extrusion)
-    
+
+    // Convertir les codes DSTV en ProfileFace si nécessaire
+    const normalizedFace = this.normalizeFace(face);
+
     // Pour les profils en I (BEAM) avec trous dans l'âme
-    if (materialType === MaterialType.BEAM && face === ProfileFace.WEB) {
-      // Pour l'âme : 
-      // Z = position le long de la poutre (0 à length maintenant!)
-      // Y = hauteur sur l'âme
-      // X = doit être proche de 0 (centre de l'âme)
+    if (materialType === MaterialType.BEAM && (normalizedFace === ProfileFace.WEB || normalizedFace === 'v')) {
+      // Pour l'âme en DSTV:
+      // X = position le long de la poutre (0 à length)
+      // Y = hauteur sur l'âme (-height/2 à height/2)
+      // Z = position transversale (devrait être proche de 0 pour l'âme)
       return (
-        Math.abs(position.x) <= thickness/2 + margin &&  // Au centre de l'âme
+        position.x >= -margin && position.x <= length + margin &&  // Le long du profil
         position.y >= -height/2 - margin && position.y <= height/2 + margin &&  // Dans la hauteur
-        position.z >= -margin && position.z <= length + margin   // Le long du profil - CORRIGÉ: 0 à length
+        Math.abs(position.z) <= thickness/2 + margin   // Au centre de l'âme
       );
     }
-    
-    // Pour les profils en I (BEAM) - semelle supérieure
-    if (materialType === MaterialType.BEAM && face === ProfileFace.TOP) {
-      // Semelle supérieure
-      // Z = position le long de la poutre
-      // X = position latérale sur la semelle
-      // Y = doit être proche de height/2
+
+    // Pour les faces latérales gauche et droite
+    if (face === ProfileFace.LEFT || face === ProfileFace.LEFT_LEG || face === ProfileFace.RIGHT || face === ProfileFace.RIGHT_LEG) {
+      // Les faces latérales sont sur les côtés du profil
+      // X = position le long de la poutre (0 à length)
+      // Y = position verticale (-height/2 à height/2)
+      // Z = position transversale (ignorée car le trou est sur le côté)
       return (
-        position.x >= -width/2 - margin && position.x <= width/2 + margin &&  // Dans la largeur de la semelle
-        Math.abs(position.y - height/2) <= thickness + margin &&  // Proche du haut
-        position.z >= -margin && position.z <= length + margin   // Le long du profil - CORRIGÉ: 0 à length
+        position.x >= -margin && position.x <= length + margin &&  // Le long du profil
+        position.y >= -height/2 - margin && position.y <= height/2 + margin  // Dans la hauteur
+        // Pas de vérification Z car le trou est placé sur le côté
       );
     }
-    
+
+    // Pour les profils en I (BEAM) - semelle supérieure
+    if (materialType === MaterialType.BEAM && (normalizedFace === ProfileFace.TOP || normalizedFace === 'o')) {
+      // Semelle supérieure
+      // DSTV: dans les trous, X est la position le long de la poutre
+      // Donc on doit mapper X DSTV -> Z Three.js
+      return (
+        position.x >= -margin && position.x <= length + margin &&  // X DSTV = longueur
+        position.y >= -width/2 - margin && position.y <= width/2 + margin &&  // Y DSTV = largeur
+        Math.abs(position.z) <= thickness + margin  // Z = épaisseur (trou traversant)
+      );
+    }
+
     // Pour les profils en I (BEAM) avec trous dans les ailes
-    if (materialType === MaterialType.BEAM && (face === ProfileFace.BOTTOM || face === ProfileFace.TOP)) {
+    if (materialType === MaterialType.BEAM && (normalizedFace === ProfileFace.BOTTOM || normalizedFace === ProfileFace.TOP || normalizedFace === 'o' || normalizedFace === 'u')) {
       // Pour les ailes : X = position le long de la poutre, Y = position latérale sur l'aile
       return (
         position.x >= -margin && position.x <= length + margin &&
@@ -477,6 +620,26 @@ export class HoleProcessor implements IFeatureProcessor {
       );
     }
     
+    // Pour les faces spéciales des profils L
+    if (face === ProfileFace.FRONT) {
+      // Face horizontale d'un profil L
+      return (
+        position.x >= -margin && position.x <= length + margin &&
+        position.y >= -margin && position.y <= width + margin &&
+        position.z >= -margin && position.z <= height + margin
+      );
+    }
+
+    // Pour les faces radiales des tubes circulaires
+    if (false) { // Radial face not supported yet
+      const radius = (dims.diameter || dims.width || 100) / 2;
+      const distanceFromCenter = Math.sqrt(position.y * position.y + position.z * position.z);
+      return (
+        position.x >= -margin && position.x <= length + margin &&
+        Math.abs(distanceFromCenter - radius) <= margin
+      );
+    }
+
     // Pour les faces FRONT/BACK (face avant/arrière du profil)
     // Ces faces sont perpendiculaires à l'axe Z (longueur)
     if (face === ProfileFace.FRONT || face === ProfileFace.BACK) {
@@ -615,11 +778,83 @@ export class HoleProcessor implements IFeatureProcessor {
       
       // Appliquer tous les trous
       for (const hole of holes) {
-        const position3D = this.positionService.calculateFeaturePosition(
-          element,
-          hole.position,
-          hole.face
-        );
+        // Éviter d'utiliser PositionService pour les coordonnées locales
+        let position3D: any;
+
+        if (hole.coordinateSystem === 'local' || !hole.coordinateSystem || hole.coordinateSystem === CoordinateSystem.STANDARD) {
+          const holePos = Array.isArray(hole.position)
+            ? new THREE.Vector3(hole.position[0], hole.position[1], hole.position[2])
+            : hole.position;
+
+          // Transformation identique à la méthode process
+          const face = hole.face || hole.parameters?.face;
+          let transformedPos = new THREE.Vector3();
+          let rotation = new THREE.Euler(0, 0, 0);
+
+          // IMPORTANT: Conversion DSTV → Three.js
+          // DSTV: X=0 au début du profil, X=length à la fin
+          // Three.js: X=-length/2 au début, X=0 au milieu, X=length/2 à la fin
+          const xOffset = element.dimensions.length / 2;
+
+          if (face === ProfileFace.TOP || face === ProfileFace.TOP_FLANGE) {
+            transformedPos.set(
+              holePos.x - xOffset,  // X avec décalage pour centrage Three.js
+              (element.dimensions.height || 0) / 2,
+              holePos.y
+            );
+            // Pas de rotation, le cylindre est déjà vertical
+            rotation = new THREE.Euler(0, 0, 0);
+          } else if (face === ProfileFace.BOTTOM || face === ProfileFace.BOTTOM_FLANGE) {
+            transformedPos.set(
+              holePos.x - xOffset,  // X avec décalage pour centrage Three.js
+              -(element.dimensions.height || 0) / 2,
+              holePos.y
+            );
+            // Pas de rotation, le cylindre est déjà vertical
+            rotation = new THREE.Euler(0, 0, 0);
+          } else if (face === ProfileFace.WEB) {
+            transformedPos.set(
+              holePos.x - xOffset,  // X avec décalage pour centrage Three.js
+              holePos.y,
+              0
+            );
+            // Rotation de 90° autour de X pour trou horizontal
+            rotation = new THREE.Euler(Math.PI / 2, 0, 0);
+          } else if (face === ProfileFace.LEFT || face === ProfileFace.LEFT_LEG) {
+            // Face latérale gauche - sur l'âme
+            const webThickness = element.dimensions.webThickness || element.dimensions.thickness || 10;
+            transformedPos.set(
+              holePos.x - xOffset,
+              holePos.y,
+              -webThickness / 2
+            );
+            rotation = new THREE.Euler(0, Math.PI / 2, 0);
+          } else if (face === ProfileFace.RIGHT || face === ProfileFace.RIGHT_LEG) {
+            // Face latérale droite - sur l'âme
+            const webThickness = element.dimensions.webThickness || element.dimensions.thickness || 10;
+            transformedPos.set(
+              holePos.x - xOffset,
+              holePos.y,
+              webThickness / 2
+            );
+            rotation = new THREE.Euler(0, -Math.PI / 2, 0);
+          } else {
+            transformedPos.set(holePos.x - xOffset, holePos.y, holePos.z);
+          }
+
+          position3D = {
+            position: transformedPos,
+            rotation: rotation,
+            depth: 0
+          };
+        } else {
+          position3D = this.positionService.calculateFeaturePosition(
+            element,
+            hole.position,
+            hole.face,
+            hole.coordinateSystem
+          );
+        }
         
         const holeGeometry = this.createHoleGeometry(
           hole.parameters.diameter!,

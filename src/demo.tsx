@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { MinimalViewer } from './TopSteelCAD/MinimalViewer';
 import { StandardViewer } from './TopSteelCAD/StandardViewer';
 import { ProfessionalViewer } from './TopSteelCAD/ProfessionalViewer';
-import { PartBuilderSimple } from './TopSteelCAD/part-builder/PartBuilderSimple';
+import { PartBuilder } from './TopSteelCAD/part-builder';
 import { PivotElement, MaterialType } from './types/viewer';
 
 // Initialiser le logger
@@ -402,7 +402,7 @@ const DemoApp: React.FC = () => {
         )}
 
         {mode === 'part-builder' && (
-          <PartBuilderSimple />
+          <PartBuilder />
         )}
       </div>
 

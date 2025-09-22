@@ -137,18 +137,20 @@ export class FeatureApplicator {
     // Paramètres spécifiques selon le type
     switch (featureData.type) {
       case 'hole':
-        feature.parameters.diameter = featureData.diameter || 10;
+        // Récupérer le diamètre depuis parameters ou directement
+        feature.parameters.diameter = featureData.parameters?.diameter || featureData.diameter || 10;
         // Si depth=0 dans DSTV, c'est un trou traversant, on utilise une grande profondeur
-        feature.parameters.depth = featureData.depth > 0 ? featureData.depth : 100;
+        const holeDepth = featureData.parameters?.depth ?? featureData.depth ?? 0;
+        feature.parameters.depth = holeDepth > 0 ? holeDepth : 100;
         // Type de trou et paramètres spécifiques
-        feature.parameters.holeType = featureData.holeType || 'round';
+        feature.parameters.holeType = featureData.parameters?.holeType || featureData.holeType || 'round';
         // La face est déjà définie sur l'objet Feature
-        if (featureData.holeType === 'slotted') {
-          feature.parameters.slottedLength = featureData.slottedLength || 0;
-          feature.parameters.slottedAngle = featureData.slottedAngle || 0;
-        } else if (featureData.holeType === 'rectangular') {
-          feature.parameters.width = featureData.width || featureData.diameter;
-          feature.parameters.height = featureData.height || featureData.diameter;
+        if (feature.parameters.holeType === 'slotted') {
+          feature.parameters.slottedLength = featureData.parameters?.slottedLength || featureData.slottedLength || 0;
+          feature.parameters.slottedAngle = featureData.parameters?.slottedAngle || featureData.slottedAngle || 0;
+        } else if (feature.parameters.holeType === 'rectangular') {
+          feature.parameters.width = featureData.parameters?.width || featureData.width || feature.parameters.diameter;
+          feature.parameters.height = featureData.parameters?.height || featureData.height || feature.parameters.diameter;
         }
         break;
         

@@ -123,16 +123,26 @@ export class FeatureOutlineRenderer {
       let featureId = hole.id || `${element.id}_hole_${index}`;
       
       // Si l'élément a des features DSTV, essayer de matcher par ID d'abord
-      if (element.features && element.features.length > 0) {
+      // Les features peuvent être un tableau ou un objet avec des propriétés comme 'holes'
+      let featuresArray: any[] = [];
+      if (element.features) {
+        if (Array.isArray(element.features)) {
+          featuresArray = element.features;
+        } else if (element.features.holes && Array.isArray(element.features.holes)) {
+          featuresArray = element.features.holes;
+        }
+      }
+
+      if (featuresArray.length > 0) {
         // D'abord essayer de matcher par l'ID du trou s'il contient dstv
         if (hole.id && hole.id.includes('dstv')) {
           featureId = hole.id;
         } else {
           // Sinon, chercher la feature correspondante par index et type
-          const holeFeatures = element.features.filter((f: SelectableFeature) => 
-            f.type === FeatureType.HOLE || f.type === FeatureType.SLOT
+          const holeFeatures = featuresArray.filter((f: SelectableFeature) =>
+            f.type === FeatureType.HOLE || f.type === FeatureType.SLOT || f.type === 'hole'
           );
-          
+
           if (holeFeatures[index]) {
             featureId = holeFeatures[index].id;
             console.log(`🔗 Matched hole outline to DSTV feature by index: ${featureId}`);
@@ -190,14 +200,23 @@ export class FeatureOutlineRenderer {
       let featureId = cut.id || `${element.id}_cut_${index}`;
       
       // Si l'élément a des features DSTV, essayer de matcher par ID d'abord
-      if (element.features && element.features.length > 0) {
+      let featuresArrayForCuts: any[] = [];
+      if (element.features) {
+        if (Array.isArray(element.features)) {
+          featuresArrayForCuts = element.features;
+        } else if (element.features.cuts && Array.isArray(element.features.cuts)) {
+          featuresArrayForCuts = element.features.cuts;
+        }
+      }
+
+      if (featuresArrayForCuts.length > 0) {
         // D'abord essayer de matcher par l'ID de la découpe s'il contient dstv
         if (cut.id && cut.id.includes('dstv')) {
           featureId = cut.id;
         } else {
           // Sinon, chercher la feature correspondante par index et type
-          const cutFeatures = element.features.filter((f: SelectableFeature) => 
-            f.type === FeatureType.CUT || f.type === FeatureType.NOTCH || 
+          const cutFeatures = featuresArrayForCuts.filter((f: SelectableFeature) =>
+            f.type === FeatureType.CUT || f.type === FeatureType.NOTCH ||
             f.type === FeatureType.CUTOUT || f.type === FeatureType.CONTOUR
           );
           
@@ -334,7 +353,21 @@ export class FeatureOutlineRenderer {
       console.log(`📋 Created outlines for element ${element.id}:`, {
         totalOutlines: featureIds.size,
         featureIds: Array.from(featureIds.keys()),
-        elementFeatures: element.features?.map(f => f.id) || []
+        elementFeatures: (() => {
+          if (!element.features) return [];
+          if (Array.isArray(element.features)) {
+            return element.features.map(f => f.id);
+          }
+          // Si features est un objet, collecter toutes les features de tous les types
+          const allFeatures = [];
+          if (element.features.holes && Array.isArray(element.features.holes)) {
+            allFeatures.push(...element.features.holes.map(h => h.id));
+          }
+          if (element.features.cuts && Array.isArray(element.features.cuts)) {
+            allFeatures.push(...element.features.cuts.map(c => c.id));
+          }
+          return allFeatures;
+        })()
       });
     }
     
@@ -397,21 +430,60 @@ export class FeatureOutlineRenderer {
     // Créer DEUX cercles : un à l'entrée et un à la sortie du trou
     const colors = [0xffff00, 0xffff00]; // Jaune pour les deux côtés (plus visible)
     
-    // Déterminer l'orientation du trou selon la rotation
+    // Déterminer l'orientation du trou selon la rotation ET la face
     // La rotation indique comment le cylindre est orienté
-    // rotation[2] = π/2 signifie rotation de 90° autour de Z (cylindre selon X)
     // rotation[0] = π/2 signifie rotation de 90° autour de X (cylindre selon Z)
+    // rotation[1] = π/2 signifie rotation de 90° autour de Y (cylindre selon X)
+    // rotation[2] = π/2 signifie rotation de 90° autour de Z (cylindre selon X)
     // rotation = [0,0,0] signifie cylindre vertical (selon Y)
     let positions: THREE.Vector3[];
     const halfDepth = depth / 2;
-    
+
     // Check rotation to determine hole direction
     const isRotatedAroundZ = Math.abs(rotation[2] - Math.PI/2) < 0.01 || Math.abs(rotation[2] + Math.PI/2) < 0.01;
     const isRotatedAroundX = Math.abs(rotation[0] - Math.PI/2) < 0.01 || Math.abs(rotation[0] + Math.PI/2) < 0.01;
-    
-    if (isRotatedAroundZ || face === 'h' || face === 'front' || face === 'back') {
+    const isRotatedAroundY = Math.abs(rotation[1] - Math.PI/2) < 0.01 || Math.abs(rotation[1] + Math.PI/2) < 0.01;
+
+    // Pour la face 'v' (âme), le trou a une rotation X de 90° et traverse selon Z
+    if (face === 'v' && isRotatedAroundX) {
+      // Trou sur l'âme (web) - traverse selon Z après rotation X de 90°
+      positions = [
+        new THREE.Vector3(
+          correctedPosition[0], // X: position le long du profil
+          correctedPosition[1] + yAdjustment, // Y: position verticale
+          -halfDepth  // Z: entrée du trou
+        ), // Entry
+        new THREE.Vector3(
+          correctedPosition[0], // X: position le long du profil
+          correctedPosition[1] + yAdjustment, // Y: position verticale
+          halfDepth  // Z: sortie du trou
+        ) // Exit
+      ];
+    } else if (face === 'l' || face === 'r') {
+      // Faces latérales (gauche/droite) - vue de côté
+      // Pour une vue de côté, le trou traverse l'âme horizontalement
+      // L'outline doit montrer le trou vu de côté (profondeur selon X)
+
+      // Pour la face 'l' (gauche), on voit le trou depuis la gauche
+      // Pour la face 'r' (droite), on voit le trou depuis la droite
+      // Dans les deux cas, le trou traverse l'âme (webThickness)
+
+      const webThickness = depth; // L'épaisseur à traverser
+      positions = [
+        new THREE.Vector3(
+          correctedPosition[0], // X: position le long du profil
+          correctedPosition[1] + yAdjustment, // Y: position verticale
+          correctedPosition[2] - webThickness/2  // Z: bord gauche de l'âme
+        ), // Entry
+        new THREE.Vector3(
+          correctedPosition[0], // X: position le long du profil
+          correctedPosition[1] + yAdjustment, // Y: position verticale
+          correctedPosition[2] + webThickness/2  // Z: bord droit de l'âme
+        ) // Exit
+      ];
+    } else if (isRotatedAroundZ || face === 'h' || face === 'front' || face === 'back') {
       // Hole traverses along X axis (rotation around Z)
-      // For FRONT face holes on L-profiles: 
+      // For FRONT face holes on L-profiles:
       // - The hole should go from X=0 (outer face) to X=depth (inner face)
       // - The hole position might be adjusted, but outline should show actual extent
       positions = [
@@ -426,7 +498,21 @@ export class FeatureOutlineRenderer {
           correctedPosition[2]  // Z: position along profile
         ) // Exit
       ];
-    } else if (face === 'web' || face === 'o') {
+    } else if (face === 'o' || face === 'u') {
+      // Trous sur les semelles (top/bottom flanges) - traversent verticalement selon Y
+      positions = [
+        new THREE.Vector3(
+          correctedPosition[0], // X: position le long du profil
+          correctedPosition[1] - halfDepth + yAdjustment, // Y: entrée du trou
+          correctedPosition[2]  // Z: position transversale
+        ), // Entry
+        new THREE.Vector3(
+          correctedPosition[0], // X: position le long du profil
+          correctedPosition[1] + halfDepth + yAdjustment, // Y: sortie du trou
+          correctedPosition[2]  // Z: position transversale
+        ) // Exit
+      ];
+    } else if (face === 'web') {
       // WEB holes for I-profiles - centered at X=0
       positions = [
         new THREE.Vector3(
@@ -440,7 +526,7 @@ export class FeatureOutlineRenderer {
           correctedPosition[2]  // Z: position along profile
         ) // Exit
       ];
-    } else if (isRotatedAroundX) {
+    } else if (isRotatedAroundX && face !== 'v') {
       // Hole traverses along Z axis (rotation around X)
       positions = [
         new THREE.Vector3(
@@ -832,13 +918,29 @@ export class FeatureOutlineRenderer {
    * Traite spécifiquement les features DSTV pour créer leurs outlines
    */
   private processDSTVFeatures(element: PivotElement, group: THREE.Group, meshYOffset: number): void {
-    if (!element.features || element.features.length === 0) {
+    // Normaliser features en tableau
+    let featuresArray: any[] = [];
+    if (element.features) {
+      if (Array.isArray(element.features)) {
+        featuresArray = element.features;
+      } else {
+        // Si c'est un objet, extraire toutes les features
+        if (element.features.holes && Array.isArray(element.features.holes)) {
+          featuresArray.push(...element.features.holes);
+        }
+        if (element.features.cuts && Array.isArray(element.features.cuts)) {
+          featuresArray.push(...element.features.cuts);
+        }
+      }
+    }
+
+    if (featuresArray.length === 0) {
       return;
     }
-    
-    console.log(`🎯 Processing ${element.features.length} DSTV features for element ${element.id}`);
-    
-    element.features.forEach((feature: any, _index: number) => {
+
+    console.log(`🎯 Processing ${featuresArray.length} DSTV features for element ${element.id}`);
+
+    featuresArray.forEach((feature: any, _index: number) => {
       // Normaliser le type en majuscules
       const featureType = (feature.type || '').toUpperCase();
       

@@ -312,13 +312,42 @@ export class SceneManager {
     mesh.userData.yOffset = yOffset;
     mesh.geometry.userData.yOffset = yOffset;
     
-    mesh.position.set(
-      element.position[0],
-      element.position[1] + yOffset,
-      element.position[2]
-    );
-    mesh.rotation.set(...(element.rotation || [0, 0, 0]));
-    mesh.scale.set(...(element.scale || [1, 1, 1]));
+    // Handle position - peut être un tableau ou un objet {x, y, z}
+    const position = element.position;
+    if (Array.isArray(position)) {
+      mesh.position.set(
+        position[0],
+        position[1] + yOffset,
+        position[2]
+      );
+    } else if (position && typeof position === 'object') {
+      mesh.position.set(
+        position.x || 0,
+        (position.y || 0) + yOffset,
+        position.z || 0
+      );
+    } else {
+      mesh.position.set(0, yOffset, 0);
+    }
+    // Handle rotation - peut être un tableau ou un objet {x, y, z}
+    const rotation = element.rotation;
+    if (Array.isArray(rotation)) {
+      mesh.rotation.set(...rotation);
+    } else if (rotation && typeof rotation === 'object') {
+      mesh.rotation.set(rotation.x || 0, rotation.y || 0, rotation.z || 0);
+    } else {
+      mesh.rotation.set(0, 0, 0);
+    }
+
+    // Handle scale - peut être un tableau ou un objet {x, y, z}
+    const scale = element.scale;
+    if (Array.isArray(scale)) {
+      mesh.scale.set(...scale);
+    } else if (scale && typeof scale === 'object') {
+      mesh.scale.set(scale.x || 1, scale.y || 1, scale.z || 1);
+    } else {
+      mesh.scale.set(1, 1, 1);
+    }
     
     elementGroup.add(mesh);
     

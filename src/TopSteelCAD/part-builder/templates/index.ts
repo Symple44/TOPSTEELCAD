@@ -1,4 +1,4 @@
-import { PartTemplate, PartType, ProfileType } from '../types';
+import { PartTemplate, PartType, ProfileType } from '../types/index';
 import { v4 as uuidv4 } from 'uuid';
 
 const templates: PartTemplate[] = [
