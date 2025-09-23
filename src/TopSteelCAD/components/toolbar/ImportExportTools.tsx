@@ -3,13 +3,14 @@
 import React, { useRef, useState } from 'react';
 import { Upload, Download, Trash2 } from 'lucide-react';
 import { ExportModal } from './ExportModal';
+import { ExportFormat } from '../../core/export';
 
 interface ImportExportToolsProps {
   theme: 'light' | 'dark';
   selectedCount: number;
   totalCount: number;
   onImport: (file: File) => void;
-  onExport: (format: 'json' | 'dstv' | 'obj' | 'gltf' | 'csv', options: any) => void;
+  onExport: (format: ExportFormat, options: any) => void;
   onClearScene?: () => void;
 }
 
@@ -59,7 +60,7 @@ export const ImportExportTools: React.FC<ImportExportToolsProps> = ({
     setShowExportModal(true);
   };
 
-  const handleExportConfirm = (format: 'json' | 'dstv' | 'obj' | 'gltf' | 'csv', options: any) => {
+  const handleExportConfirm = (format: ExportFormat, options: any) => {
     onExport(format, options);
   };
 

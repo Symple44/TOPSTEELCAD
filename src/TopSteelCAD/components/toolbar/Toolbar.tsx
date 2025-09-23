@@ -6,6 +6,7 @@ import { MeasurementTools } from './MeasurementTools';
 import { CameraTools } from './CameraTools';
 import { VisibilityTools } from './VisibilityTools';
 import { ImportExportTools } from './ImportExportTools';
+import { ExportFormat } from '../../core/export';
 
 interface ToolbarProps {
   theme: 'light' | 'dark';
@@ -21,7 +22,7 @@ interface ToolbarProps {
   onIsolate: () => void;
   onShowAll: () => void;
   onImport: (file: File) => void;
-  onExport: (format: 'json' | 'dstv' | 'obj' | 'gltf' | 'csv', options?: any) => void;
+  onExport: (format: ExportFormat, options?: any) => void;
   onClearScene?: () => void;
 }
 

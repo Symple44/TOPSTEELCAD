@@ -13,7 +13,7 @@ vi.mock('three-bvh-csg', () => ({
   Evaluator: vi.fn(() => ({
     useGroups: false,
     attributes: [],
-    evaluate: vi.fn((brushA, brushB, operation) => ({
+    evaluate: vi.fn((_brushA, _brushB, _operation) => ({
       geometry: new THREE.BoxGeometry(100, 200, 1000)
     }))
   })),

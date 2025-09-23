@@ -242,57 +242,35 @@ export function useViewer(config?: Partial<ViewerConfig>) {
           throw new Error('Aucun élément à exporter');
         }
         
-        let blob: Blob;
-        
-        switch (format) {
-          case 'json': {
-            const { JSONExporter } = await import('../utils/exporters/JSONExporter');
-            const result = await JSONExporter.export(
-              elementsToExport,
-              'export.json',
-              options || {}
-            );
-            blob = (result as any).blob || new Blob([result.data || ''], { type: 'application/json' });
-            break;
-          }
-          
-          case 'dstv': {
-            const { DSTVExporter } = await import('../utils/exporters/DSTVExporter');
-            const result = await DSTVExporter.export(
-              elementsToExport,
-              'export.zip',
-              options || {}
-            );
-            blob = (result as any).blob || new Blob([result.data || ''], { type: 'application/json' });
-            break;
-          }
-          
-          case 'csv': {
-            // Export CSV simple
-            const headers = ['ID', 'Name', 'Type', 'Material', 'Length', 'Width', 'Height', 'Weight'];
-            const rows = elementsToExport.map((el: PivotElement) => [
-              el.id,
-              el.name,
-              el.materialType,
-              (el.material as any)?.designation || '',
-              el.dimensions?.length || 0,
-              el.dimensions?.width || 0,
-              el.dimensions?.height || 0,
-              (el.material as any)?.weight || 0
-            ]);
-            
-            const csvContent = [
-              headers.join(','),
-              ...rows.map((row: (string | number)[]) => row.join(','))
-            ].join('\n');
-            
-            blob = new Blob([csvContent], { type: 'text/csv' });
-            break;
-          }
-          
-          default:
-            throw new Error(`Format d'export non supporté: ${format}`);
+        // Utiliser le nouveau système d'export unifié
+        const { universalExporter, ExportFormat } = await import('../core/export');
+
+        const formatMap: Record<string, typeof ExportFormat[keyof typeof ExportFormat]> = {
+          'json': ExportFormat.JSON,
+          'dstv': ExportFormat.DSTV,
+          'csv': ExportFormat.CSV,
+          'ifc': ExportFormat.IFC,
+          'step': ExportFormat.STEP
+        };
+
+        const exportFormat = formatMap[format];
+        if (!exportFormat) {
+          throw new Error(`Format d'export non supporté: ${format}`);
         }
+
+        const result = await universalExporter.export(elementsToExport, {
+          format: exportFormat,
+          filename: `export_${Date.now()}`,
+          includeMetadata: options?.includeMetadata ?? true,
+          includeFeatures: options?.includeFeatures ?? true,
+          units: options?.units || 'mm'
+        });
+
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Export échoué');
+        }
+
+        const blob = result.data as Blob;
         
         emit('export:complete', { format, options, blob });
         return blob;
@@ -420,16 +398,14 @@ export function useViewer(config?: Partial<ViewerConfig>) {
     },
     getTheme: () => currentTheme,
   }), [
-    store, 
-    mode, 
-    currentTheme, 
-    setGlobalTheme, 
-    plugins, 
-    activeTool, 
-    measurements, 
-    annotations,
-    on, 
-    off, 
+    store,
+    mode,
+    currentTheme,
+    setGlobalTheme,
+    plugins,
+    activeTool,
+    on,
+    off,
     emit
   ]);
   
@@ -440,9 +416,12 @@ export function useViewer(config?: Partial<ViewerConfig>) {
         api.registerPlugin(plugin);
       });
     }
-    
+
     // Cleanup au démontage
     return () => {
+      // Copy the ref value to a variable inside the effect
+      const cleanups = pluginCleanups.current;
+
       plugins.forEach(plugin => {
         if (plugin.onUnmount) {
           plugin.onUnmount(api);
@@ -451,16 +430,18 @@ export function useViewer(config?: Partial<ViewerConfig>) {
           plugin.onDestroy();
         }
       });
-      pluginCleanups.current.clear();
+      cleanups.clear();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config?.plugins]);
   
   // Charger les éléments initiaux
   useEffect(() => {
     if (config?.initialElements) {
       store.loadElements(config.initialElements);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config?.initialElements]);
   
   // Fonctions utilitaires
   const toggleTheme = useCallback(() => {

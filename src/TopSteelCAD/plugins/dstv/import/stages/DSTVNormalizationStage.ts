@@ -90,6 +90,7 @@ export interface NormalizedProfile {
     drawingNumber?: string;
     phaseNumber?: string;
     pieceNumber?: string;
+    profileName?: string;
     quantity: number;
     createdDate?: string;
     originalFormat: 'DSTV';

@@ -7,12 +7,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { HoleProcessor } from '../../core/features/processors/HoleProcessor';
 import { PivotElement, MaterialType } from '../../../types/viewer';
-import { ProfileFace } from '../../core/features/types';
+// import { ProfileFace } from '../../core/features/types';
 
 // Mock de three-bvh-csg
 vi.mock('three-bvh-csg', () => ({
   Evaluator: vi.fn().mockImplementation(() => ({
-    evaluate: vi.fn((a, b, op) => {
+    evaluate: vi.fn((a, b, _op) => {
       // Retourner une géométrie mockée avec les infos du trou
       const mockGeometry = a.clone ? a.clone() : a;
       if (!mockGeometry.userData) mockGeometry.userData = {};
@@ -47,7 +47,7 @@ vi.mock('../../core/services/PositionService', () => ({
   PositionService: {
     getInstance: vi.fn(() => ({
       registerAdapter: vi.fn(),
-      calculateFeaturePosition: vi.fn((element, position, face, coordinateSystem) => ({
+      calculateFeaturePosition: vi.fn((element, position, _face, _coordinateSystem) => ({
         position: new THREE.Vector3(position[0] || 0, position[1] || 0, position[2] || 0),
         rotation: new THREE.Euler(0, 0, 0),
         depth: 0
@@ -403,7 +403,7 @@ describe('E2E: Positionnement et orientation des trous sur chaque face', () => {
         console.log(`Position DSTV: [${face.example.join(', ')}]`);
 
         // Calculer la position Three.js attendue
-        let threePos = { x: 0, y: 0, z: 0 };
+        const threePos = { x: 0, y: 0, z: 0 };
 
         if (face.code === 'o' || face.code === 'u') {
           // Semelles

@@ -51,7 +51,7 @@ function visualizeTransform() {
   console.log("\n=== VISUALISATION DE LA TRANSFORMATION ===\n");
 
   // Création d'un cylindre de test
-  const cylinder = new THREE.CylinderGeometry(10, 10, 50, 32);
+  // const cylinder = new THREE.CylinderGeometry(10, 10, 50, 32);
 
   console.log("Cylindre initial:");
   console.log("  - Rayon: 10mm");
@@ -60,8 +60,8 @@ function visualizeTransform() {
   console.log("");
 
   // Test de rotation pour l'âme
-  const rotationMatrix = new THREE.Matrix4();
-  rotationMatrix.makeRotationX(Math.PI / 2);
+  // const rotationMatrix = new THREE.Matrix4();
+  // rotationMatrix.makeRotationX(Math.PI / 2);
 
   console.log("Après rotation X de 90° (pour l'âme):");
   console.log("  - L'axe du cylindre passe de Y à Z");

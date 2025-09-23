@@ -74,8 +74,10 @@ export const DebugUI: React.FC<DebugUIProps> = ({
     // Mise à jour périodique des stats
     const updateStats = () => {
       // Stats de performance
-      const perfStats = performanceMonitor.getAggregatedStats(60000) || stats; // Dernière minute
-      setStats(perfStats);
+      const perfStats = performanceMonitor.getAggregatedStats(60000); // Dernière minute
+      if (perfStats) {
+        setStats(perfStats);
+      }
 
       // Stats du cache
       const cacheStatsData = geometryCache.getStats();
@@ -91,7 +93,7 @@ export const DebugUI: React.FC<DebugUIProps> = ({
       }
 
       // Métriques par handler
-      if (perfStats.operationsByHandler.size > 0) {
+      if (perfStats && perfStats.operationsByHandler && perfStats.operationsByHandler.size > 0) {
         const metrics: HandlerMetric[] = [];
         perfStats.operationsByHandler.forEach((count, handler) => {
           metrics.push({
@@ -115,7 +117,7 @@ export const DebugUI: React.FC<DebugUIProps> = ({
         timestamp: m.endTime,
         error: m.error
       })).reverse();
-      
+
       operationsRef.current = recent;
       setRecentOperations(recent);
     };
@@ -132,6 +134,7 @@ export const DebugUI: React.FC<DebugUIProps> = ({
       }
       configManager.removeListener(configListener);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   // Formater les nombres

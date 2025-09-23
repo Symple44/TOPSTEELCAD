@@ -136,7 +136,7 @@ export class DSTVSceneBuildingStage extends BaseStage<DSTVNormalizedData, PivotS
     
     const scene: PivotScene = {
       id: this.generateSceneId(primaryProfile as any),
-      name: `DSTV Scene - ${primaryProfile.name || primaryProfile.id}`,
+      name: `DSTV Scene - ${(primaryProfile as any).name || primaryProfile.id}`,
       elements: new Map(),
       metadata: {
         format: 'DSTV',

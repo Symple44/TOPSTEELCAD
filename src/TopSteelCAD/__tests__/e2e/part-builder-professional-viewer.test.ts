@@ -3,7 +3,7 @@
  * Vérifie que les données sont correctement transformées et affichées
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { PartElement, HoleDSTV } from '../../part-builder/types/partBuilder.types';
 import { PivotElement, MaterialType } from '../../../types/viewer';
 

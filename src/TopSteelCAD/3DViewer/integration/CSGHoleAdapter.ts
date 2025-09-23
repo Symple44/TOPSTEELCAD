@@ -157,7 +157,7 @@ export class CSGHoleAdapter {
   private createHoleGeometry(
     diameter: number,
     depth: number,
-    face: DSTVFace
+    _face: DSTVFace
   ): THREE.BufferGeometry {
     const radius = diameter / 2;
 

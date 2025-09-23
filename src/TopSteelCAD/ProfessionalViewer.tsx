@@ -13,7 +13,7 @@ import { EventBus } from './core/EventBus';
 import { SimpleMeasurementTool } from './tools/SimpleMeasurementTool';
 import { Toolbar } from './components/toolbar';
 import { FileImporter, ImportResult } from './utils/FileImporter';
-import { FileExporter, ExportFormat } from './utils/FileExporter';
+import { universalExporter, ExportFormat } from './core/export';
 import { SelectionManager } from './selection/SelectionManager';
 import { FeatureOutlineRenderer } from './viewer/FeatureOutlineRenderer';
 import { ViewCube } from './ui/ViewCube';
@@ -74,6 +74,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
     if (initialElements.length > 0) {
       setAllElements(initialElements);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Pas de dépendance sur initialElements pour éviter d'écraser les imports
   
   // Déboguer les changements de allElements
@@ -99,7 +100,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
         updateSelectionVisuals(selectedElementIds);
       }
     }
-  }, [selectedElementIds]);
+  }, [selectedElementIds, selectedIds]);
 
   // === FONCTIONS UTILITAIRES (reprises du Standard) ===
   
@@ -197,7 +198,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
       try {
         // Utiliser le singleton EventBus pour partager avec ViewerEngine
         eventBusRef.current = EventBus.getInstance();
-        
+
         // Initialiser le SelectionManager et FeatureOutlineRenderer
         selectionManagerRef.current = new SelectionManager(eventBusRef.current, {
           mode: 'multiple' as any,
@@ -209,14 +210,14 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           featureHighlightColor: '#00ff66',
           featureHighlightOpacity: 0.5
         });
-        
+
         // Ne pas créer une nouvelle instance, utiliser celle du SceneManager
         // qui est créée automatiquement lors de l'initialisation
         // featureRendererRef.current sera défini après l'initialisation de l'engine
-        
+
         const initEngine = async () => {
           engineRef.current = new ViewerEngine();
-          
+
           await engineRef.current.initialize({
             canvas: canvasRef.current!,
             antialias: true,
@@ -227,7 +228,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             precision: 'highp',
             powerPreference: 'high-performance'
           });
-          
+
           // Récupérer le FeatureOutlineRenderer depuis le SceneManager
           const sceneManager = (engineRef.current as any).sceneManager;
           if (sceneManager && sceneManager.featureOutlineRenderer) {
@@ -236,53 +237,53 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           } else {
             console.warn('⚠️ Could not get FeatureOutlineRenderer from SceneManager');
           }
-          
+
           // Récupérer le CameraController pour le ViewCube
           cameraControllerRef.current = engineRef.current.getCameraController();
-          
+
           if (canvasRef.current) {
             (canvasRef.current as any).__renderer = engineRef.current.getRenderer();
             (canvasRef.current as any).__scene = engineRef.current.getScene();
             (canvasRef.current as any).__camera = engineRef.current.getCamera();
           }
-          
+
           if (containerRef.current && canvasRef.current) {
             const width = containerRef.current.clientWidth;
             const height = containerRef.current.clientHeight;
             engineRef.current.handleResize(width, height);
           }
-          
+
           setIsEngineReady(true);
-          
+
           const scene = engineRef.current.getScene();
           if (scene) {
             const bgColor = theme === 'dark' ? '#1f2937' : '#e6f2ff';
             scene.background = new THREE.Color(bgColor);
             scene.fog = null;
-            
+
             const controlsManager = engineRef.current?.getControlsManager();
             if (controlsManager) {
               const { size: sceneSize } = calculateSceneBounds();
               controlsManager.updateZoomLimits(sceneSize);
             }
-            
+
             // Éclairage CAD
             const ambientLight = new THREE.AmbientLight('#ffffff', 0.8);
             scene.add(ambientLight);
-            
+
             const mainLight = new THREE.DirectionalLight('#ffffff', 0.5);
             mainLight.position.set(1, 1, 1);
             mainLight.castShadow = false;
             scene.add(mainLight);
-            
+
             const fillLight = new THREE.DirectionalLight('#ffffff', 0.3);
             fillLight.position.set(-1, 0.5, -1);
             scene.add(fillLight);
-            
+
             setTimeout(() => {
               updateAdaptiveGrid(theme === 'dark');
             }, 50);
-            
+
             // Axes
             const axesHelper = new THREE.AxesHelper(1500);
             const axesMaterials = (axesHelper as any).material as THREE.LineBasicMaterial[];
@@ -297,52 +298,52 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             }
             axesHelper.name = 'Axes';
             scene.add(axesHelper);
-            
+
             // Ajouter des labels pour les axes
             // Créer des sprites pour les labels (plus simple que le texte 3D)
             const createAxisLabel = (text: string, position: THREE.Vector3, color: string) => {
               const canvas = document.createElement('canvas');
               const context = canvas.getContext('2d');
               if (!context) return null;
-              
+
               canvas.width = 256;
               canvas.height = 128;
-              
+
               context.fillStyle = color;
               context.font = 'bold 72px Arial';
               context.textAlign = 'center';
               context.textBaseline = 'middle';
               context.fillText(text, 128, 64);
-              
+
               const texture = new THREE.CanvasTexture(canvas);
-              const spriteMaterial = new THREE.SpriteMaterial({ 
+              const spriteMaterial = new THREE.SpriteMaterial({
                 map: texture,
                 transparent: true,
                 depthTest: false,
                 depthWrite: false
               });
-              
+
               const sprite = new THREE.Sprite(spriteMaterial);
               sprite.position.copy(position);
               sprite.scale.set(100, 50, 1);
               sprite.name = `AxisLabel_${text}`;
-              
+
               return sprite;
             };
-            
+
             // Ajouter les labels aux extrémités des axes
             const xLabel = createAxisLabel('X', new THREE.Vector3(1600, 0, 0), '#dc2626');
             const yLabel = createAxisLabel('Y', new THREE.Vector3(0, 1600, 0), '#16a34a');
             const zLabel = createAxisLabel('Z', new THREE.Vector3(0, 0, 1600), '#2563eb');
-            
+
             if (xLabel) scene.add(xLabel);
             if (yLabel) scene.add(yLabel);
             if (zLabel) scene.add(zLabel);
-            
+
             // Ajouter des indicateurs de coordonnées à intervalles réguliers
             const addCoordinateMarkers = () => {
               const intervals = [500, 1000];
-              
+
               intervals.forEach(distance => {
                 // Marqueurs sur l'axe X (rouge)
                 [-distance, distance].forEach(x => {
@@ -352,7 +353,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
                     scene.add(markerX);
                   }
                 });
-                
+
                 // Marqueurs sur l'axe Y (vert)
                 [-distance, distance].forEach(y => {
                   const markerY = createAxisLabel(`${y}`, new THREE.Vector3(-50, y, 0), '#16a34a');
@@ -361,7 +362,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
                     scene.add(markerY);
                   }
                 });
-                
+
                 // Marqueurs sur l'axe Z (bleu)
                 [-distance, distance].forEach(z => {
                   const markerZ = createAxisLabel(`${z}`, new THREE.Vector3(0, -50, z), '#2563eb');
@@ -372,13 +373,13 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
                 });
               });
             };
-            
+
             addCoordinateMarkers();
-            
+
             // Plan de référence
             const { minY: planeY } = calculateSceneBounds();
             const workplaneGeometry = new THREE.PlaneGeometry(30000, 30000, 1, 1);
-            const workplaneMaterial = new THREE.MeshBasicMaterial({ 
+            const workplaneMaterial = new THREE.MeshBasicMaterial({
               color: '#cce7ff',
               transparent: true,
               opacity: 0.02,
@@ -390,12 +391,12 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
             workplane.name = 'Workplane';
             scene.add(workplane);
           }
-          
+
           const camera = engineRef.current.getCamera();
           if (camera) {
             camera.position.set(3000, 3000, 3000);
             camera.lookAt(0, 0, 0);
-            
+
             // Vérifier et corriger les contrôles de caméra
             const controlsManager = engineRef.current.getControlsManager();
             if (controlsManager) {
@@ -408,23 +409,23 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
                 console.warn('⚠️ OrbitControls non trouvés');
               }
             }
-            
+
             // Initialiser l'outil de mesure
             if (scene && canvasRef.current) {
               measurementToolRef.current = new SimpleMeasurementTool(scene, camera, canvasRef.current);
             }
-            
+
             // Configurer les événements de sélection de features
             setupFeatureSelectionEvents();
           }
         };
-        
+
         initEngine();
       } catch (err) {
         setError('Erreur lors de l\'initialisation du viewer professionnel');
       }
     }
-    
+
     return () => {
       if (measurementToolRef.current) {
         measurementToolRef.current.dispose();
@@ -448,7 +449,8 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
         eventBusRef.current = null;
       }
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme]);
 
   // === GESTION DE LA SÉLECTION (comme Standard) ===
   
@@ -457,7 +459,8 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
       const cleanup = setupSelectionEvents();
       return cleanup;
     }
-  }, [selectedIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds, measurementMode, hoveredId, allElements, onElementSelect]);
 
   // Fonction pour configurer les événements de sélection de features
   const setupFeatureSelectionEvents = () => {
@@ -726,7 +729,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
           // Export avec Ctrl+E
           if (event.ctrlKey || event.metaKey) {
             event.preventDefault();
-            handleExport('json');
+            handleExport(ExportFormat.JSON);
           }
           break;
       }
@@ -1088,15 +1091,16 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
         throw new Error('Aucun élément à exporter');
       }
       
-      const result = await FileExporter.exportScene(elementsToExport, {
+      const result = await universalExporter.export(elementsToExport, {
         format,
-        ...exportOptions
+        ...exportOptions,
+        filename: `export_${Date.now()}`
       });
-      
+
       if (result.success) {
-        console.log(`✅ Export réussi: ${result.fileName} (${result.metadata?.elementsCount} éléments)`);
+        console.log(`✅ Export réussi: ${result.filename || 'export'} (${result.metadata?.elementsCount} éléments)`);
       } else {
-        throw new Error(result.error || 'Échec de l\'export');
+        throw new Error(result.error?.message || 'Échec de l\'export');
       }
       
     } catch (error) {
@@ -1113,7 +1117,7 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
       const bgColor = theme === 'dark' ? '#1f2937' : '#e6f2ff';
       engineRef.current.setBackgroundColor(bgColor);
       updateAdaptiveGrid(theme === 'dark');
-      
+
       const scene = engineRef.current.getScene();
       if (scene) {
         const workplane = scene.getObjectByName('Workplane');
@@ -1150,19 +1154,19 @@ export const ProfessionalViewer: React.FC<ProfessionalViewerProps> = ({
     if (isEngineReady && engineRef.current && !elementsAddedRef.current && allElements.length > 0) {
       elementsAddedRef.current = true;
       setIsLoading(true);
-      
+
       allElements.forEach(element => {
         engineRef.current?.addElement(element);
       });
-      
+
       updateAdaptiveGrid(theme === 'dark');
-      
+
       const { size } = calculateSceneBounds();
       const controlsManager = engineRef.current?.getControlsManager();
       if (controlsManager) {
         controlsManager.updateZoomLimits(size);
       }
-      
+
       setTimeout(() => {
         fitToView();
         setIsLoading(false);

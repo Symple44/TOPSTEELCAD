@@ -62,7 +62,7 @@ export class HoleProcessor implements IFeatureProcessor {
       if (feature.coordinateSystem === 'local' || !feature.coordinateSystem || feature.coordinateSystem === CoordinateSystem.STANDARD) {
         // Transformation des coordonnées DSTV vers Three.js selon la face
         const face = feature.face || feature.parameters?.face;
-        let transformedPos = new THREE.Vector3();
+        const transformedPos = new THREE.Vector3();
         let rotation = new THREE.Euler(0, 0, 0);
 
         // MAPPING DSTV → Three.js selon la face
@@ -631,14 +631,15 @@ export class HoleProcessor implements IFeatureProcessor {
     }
 
     // Pour les faces radiales des tubes circulaires
-    if (false) { // Radial face not supported yet
-      const radius = (dims.diameter || dims.width || 100) / 2;
-      const distanceFromCenter = Math.sqrt(position.y * position.y + position.z * position.z);
-      return (
-        position.x >= -margin && position.x <= length + margin &&
-        Math.abs(distanceFromCenter - radius) <= margin
-      );
-    }
+    // TODO: Radial face not supported yet
+    // if (false) {
+    //   const radius = (dims.diameter || dims.width || 100) / 2;
+    //   const distanceFromCenter = Math.sqrt(position.y * position.y + position.z * position.z);
+    //   return (
+    //     position.x >= -margin && position.x <= length + margin &&
+    //     Math.abs(distanceFromCenter - radius) <= margin
+    //   );
+    // }
 
     // Pour les faces FRONT/BACK (face avant/arrière du profil)
     // Ces faces sont perpendiculaires à l'axe Z (longueur)
@@ -788,7 +789,7 @@ export class HoleProcessor implements IFeatureProcessor {
 
           // Transformation identique à la méthode process
           const face = hole.face || hole.parameters?.face;
-          let transformedPos = new THREE.Vector3();
+          const transformedPos = new THREE.Vector3();
           let rotation = new THREE.Euler(0, 0, 0);
 
           // IMPORTANT: Conversion DSTV → Three.js

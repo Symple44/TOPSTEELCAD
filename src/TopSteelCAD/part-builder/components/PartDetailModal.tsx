@@ -7,9 +7,9 @@ export const PartDetailModal: React.FC<DetailModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  onAddHole = (holes) => {},
-  onEditHole = (id, hole) => {},
-  onDeleteHole = (id) => {}
+  onAddHole = (_holes) => {},
+  onEditHole = (_id, _hole) => {},
+  onDeleteHole = (_id) => {}
 }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'holes'>('holes');
   const [editedElement, setEditedElement] = useState<PartElement>(element);

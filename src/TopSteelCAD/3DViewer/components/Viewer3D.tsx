@@ -86,6 +86,73 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
 
     let mounted = true;
 
+    /**
+     * Crée le mesh du profil en utilisant les générateurs existants
+     */
+    async function createProfile(
+      type: string,
+      section: string,
+      dims: ProfileDimensions
+    ): Promise<THREE.Mesh> {
+      let geometry: THREE.BufferGeometry;
+
+      // Sélectionner le bon générateur
+      switch (type) {
+        case 'IPE':
+        case 'HEA':
+        case 'HEB':
+        case 'HEM': {
+          const generator = new IProfileGenerator();
+          geometry = generator.generate(dims as any, dims.length);
+          break;
+        }
+
+        case 'UPN':
+        case 'UAP': {
+          const generator = new UProfileGenerator();
+          geometry = generator.generate(dims as any, dims.length);
+          break;
+        }
+
+        case 'L': {
+          const generator = new LProfileGenerator();
+          geometry = generator.generate(dims as any, dims.length);
+          break;
+        }
+
+        case 'TUBES_RECT':
+        case 'TUBES_CARRE':
+        case 'TUBES_ROND': {
+          const generator = new TubeGenerator();
+          geometry = generator.generate(dims as any, dims.length);
+          break;
+        }
+
+        default: {
+          const generator = new PlateGenerator();
+          geometry = generator.generate(dims as any, dims.length);
+          break;
+        }
+      }
+
+      // Créer le matériau métallique
+      const material = new THREE.MeshPhysicalMaterial({
+        color: 0x8899aa,
+        metalness: 0.85,
+        roughness: 0.25,
+        clearcoat: 0.1,
+        clearcoatRoughness: 0.2,
+        side: THREE.DoubleSide
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = `${type}_${section}`;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+
+      return mesh;
+    }
+
     const initScene = async () => {
       try {
         setIsLoading(true);
@@ -239,74 +306,9 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
         sceneManagerRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileType, profileSection, length, dimensions, holes, showGrid, showAxes, showLabels]);
 
-  /**
-   * Crée le mesh du profil en utilisant les générateurs existants
-   */
-  async function createProfile(
-    type: string,
-    section: string,
-    dims: ProfileDimensions
-  ): Promise<THREE.Mesh> {
-    let geometry: THREE.BufferGeometry;
-
-    // Sélectionner le bon générateur
-    switch (type) {
-      case 'IPE':
-      case 'HEA':
-      case 'HEB':
-      case 'HEM': {
-        const generator = new IProfileGenerator();
-        geometry = generator.generate(dims as any, dims.length);
-        break;
-      }
-
-      case 'UPN':
-      case 'UAP': {
-        const generator = new UProfileGenerator();
-        geometry = generator.generate(dims as any, dims.length);
-        break;
-      }
-
-      case 'L': {
-        const generator = new LProfileGenerator();
-        geometry = generator.generate(dims as any, dims.length);
-        break;
-      }
-
-      case 'TUBES_RECT':
-      case 'TUBES_CARRE':
-      case 'TUBES_ROND': {
-        const generator = new TubeGenerator();
-        geometry = generator.generate(dims as any, dims.length);
-        break;
-      }
-
-      default: {
-        const generator = new PlateGenerator();
-        geometry = generator.generate(dims as any, dims.length);
-        break;
-      }
-    }
-
-    // Créer le matériau métallique
-    const material = new THREE.MeshPhysicalMaterial({
-      color: 0x8899aa,
-      metalness: 0.85,
-      roughness: 0.25,
-      clearcoat: 0.1,
-      clearcoatRoughness: 0.2,
-      side: THREE.DoubleSide
-    });
-
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.name = `${type}_${section}`;
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-
-    return mesh;
-  }
 
   return (
     <div

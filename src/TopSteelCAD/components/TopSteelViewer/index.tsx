@@ -163,6 +163,7 @@ export const TopSteelViewer: React.FC<TopSteelViewerProps> = ({
       elements
     });
     setIsInitialized(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Mise à jour des éléments
@@ -170,14 +171,14 @@ export const TopSteelViewer: React.FC<TopSteelViewerProps> = ({
     if (isInitialized && elements) {
       store.loadElements(elements);
     }
-  }, [elements, isInitialized]);
+  }, [elements, isInitialized, store]);
 
   // Gestion de la sélection externe
   useEffect(() => {
     if (selectedElementId !== undefined) {
       store.selectElement(selectedElementId);
     }
-  }, [selectedElementId]);
+  }, [selectedElementId, store]);
 
   // Propagation des changements
   useEffect(() => {
@@ -193,7 +194,7 @@ export const TopSteelViewer: React.FC<TopSteelViewerProps> = ({
     });
 
     return unsubscribe;
-  }, [onElementSelect, onElementsChange, selectedElementId]);
+  }, [onElementSelect, onElementsChange, selectedElementId, store]);
 
   // Rendu du mode approprié avec ViewerCore unifié
   const renderViewer = () => {

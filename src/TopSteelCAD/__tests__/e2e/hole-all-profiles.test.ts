@@ -7,12 +7,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as THREE from 'three';
 import { HoleProcessor } from '../../core/features/processors/HoleProcessor';
 import { PivotElement, MaterialType } from '../../../types/viewer';
-import { ProfileFace } from '../../core/features/types';
+// import { ProfileFace } from '../../core/features/types';
 
 // Mock de three-bvh-csg
 vi.mock('three-bvh-csg', () => ({
   Evaluator: vi.fn().mockImplementation(() => ({
-    evaluate: vi.fn((a, b, op) => {
+    evaluate: vi.fn((a, b, _op) => {
       const mockGeometry = a.clone ? a.clone() : a;
       if (!mockGeometry.userData) mockGeometry.userData = {};
       if (!mockGeometry.userData.holes) mockGeometry.userData.holes = [];
@@ -44,7 +44,7 @@ vi.mock('../../core/services/PositionService', () => ({
   PositionService: {
     getInstance: vi.fn(() => ({
       registerAdapter: vi.fn(),
-      calculateFeaturePosition: vi.fn((element, position, face, coordinateSystem) => ({
+      calculateFeaturePosition: vi.fn((element, position, _face, _coordinateSystem) => ({
         position: new THREE.Vector3(position[0] || 0, position[1] || 0, position[2] || 0),
         rotation: new THREE.Euler(0, 0, 0),
         depth: 0
@@ -169,7 +169,7 @@ describe('E2E: Test complet des trous sur tous les profils', () => {
       });
 
       // Vérifier que tous les trous ont été créés avec succès
-      Object.entries(results).forEach(([face, result]) => {
+      Object.entries(results).forEach(([_face, result]) => {
         expect(result.success).toBe(true);
       });
     });

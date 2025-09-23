@@ -67,6 +67,7 @@ export const ViewCube: React.FC<ViewCubeProps> = ({
       rendererRef.current?.dispose();
       setIsInitialized(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraController]);
 
   useEffect(() => {

@@ -108,11 +108,11 @@ export function getDefaultPositionForFace(
     profileType?: string;
   }
 ): { x: number; y: number; z: number } {
-  const { width, height, length, webThickness = 0, flangeThickness = 0, profileType } = profileDimensions;
+  const { /* width, height, */ length, webThickness = 0, /* flangeThickness = 0, */ profileType } = profileDimensions;
 
   // Pour les profils I/H (IPE, HEA, HEB, HEM), ajuster la position Y sur les faces supérieures/inférieures
   const isIProfile = profileType && ['IPE', 'HEA', 'HEB', 'HEM'].includes(profileType);
-  const isLProfile = profileType && profileType === 'L';
+  // const isLProfile = profileType && profileType === 'L';
 
   switch (face) {
     case DSTVFace.TOP:

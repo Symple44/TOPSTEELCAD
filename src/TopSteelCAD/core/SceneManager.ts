@@ -321,10 +321,11 @@ export class SceneManager {
         position[2]
       );
     } else if (position && typeof position === 'object') {
+      const pos = position as { x?: number; y?: number; z?: number };
       mesh.position.set(
-        position.x || 0,
-        (position.y || 0) + yOffset,
-        position.z || 0
+        pos.x || 0,
+        (pos.y || 0) + yOffset,
+        pos.z || 0
       );
     } else {
       mesh.position.set(0, yOffset, 0);
@@ -334,7 +335,8 @@ export class SceneManager {
     if (Array.isArray(rotation)) {
       mesh.rotation.set(...rotation);
     } else if (rotation && typeof rotation === 'object') {
-      mesh.rotation.set(rotation.x || 0, rotation.y || 0, rotation.z || 0);
+      const rot = rotation as { x?: number; y?: number; z?: number };
+      mesh.rotation.set(rot.x || 0, rot.y || 0, rot.z || 0);
     } else {
       mesh.rotation.set(0, 0, 0);
     }
@@ -344,7 +346,8 @@ export class SceneManager {
     if (Array.isArray(scale)) {
       mesh.scale.set(...scale);
     } else if (scale && typeof scale === 'object') {
-      mesh.scale.set(scale.x || 1, scale.y || 1, scale.z || 1);
+      const scl = scale as { x?: number; y?: number; z?: number };
+      mesh.scale.set(scl.x || 1, scl.y || 1, scl.z || 1);
     } else {
       mesh.scale.set(1, 1, 1);
     }

@@ -37,7 +37,7 @@ export const MinimalViewer: React.FC<MinimalViewerProps> = ({
       const initEngine = async () => {
         try {
           engineRef.current = new ViewerEngine();
-          
+
           await engineRef.current.initialize({
             canvas: canvasRef.current!,
             antialias: true,
@@ -51,15 +51,15 @@ export const MinimalViewer: React.FC<MinimalViewerProps> = ({
             // Éclairage simple
             const ambientLight = new THREE.AmbientLight('#ffffff', 0.8);
             scene.add(ambientLight);
-            
+
             const directionalLight = new THREE.DirectionalLight('#ffffff', 0.5);
             directionalLight.position.set(5, 5, 5);
             scene.add(directionalLight);
-            
+
             // Grille simple
             const gridHelper = new THREE.GridHelper(10000, 100, '#444444', '#222222');
             scene.add(gridHelper);
-            
+
             // Axes
             const axesHelper = new THREE.AxesHelper(1000);
             scene.add(axesHelper);
@@ -71,7 +71,7 @@ export const MinimalViewer: React.FC<MinimalViewerProps> = ({
             camera.position.set(3000, 3000, 3000);
             camera.lookAt(0, 0, 0);
           }
-          
+
           // Récupérer le CameraController pour le ViewCube
           cameraControllerRef.current = engineRef.current.getCameraController();
 
@@ -93,17 +93,18 @@ export const MinimalViewer: React.FC<MinimalViewerProps> = ({
         engineRef.current = null;
       }
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme]);
 
   // Chargement des éléments
   useEffect(() => {
-    if (engineRef.current && !elementsAddedRef.current && elements.length > 0) {
+    if (engineRef.current && isEngineReady && !elementsAddedRef.current && elements.length > 0) {
       elementsAddedRef.current = true;
       elements.forEach(element => {
         engineRef.current?.addElement(element);
       });
     }
-  }, [elements]);
+  }, [elements, isEngineReady]);
 
   // Gestion du redimensionnement
   useEffect(() => {

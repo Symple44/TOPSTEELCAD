@@ -28,4 +28,8 @@ export type {
 // Export from other type files as needed
 export * from './camera.types';
 export * from './enums';
-export * from './material-types';
+// Re-export specific items from material-types to avoid conflicts
+export {
+  SteelGrade,
+  type MaterialProperties
+} from './material-types';

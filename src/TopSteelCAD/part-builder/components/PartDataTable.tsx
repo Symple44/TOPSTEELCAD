@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { PartElement, PartTableColumn, DSTVHoleFormat } from '../types/partBuilder.types';
+import { PartElement, PartTableColumn } from '../types/partBuilder.types';
 
 interface PartDataTableProps {
   elements: PartElement[];
@@ -304,15 +304,26 @@ export const PartDataTable: React.FC<PartDataTableProps> = ({
                                 selectedRows.has(element.id) ? '#f8f9fa' : 'white',
                 cursor: 'pointer'
               }}
-              onClick={(e) => handleSelectRow(element.id, e)}
+              onClick={(e) => {
+                // Empêcher la propagation si on clique sur un bouton ou une cellule éditable
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+                  return;
+                }
+                handleSelectRow(element.id, e);
+              }}
             >
               <td style={tdStyle}>
                 <input
                   type="checkbox"
-                  checked={selectedRows.has(element.id)}
+                  checked={selectedRows.has(element.id) || selectedElementId === element.id}
                   onChange={(e) => {
                     e.stopPropagation();
-                    handleSelectRow(element.id, e as any);
+                    if (e.target.checked) {
+                      onSelectElement(element.id);
+                    } else {
+                      onSelectElement(null);
+                    }
                   }}
                 />
               </td>

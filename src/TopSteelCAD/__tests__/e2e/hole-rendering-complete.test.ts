@@ -3,18 +3,17 @@
  * De PartBuilderRefactored jusqu'au rendu final dans ProfessionalViewer
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import * as THREE from 'three';
 import { PartElement, HoleDSTV } from '../../part-builder/types/partBuilder.types';
 import { PivotElement, MaterialType } from '../../../types/viewer';
 import { FeatureApplicator } from '../../viewer/FeatureApplicator';
 import { GeometryConverter } from '../../viewer/GeometryConverter';
-import { FeatureType } from '../../core/features/types';
 
 // Mock de three-bvh-csg pour les tests
 vi.mock('three-bvh-csg', () => ({
   Evaluator: vi.fn().mockImplementation(() => ({
-    evaluate: vi.fn((a, b) => a),
+    evaluate: vi.fn((a, _b) => a),
     useGroups: false,
     attributes: []
   })),

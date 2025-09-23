@@ -65,7 +65,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
         updateSelectionVisuals(selectedElementIds);
       }
     }
-  }, [selectedElementIds]);
+  }, [selectedElementIds, selectedIds]);
 
   /**
    * Calcule la bounding box de tous les éléments
@@ -357,7 +357,8 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
         eventBusRef.current = null;
       }
     };
-  }, []); // Ne pas avoir de dépendances pour éviter les re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme]); // Ne pas avoir de dépendances pour éviter les re-renders
   
   // Configurer les événements de sélection après l'initialisation
   useEffect(() => {
@@ -365,7 +366,8 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
       const cleanup = setupSelectionEvents();
       return cleanup;
     }
-  }, [selectedIds]); // Recréer quand selectedIds change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds, measurementMode, hoveredId, initialElements, onElementSelect]); // Recréer quand selectedIds change
   
   /**
    * Configure les événements de sélection et d'interaction
@@ -820,22 +822,22 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
     if (isEngineReady && engineRef.current && !elementsAddedRef.current && initialElements.length > 0) {
       elementsAddedRef.current = true;
       setIsLoading(true);
-      
+
       // Ajouter les éléments une seule fois
       initialElements.forEach(element => {
         engineRef.current?.addElement(element);
       });
-      
+
       // Mettre à jour la grille selon le nouveau contenu
       updateAdaptiveGrid(theme === 'dark');
-      
+
       // Mettre à jour les limites de zoom selon le nouveau contenu
       const { size } = calculateSceneBounds();
       const controlsManager = engineRef.current?.getControlsManager();
       if (controlsManager) {
         controlsManager.updateZoomLimits(size);
       }
-      
+
       // Centrer la vue sur les éléments avec positionnement intelligent
       setTimeout(() => {
         const { size, center } = calculateSceneBounds();
@@ -846,12 +848,12 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
             camera.fov = 35; // Réduire le champ de vision (défaut: 75°)
             camera.updateProjectionMatrix();
           }
-          
+
           // Distance beaucoup plus proche pour vue resserrée
           const distance = Math.max(size * 0.4, 2000); // 40% ou minimum 2m
           camera.position.set(
             center.x + distance * 0.6,
-            center.y + distance * 0.8, 
+            center.y + distance * 0.8,
             center.z + distance * 0.6
           );
           camera.lookAt(center);
@@ -859,7 +861,7 @@ export const TopSteelCAD: React.FC<TopSteelCADProps> = ({
         setIsLoading(false);
       }, 100);
     }
-  }, [isEngineReady, theme]); // Ajouter theme pour la mise à jour de grille
+  }, [isEngineReady, theme, initialElements]); // Ajouter theme pour la mise à jour de grille
 
   return (
     <div 

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { X, Download, FileText, Database, FileImage, Layers } from 'lucide-react';
+import { ExportFormat } from '../../core/export';
 
 interface ExportModalProps {
   theme: 'light' | 'dark';
@@ -10,7 +11,7 @@ interface ExportModalProps {
   totalCount: number;
   isOpen: boolean;
   onClose: () => void;
-  onExport: (format: 'json' | 'dstv' | 'obj' | 'gltf' | 'csv', options: ExportOptions) => void;
+  onExport: (format: ExportFormat, options: ExportOptions) => void;
 }
 
 interface ExportOptions {
@@ -92,8 +93,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   if (!isOpen) return null;
 
   const handleExport = () => {
-    onExport(selectedFormat, options);
-    onClose();
+    // Map string format to ExportFormat enum
+    const formatMap: Record<string, ExportFormat> = {
+      'json': ExportFormat.JSON,
+      'dstv': ExportFormat.DSTV,
+      'csv': ExportFormat.CSV,
+      'obj': ExportFormat.OBJ,
+      'gltf': ExportFormat.GLTF
+    };
+
+    const exportFormat = formatMap[selectedFormat];
+    if (exportFormat) {
+      onExport(exportFormat, options);
+      onClose();
+    }
   };
 
   const modalStyle = {

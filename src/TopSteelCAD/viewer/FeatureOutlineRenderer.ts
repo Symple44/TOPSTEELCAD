@@ -128,8 +128,11 @@ export class FeatureOutlineRenderer {
       if (element.features) {
         if (Array.isArray(element.features)) {
           featuresArray = element.features;
-        } else if (element.features.holes && Array.isArray(element.features.holes)) {
-          featuresArray = element.features.holes;
+        } else {
+          const featuresObj = element.features as any;
+          if (featuresObj.holes && Array.isArray(featuresObj.holes)) {
+            featuresArray = featuresObj.holes;
+          }
         }
       }
 
@@ -140,7 +143,7 @@ export class FeatureOutlineRenderer {
         } else {
           // Sinon, chercher la feature correspondante par index et type
           const holeFeatures = featuresArray.filter((f: SelectableFeature) =>
-            f.type === FeatureType.HOLE || f.type === FeatureType.SLOT || f.type === 'hole'
+            f.type === FeatureType.HOLE || f.type === FeatureType.SLOT || (f.type as any) === 'hole'
           );
 
           if (holeFeatures[index]) {
@@ -204,8 +207,11 @@ export class FeatureOutlineRenderer {
       if (element.features) {
         if (Array.isArray(element.features)) {
           featuresArrayForCuts = element.features;
-        } else if (element.features.cuts && Array.isArray(element.features.cuts)) {
-          featuresArrayForCuts = element.features.cuts;
+        } else {
+          const featuresObj = element.features as any;
+          if (featuresObj.cuts && Array.isArray(featuresObj.cuts)) {
+            featuresArrayForCuts = featuresObj.cuts;
+          }
         }
       }
 
@@ -360,11 +366,12 @@ export class FeatureOutlineRenderer {
           }
           // Si features est un objet, collecter toutes les features de tous les types
           const allFeatures = [];
-          if (element.features.holes && Array.isArray(element.features.holes)) {
-            allFeatures.push(...element.features.holes.map(h => h.id));
+          const featuresObj = element.features as any;
+          if (featuresObj.holes && Array.isArray(featuresObj.holes)) {
+            allFeatures.push(...featuresObj.holes.map((h: any) => h.id));
           }
-          if (element.features.cuts && Array.isArray(element.features.cuts)) {
-            allFeatures.push(...element.features.cuts.map(c => c.id));
+          if (featuresObj.cuts && Array.isArray(featuresObj.cuts)) {
+            allFeatures.push(...featuresObj.cuts.map((c: any) => c.id));
           }
           return allFeatures;
         })()
@@ -442,7 +449,7 @@ export class FeatureOutlineRenderer {
     // Check rotation to determine hole direction
     const isRotatedAroundZ = Math.abs(rotation[2] - Math.PI/2) < 0.01 || Math.abs(rotation[2] + Math.PI/2) < 0.01;
     const isRotatedAroundX = Math.abs(rotation[0] - Math.PI/2) < 0.01 || Math.abs(rotation[0] + Math.PI/2) < 0.01;
-    const isRotatedAroundY = Math.abs(rotation[1] - Math.PI/2) < 0.01 || Math.abs(rotation[1] + Math.PI/2) < 0.01;
+    // const isRotatedAroundY = Math.abs(rotation[1] - Math.PI/2) < 0.01 || Math.abs(rotation[1] + Math.PI/2) < 0.01;
 
     // Pour la face 'v' (âme), le trou a une rotation X de 90° et traverse selon Z
     if (face === 'v' && isRotatedAroundX) {
@@ -925,11 +932,12 @@ export class FeatureOutlineRenderer {
         featuresArray = element.features;
       } else {
         // Si c'est un objet, extraire toutes les features
-        if (element.features.holes && Array.isArray(element.features.holes)) {
-          featuresArray.push(...element.features.holes);
+        const featuresObj = element.features as any;
+        if (featuresObj.holes && Array.isArray(featuresObj.holes)) {
+          featuresArray.push(...featuresObj.holes);
         }
-        if (element.features.cuts && Array.isArray(element.features.cuts)) {
-          featuresArray.push(...element.features.cuts);
+        if (featuresObj.cuts && Array.isArray(featuresObj.cuts)) {
+          featuresArray.push(...featuresObj.cuts);
         }
       }
     }

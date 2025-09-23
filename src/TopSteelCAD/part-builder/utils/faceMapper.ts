@@ -36,12 +36,12 @@ export class FaceMapper {
     localPos: Vector3,
     face: FaceType,
     dimensions: ProfileDimensions,
-    length: number
+    _length: number
   ): Vector3 {
     const h = dimensions.height || 0;
-    const w = dimensions.width || 0;
+    // const w = dimensions.width || 0;
     const tw = dimensions.webThickness || 0;
-    const tf = dimensions.flangeThickness || 0;
+    // const tf = dimensions.flangeThickness || 0;
 
     switch (face) {
       case 'TOP_FLANGE':
@@ -72,13 +72,13 @@ export class FaceMapper {
         return new Vector3(
           localPos.x,
           localPos.y,
-          length / 2
+          _length / 2
         );
       case 'BACK':
         return new Vector3(
           localPos.x,
           localPos.y,
-          -length / 2
+          -_length / 2
         );
       default:
         return localPos;
@@ -89,12 +89,12 @@ export class FaceMapper {
     localPos: Vector3,
     face: FaceType,
     dimensions: ProfileDimensions,
-    length: number
+    _length: number
   ): Vector3 {
     const h = dimensions.height || 0;
     const w = dimensions.width || 0;
-    const tw = dimensions.webThickness || 0;
-    const tf = dimensions.flangeThickness || 0;
+    // const tw = dimensions.webThickness || 0;
+    // const tf = dimensions.flangeThickness || 0;
 
     switch (face) {
       case 'TOP_FLANGE':
@@ -124,10 +124,10 @@ export class FaceMapper {
     localPos: Vector3,
     face: FaceType,
     dimensions: ProfileDimensions,
-    length: number
+    _length: number
   ): Vector3 {
-    const h = dimensions.height || 0;
-    const w = dimensions.width || 0;
+    // const h = dimensions.height || 0;
+    // const w = dimensions.width || 0;
     const t = dimensions.thickness || 0;
 
     switch (face) {
@@ -164,7 +164,7 @@ export class FaceMapper {
     localPos: Vector3,
     face: FaceType,
     dimensions: ProfileDimensions,
-    length: number
+    _length: number
   ): Vector3 {
     const h = dimensions.height || 0;
     const w = dimensions.width || 0;
@@ -203,7 +203,7 @@ export class FaceMapper {
     localPos: Vector3,
     face: FaceType,
     dimensions: ProfileDimensions,
-    length: number
+    _length: number
   ): Vector3 {
     const radius = dimensions.radius || 0;
     const angle = localPos.x;
@@ -220,12 +220,12 @@ export class FaceMapper {
     localPos: Vector3,
     face: FaceType,
     dimensions: ProfileDimensions,
-    length: number
+    _length: number
   ): Vector3 {
     const h = dimensions.height || 0;
-    const w = dimensions.width || 0;
+    // const w = dimensions.width || 0;
     const tw = dimensions.webThickness || 0;
-    const tf = dimensions.flangeThickness || 0;
+    // const tf = dimensions.flangeThickness || 0;
 
     switch (face) {
       case 'TOP_FLANGE':
@@ -255,10 +255,10 @@ export class FaceMapper {
     localPos: Vector3,
     face: FaceType,
     dimensions: ProfileDimensions,
-    length: number
+    _length: number
   ): Vector3 {
-    const h = dimensions.height || 0;
-    const w = dimensions.width || 0;
+    // const h = dimensions.height || 0;
+    // const w = dimensions.width || 0;
     const t = dimensions.thickness || 0;
 
     switch (face) {

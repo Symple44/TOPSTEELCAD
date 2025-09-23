@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { HoleDSTV, DSTVFace, PartElement } from '../types/partBuilder.types';
-import { ProfileType } from '../../3DLibrary/types/profile.types';
 
 // Types pour les patterns de trous
 export enum HolePatternType {
@@ -119,7 +118,7 @@ export const HoleAddingInterface: React.FC<HoleAddingInterfaceProps> = ({
   element,
   holes,
   onAddHole,
-  onEditHole,
+  onEditHole: _onEditHole,
   onDeleteHole,
   onClose
 }) => {
@@ -138,7 +137,7 @@ export const HoleAddingInterface: React.FC<HoleAddingInterfaceProps> = ({
 
   // États pour la sélection et l'édition
   const [selectedHoleId, setSelectedHoleId] = useState<string | null>(null);
-  const [editingHoleId, setEditingHoleId] = useState<string | null>(null);
+  // const [editingHoleId, setEditingHoleId] = useState<string | null>(null);
   const [hoveredHoleId, setHoveredHoleId] = useState<string | null>(null);
 
   const availableFaces = getAvailableFaces(element.profileType);

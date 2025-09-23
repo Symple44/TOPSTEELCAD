@@ -136,7 +136,7 @@ export class FeatureApplicator {
     
     // Paramètres spécifiques selon le type
     switch (featureData.type) {
-      case 'hole':
+      case 'hole': {
         // Récupérer le diamètre depuis parameters ou directement
         feature.parameters.diameter = featureData.parameters?.diameter || featureData.diameter || 10;
         // Si depth=0 dans DSTV, c'est un trou traversant, on utilise une grande profondeur
@@ -153,6 +153,7 @@ export class FeatureApplicator {
           feature.parameters.height = featureData.parameters?.height || featureData.height || feature.parameters.diameter;
         }
         break;
+      }
         
       case 'chamfer':
         feature.parameters.size = featureData.size || 5;
