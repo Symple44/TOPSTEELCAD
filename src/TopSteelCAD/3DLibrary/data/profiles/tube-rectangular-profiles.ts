@@ -5,7 +5,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-40x20x2',
     designation: 'TR 40x20x2',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 40,
       width: 20,
@@ -30,7 +30,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-50x30x3',
     designation: 'TR 50x30x3',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 50,
       width: 30,
@@ -55,7 +55,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-60x40x3',
     designation: 'TR 60x40x3',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 60,
       width: 40,
@@ -80,7 +80,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-80x40x4',
     designation: 'TR 80x40x4',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 80,
       width: 40,
@@ -105,7 +105,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-100x50x4',
     designation: 'TR 100x50x4',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 100,
       width: 50,
@@ -130,7 +130,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-120x60x5',
     designation: 'TR 120x60x5',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 120,
       width: 60,
@@ -155,7 +155,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-120x80x6',
     designation: 'TR 120x80x6',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 120,
       width: 80,
@@ -180,7 +180,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-140x80x6',
     designation: 'TR 140x80x6',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 140,
       width: 80,
@@ -205,7 +205,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-150x100x6',
     designation: 'TR 150x100x6',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 150,
       width: 100,
@@ -230,7 +230,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-160x80x8',
     designation: 'TR 160x80x8',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 160,
       width: 80,
@@ -255,7 +255,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-180x100x8',
     designation: 'TR 180x100x8',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 180,
       width: 100,
@@ -280,7 +280,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-200x100x10',
     designation: 'TR 200x100x10',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 200,
       width: 100,
@@ -305,7 +305,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-200x120x10',
     designation: 'TR 200x120x10',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 200,
       width: 120,
@@ -330,7 +330,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-250x150x10',
     designation: 'TR 250x150x10',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 250,
       width: 150,
@@ -355,7 +355,7 @@ export const TUBE_RECTANGULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TR-300x200x12',
     designation: 'TR 300x200x12',
-    type: ProfileType.TUBE_RECTANGULAR,
+    type: ProfileType.RHS,
     dimensions: {
       height: 300,
       width: 200,

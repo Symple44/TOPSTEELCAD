@@ -40,28 +40,49 @@ export class GeometryConverter {
   
   createGeometry(element: PivotElement): THREE.BufferGeometry {
     const { materialType, dimensions } = element;
-    
+
+    console.log('🎨 GeometryConverter.createGeometry:', {
+      elementName: element.name,
+      materialType: materialType,
+      dimensions: dimensions,
+      profile: element.profile
+    });
+
     switch (materialType) {
       case MaterialType.BEAM:
+        console.log('→ Creating BEAM geometry');
         return this.createBeamGeometry(dimensions, element.metadata);
-        
+
       case MaterialType.PLATE:
+        console.log('→ Creating PLATE geometry');
         return this.createPlateGeometry(dimensions, element.metadata);
-        
+
       case MaterialType.ANGLE:
+        console.log('→ Creating ANGLE geometry');
         return this.createAngleGeometry(dimensions);
-        
+
       case MaterialType.TUBE:
-        console.log('🔧 Creating TUBE geometry with dimensions:', dimensions);
+        console.log('→ Creating TUBE geometry');
         return this.createTubeGeometry(dimensions);
-        
+
       case MaterialType.CHANNEL:
+        console.log('→ Creating CHANNEL geometry');
         return this.createChannelGeometry(dimensions);
-        
+
       case MaterialType.COLUMN:
+        console.log('→ Creating COLUMN geometry');
         return this.createBeamGeometry(dimensions); // Les colonnes utilisent la même géométrie que les poutres
-        
+
+      case MaterialType.BAR:
+        console.log('→ Creating BAR geometry');
+        return this.createBarGeometry(dimensions);
+
+      case MaterialType.TEE:
+        console.log('→ Creating TEE geometry');
+        return this.createTeeGeometry(dimensions);
+
       default:
+        console.warn('⚠️ Unknown materialType:', materialType, '- using fallback BOX geometry');
         // Géométrie de fallback simple sans warning
         return new THREE.BoxGeometry(
           dimensions?.width || 100,
@@ -77,24 +98,31 @@ export class GeometryConverter {
    */
   private createBeamGeometry(dimensions: any, metadata?: any): THREE.BufferGeometry {
     if (!dimensions) return new THREE.BoxGeometry(100, 100, 1000);
-    
+
     const {
       length = 6000,
       height = 300,
-      flangeThickness = 10.7,
-      webThickness = 7.1,
-      // Utiliser width d'abord, puis flangeWidth, puis valeur par défaut
-      flangeWidth = dimensions.width || dimensions.flangeWidth || 150
+      flangeThickness = 10,  // Valeur par défaut générique au lieu d'IPE 300
+      webThickness = 10,     // Valeur par défaut générique au lieu d'IPE 300
+      width = 150            // Utiliser directement width
     } = dimensions;
-    
+
     // Vérifier si des contours sont définis (découpes sur les ailes)
     if (metadata?.contours && metadata.contours.length > 0) {
       // TODO: Implémenter les découpes sur les ailes
     }
-    
+
+    console.log('🏗️ Creating BEAM geometry:', {
+      length,
+      height,
+      width,
+      flangeThickness,
+      webThickness
+    });
+
     // Utiliser une approche par composition de BoxGeometry pour le CSG
     // Plus simple et plus robuste que ExtrudeGeometry
-    return this.createBeamWithBoxes(length, height, flangeWidth, flangeThickness, webThickness);
+    return this.createBeamWithBoxes(length, height, width, flangeThickness, webThickness);
   }
   
   /**
@@ -320,18 +348,30 @@ export class GeometryConverter {
    */
   private createAngleGeometry(dimensions: any): THREE.BufferGeometry {
     if (!dimensions) return new THREE.BoxGeometry(100, 100, 1000);
-    
+
     const {
       length = 2000,
       width = 100,
       height = 100,
-      thickness = 10
+      webThickness = 10,
+      flangeThickness = 10
     } = dimensions;
-    
+
+    // Utiliser l'épaisseur la plus pertinente
+    const thickness = webThickness || flangeThickness || 10;
+
+    console.log('📐 Creating ANGLE geometry (L profile):', {
+      length,
+      width,
+      height,
+      thickness
+    });
+
     // Créer la forme en L
     const shape = new THREE.Shape();
-    
+
     // Dessiner le profil en L (vue de face)
+    // Aile horizontale puis aile verticale
     shape.moveTo(0, 0);
     shape.lineTo(width, 0);
     shape.lineTo(width, thickness);
@@ -339,18 +379,20 @@ export class GeometryConverter {
     shape.lineTo(thickness, height);
     shape.lineTo(0, height);
     shape.closePath();
-    
+
     // Extruder le long de la longueur
     const extrudeSettings = {
       depth: length,
       bevelEnabled: false
     };
-    
+
     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    
+
     // Centrer et orienter correctement
     geometry.translate(-width/2, -height/2, -length/2);
-    
+
+    console.log('✅ Created ANGLE geometry');
+
     return geometry;
   }
   
@@ -359,23 +401,23 @@ export class GeometryConverter {
    */
   private createTubeGeometry(dimensions: any): THREE.BufferGeometry {
     if (!dimensions) return new THREE.BoxGeometry(100, 100, 1000);
-    
+
     const {
       length = 2000,
       width = 100,
       height = 100,
-      diameter = 100,
+      diameter, // Pas de fallback! undefined si non défini
       thickness = 5,
       webThickness = 5,
       flangeThickness = 5
     } = dimensions;
-    
+
     // Déterminer si c'est un tube rectangulaire ou circulaire
     // Un tube est rectangulaire si:
     // 1. width et height sont définis et > 0
-    // 2. ET diameter n'est pas défini ou égal à 0
+    // 2. ET diameter n'est pas défini ou égal à 0 ou égal à width/height (tubes carrés/rectangulaires mal étiquetés)
     // 3. OU si width !== height (tubes rectangulaires non carrés)
-    const isRectangular = (width > 0 && height > 0 && (!diameter || diameter === 0)) || 
+    const isRectangular = (width > 0 && height > 0 && (!diameter || diameter === 0 || diameter === width || diameter === height)) ||
                          (width > 0 && height > 0 && width !== height);
     
     // L'épaisseur doit être celle des parois, pas la largeur/hauteur!
@@ -434,72 +476,235 @@ export class GeometryConverter {
       
       return geometry;
     } else {
-      // Tube circulaire
-      // Utiliser diameter si défini, sinon utiliser width ou height (pour tubes carrés)
+      // Tube circulaire creux (CHS)
       const effectiveDiameter = diameter || width || height || 100;
       const outerRadius = effectiveDiameter / 2;
-      // const innerRadius = outerRadius - thickness; // Currently unused
-      
-      const geometry = new THREE.CylinderGeometry(
+      const innerRadius = outerRadius - actualThickness;
+
+      console.log('📏 Tube CHS dimensions:', {
+        diameter: effectiveDiameter,
         outerRadius,
-        outerRadius,
-        length,
-        32,
-        1,
-        false
-      );
-      
-      // Rotation pour avoir la longueur selon Z
+        innerRadius,
+        wallThickness: actualThickness
+      });
+
+      // Créer une forme circulaire avec un trou (tube creux)
+      const shape = new THREE.Shape();
+
+      // Cercle extérieur
+      shape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
+
+      // Trou intérieur (si l'épaisseur laisse de la place)
+      if (innerRadius > 0) {
+        const hole = new THREE.Path();
+        hole.absarc(0, 0, innerRadius, 0, Math.PI * 2, true);
+        shape.holes.push(hole);
+      }
+
+      // Extruder le long de la longueur
+      const extrudeSettings = {
+        depth: length,
+        bevelEnabled: false,
+        curveSegments: 32  // Pour un cercle lisse
+      };
+
+      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+      // Centrer et orienter (longueur selon Z)
+      geometry.translate(0, 0, -length / 2);
       geometry.rotateX(Math.PI / 2);
-      
+
+      console.log('✅ Created hollow CHS geometry');
+
       return geometry;
     }
   }
   
   /**
-   * Crée une géométrie de U (UPN)
+   * Crée une géométrie de U (UPN, UAP, UPE)
    */
   private createChannelGeometry(dimensions: any): THREE.BufferGeometry {
     if (!dimensions) return new THREE.BoxGeometry(100, 200, 1000);
-    
+
     const {
       length = 2000,
       width = 100,
       height = 200,
-      thickness = 10
+      webThickness = 10,
+      flangeThickness = 10
     } = dimensions;
-    
+
+    console.log('🔨 Creating CHANNEL geometry (U profile):', {
+      length,
+      width,
+      height,
+      webThickness,
+      flangeThickness
+    });
+
     // Créer la forme en U
     const shape = new THREE.Shape();
-    
+
     // Dessiner le profil en U (vue de face)
+    // Le profil U a deux semelles horizontales et une âme verticale
     const hw = width / 2;
     const hh = height / 2;
-    
+
+    // Commencer en bas à gauche
     shape.moveTo(-hw, -hh);
+    // Aller en bas à droite (semelle inférieure)
     shape.lineTo(hw, -hh);
-    shape.lineTo(hw, -hh + thickness);
-    shape.lineTo(-hw + thickness, -hh + thickness);
-    shape.lineTo(-hw + thickness, hh - thickness);
-    shape.lineTo(hw, hh - thickness);
+    // Monter de l'épaisseur de la semelle
+    shape.lineTo(hw, -hh + flangeThickness);
+    // Revenir vers l'âme (en laissant l'épaisseur de l'âme)
+    shape.lineTo(-hw + webThickness, -hh + flangeThickness);
+    // Monter jusqu'à la semelle supérieure
+    shape.lineTo(-hw + webThickness, hh - flangeThickness);
+    // Aller à droite pour la semelle supérieure
+    shape.lineTo(hw, hh - flangeThickness);
+    // Monter de l'épaisseur de la semelle
     shape.lineTo(hw, hh);
+    // Revenir à gauche (haut de l'âme)
     shape.lineTo(-hw, hh);
+    // Fermer en descendant l'âme
     shape.closePath();
-    
+
     // Extruder le long de la longueur
     const extrudeSettings = {
       depth: length,
       bevelEnabled: false
     };
-    
+
     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    
+
     // Centrer la géométrie
     geometry.translate(0, 0, -length / 2);
-    
+
+    console.log('✅ Created CHANNEL geometry');
+
     return geometry;
   }
-  
+
+  /**
+   * Crée une géométrie de barre (ronde ou carrée)
+   */
+  private createBarGeometry(dimensions: any): THREE.BufferGeometry {
+    if (!dimensions) return new THREE.BoxGeometry(100, 100, 1000);
+
+    const {
+      length = 2000,
+      width = 50,
+      height = 50,
+      diameter  // Pas de fallback! undefined si non défini
+    } = dimensions;
+
+    console.log('📏 Creating BAR geometry:', {
+      length,
+      width,
+      height,
+      diameter,
+      isRound: !!diameter,
+      isSquare: !diameter && width === height
+    });
+
+    // Si un diamètre est défini ET qu'il est > 0, créer une barre ronde
+    // Ne PAS créer de barre ronde si diameter est undefined/null
+    if (diameter && diameter > 0) {
+      const radius = diameter / 2;
+      const geometry = new THREE.CylinderGeometry(
+        radius,
+        radius,
+        length,
+        32,
+        1,
+        false
+      );
+
+      // Rotation pour avoir la longueur selon Z
+      geometry.rotateX(Math.PI / 2);
+
+      console.log('✅ Created ROUND BAR geometry');
+      return geometry;
+    } else {
+      // Barre carrée
+      const geometry = new THREE.BoxGeometry(width, height, length);
+      console.log('✅ Created SQUARE BAR geometry');
+      return geometry;
+    }
+  }
+
+  /**
+   * Crée une géométrie de profil en T
+   */
+  private createTeeGeometry(dimensions: any): THREE.BufferGeometry {
+    if (!dimensions) return new THREE.BoxGeometry(100, 100, 1000);
+
+    const {
+      length = 2000,
+      width = 100,
+      height = 100,
+      thickness,           // Épaisseur générique
+      webThickness,
+      flangeThickness
+    } = dimensions;
+
+    // Logique de fallback intelligente: utiliser thickness si webThickness/flangeThickness non définis
+    const defaultThickness = thickness || 10;
+    const actualWebThickness = webThickness ?? defaultThickness;
+    const actualFlangeThickness = flangeThickness ?? defaultThickness;
+
+    console.log('🔨 Creating TEE geometry:', {
+      length,
+      width,
+      height,
+      webThickness: actualWebThickness,
+      flangeThickness: actualFlangeThickness,
+      usedThicknessFallback: !webThickness || !flangeThickness
+    });
+
+    // Créer la forme en T
+    const shape = new THREE.Shape();
+
+    // Dessiner le profil en T (vue de face)
+    const hw = width / 2;
+    const hh = height / 2;
+    const hwt = actualWebThickness / 2;
+
+    // Commencer en haut à gauche (semelle)
+    shape.moveTo(-hw, hh);
+    // Aller en haut à droite
+    shape.lineTo(hw, hh);
+    // Descendre de l'épaisseur de la semelle
+    shape.lineTo(hw, hh - actualFlangeThickness);
+    // Aller vers le centre (début de l'âme)
+    shape.lineTo(hwt, hh - actualFlangeThickness);
+    // Descendre l'âme
+    shape.lineTo(hwt, -hh);
+    // Aller à gauche en bas de l'âme
+    shape.lineTo(-hwt, -hh);
+    // Remonter l'âme
+    shape.lineTo(-hwt, hh - actualFlangeThickness);
+    // Revenir à gauche
+    shape.lineTo(-hw, hh - actualFlangeThickness);
+    // Fermer en remontant
+    shape.closePath();
+
+    // Extruder le long de la longueur
+    const extrudeSettings = {
+      depth: length,
+      bevelEnabled: false
+    };
+
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+    // Centrer la géométrie
+    geometry.translate(0, 0, -length / 2);
+
+    console.log('✅ Created TEE geometry');
+
+    return geometry;
+  }
+
   createMaterial(element: PivotElement): THREE.Material {
     const { material } = element;
     

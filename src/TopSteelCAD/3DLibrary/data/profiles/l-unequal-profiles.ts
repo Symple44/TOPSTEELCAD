@@ -8,7 +8,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 30 x 20 x 3
   {
     id: 'L30X20X3',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 30×20×3',
     dimensions: {
       height: 30,
@@ -46,7 +46,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 40 x 25 x 4
   {
     id: 'L40X25X4',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 40×25×4',
     dimensions: {
       height: 40,
@@ -84,7 +84,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 45 x 30 x 4.5
   {
     id: 'L45X30X4_5',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 45×30×4.5',
     dimensions: {
       height: 45,
@@ -122,7 +122,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 50 x 30 x 5
   {
     id: 'L50X30X5',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 50×30×5',
     dimensions: {
       height: 50,
@@ -160,7 +160,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 60 x 30 x 5
   {
     id: 'L60X30X5',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 60×30×5',
     dimensions: {
       height: 60,
@@ -198,7 +198,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 60 x 40 x 5
   {
     id: 'L60X40X5',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 60×40×5',
     dimensions: {
       height: 60,
@@ -236,7 +236,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 60 x 40 x 6
   {
     id: 'L60X40X6',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 60×40×6',
     dimensions: {
       height: 60,
@@ -274,7 +274,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 70 x 45 x 6
   {
     id: 'L70X45X6',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 70×45×6',
     dimensions: {
       height: 70,
@@ -312,7 +312,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 75 x 50 x 6
   {
     id: 'L75X50X6',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 75×50×6',
     dimensions: {
       height: 75,
@@ -350,7 +350,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 75 x 50 x 8
   {
     id: 'L75X50X8',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 75×50×8',
     dimensions: {
       height: 75,
@@ -388,7 +388,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 80 x 40 x 6
   {
     id: 'L80X40X6',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 80×40×6',
     dimensions: {
       height: 80,
@@ -426,7 +426,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 80 x 40 x 8
   {
     id: 'L80X40X8',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 80×40×8',
     dimensions: {
       height: 80,
@@ -464,7 +464,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 80 x 60 x 7
   {
     id: 'L80X60X7',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 80×60×7',
     dimensions: {
       height: 80,
@@ -502,7 +502,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 80 x 60 x 8
   {
     id: 'L80X60X8',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 80×60×8',
     dimensions: {
       height: 80,
@@ -540,7 +540,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 90 x 60 x 7
   {
     id: 'L90X60X7',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 90×60×7',
     dimensions: {
       height: 90,
@@ -578,7 +578,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 90 x 60 x 8
   {
     id: 'L90X60X8',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 90×60×8',
     dimensions: {
       height: 90,
@@ -616,7 +616,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 50 x 6
   {
     id: 'L100X50X6',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 100×50×6',
     dimensions: {
       height: 100,
@@ -654,7 +654,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 50 x 8
   {
     id: 'L100X50X8',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 100×50×8',
     dimensions: {
       height: 100,
@@ -692,7 +692,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 50 x 10
   {
     id: 'L100X50X10',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 100×50×10',
     dimensions: {
       height: 100,
@@ -730,7 +730,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 65 x 7
   {
     id: 'L100X65X7',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 100×65×7',
     dimensions: {
       height: 100,
@@ -768,7 +768,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 65 x 8
   {
     id: 'L100X65X8',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 100×65×8',
     dimensions: {
       height: 100,
@@ -806,7 +806,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 65 x 10
   {
     id: 'L100X65X10',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 100×65×10',
     dimensions: {
       height: 100,
@@ -844,7 +844,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 75 x 8
   {
     id: 'L100X75X8',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 100×75×8',
     dimensions: {
       height: 100,
@@ -882,7 +882,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 75 x 10
   {
     id: 'L100X75X10',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 100×75×10',
     dimensions: {
       height: 100,
@@ -920,7 +920,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 120 x 80 x 8
   {
     id: 'L120X80X8',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 120×80×8',
     dimensions: {
       height: 120,
@@ -958,7 +958,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 120 x 80 x 10
   {
     id: 'L120X80X10',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 120×80×10',
     dimensions: {
       height: 120,
@@ -996,7 +996,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 120 x 80 x 12
   {
     id: 'L120X80X12',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 120×80×12',
     dimensions: {
       height: 120,
@@ -1034,7 +1034,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 75 x 9
   {
     id: 'L150X75X9',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 150×75×9',
     dimensions: {
       height: 150,
@@ -1072,7 +1072,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 75 x 10
   {
     id: 'L150X75X10',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 150×75×10',
     dimensions: {
       height: 150,
@@ -1110,7 +1110,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 75 x 12
   {
     id: 'L150X75X12',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 150×75×12',
     dimensions: {
       height: 150,
@@ -1148,7 +1148,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 90 x 10
   {
     id: 'L150X90X10',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 150×90×10',
     dimensions: {
       height: 150,
@@ -1186,7 +1186,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 90 x 12
   {
     id: 'L150X90X12',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 150×90×12',
     dimensions: {
       height: 150,
@@ -1224,7 +1224,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 90 x 15
   {
     id: 'L150X90X15',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 150×90×15',
     dimensions: {
       height: 150,
@@ -1262,7 +1262,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 200 x 100 x 10
   {
     id: 'L200X100X10',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 200×100×10',
     dimensions: {
       height: 200,
@@ -1300,7 +1300,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 200 x 100 x 12
   {
     id: 'L200X100X12',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 200×100×12',
     dimensions: {
       height: 200,
@@ -1338,7 +1338,7 @@ export const L_UNEQUAL_PROFILES: SteelProfile[] = [
   // L 200 x 100 x 15
   {
     id: 'L200X100X15',
-    type: ProfileType.L_UNEQUAL,
+    type: ProfileType.LA,
     designation: 'L 200×100×15',
     dimensions: {
       height: 200,

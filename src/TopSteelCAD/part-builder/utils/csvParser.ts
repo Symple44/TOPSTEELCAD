@@ -1,6 +1,7 @@
 import { PartElement } from '../types/partBuilder.types';
 import { ProfileType } from '../../3DLibrary/types/profile.types';
 import { generateUniqueId, generateReference } from './idGenerator';
+import { ProfileTypeService } from '../services/ProfileTypeService';
 
 /**
  * Interface pour les colonnes CSV attendues
@@ -230,45 +231,8 @@ function createPartElementFromCSV(
  * @returns ProfileType valide
  */
 function validateProfileType(value: string): ProfileType {
-  // Mapping des valeurs communes vers ProfileType
-  const mappings: Record<string, ProfileType> = {
-    'IPE': ProfileType.IPE,
-    'HEA': ProfileType.HEA,
-    'HEB': ProfileType.HEB,
-    'HEM': ProfileType.HEM,
-    'UPN': ProfileType.UPN,
-    'UAP': ProfileType.UAP,
-    'UPE': ProfileType.UPE,
-    'L': ProfileType.L_EQUAL,
-    'L_EQUAL': ProfileType.L_EQUAL,
-    'L_UNEQUAL': ProfileType.L_UNEQUAL,
-    'CORNIERE': ProfileType.L_EQUAL,
-    'ANGLE': ProfileType.L_EQUAL,
-    'T': ProfileType.T_PROFILE,
-    'TEE': ProfileType.TEE,
-    'T_PROFILE': ProfileType.T_PROFILE,
-    'ROND': ProfileType.ROUND_BAR,
-    'ROUND': ProfileType.ROUND_BAR,
-    'CARRE': ProfileType.SQUARE_BAR,
-    'SQUARE': ProfileType.SQUARE_BAR,
-    'PLAT': ProfileType.FLAT,
-    'FLAT': ProfileType.FLAT,
-    'TOLE': ProfileType.PLATE,
-    'PLATE': ProfileType.PLATE,
-    'TUBE': ProfileType.TUBE_ROUND,
-    'TUBE_ROND': ProfileType.TUBE_ROUND,
-    'TUBE_ROUND': ProfileType.TUBE_ROUND,
-    'TUBE_CARRE': ProfileType.TUBE_SQUARE,
-    'TUBE_SQUARE': ProfileType.TUBE_SQUARE,
-    'TUBE_RECT': ProfileType.TUBE_RECT,
-    'TUBE_RECTANGULAR': ProfileType.TUBE_RECTANGULAR,
-    'RHS': ProfileType.RHS,
-    'SHS': ProfileType.SHS,
-    'CHS': ProfileType.CHS
-  };
-
-  const normalized = value.toUpperCase().replace(/[^A-Z_]/g, '');
-  return mappings[normalized] || ProfileType.IPE;
+  // Utilisation du ProfileTypeService centralisé pour la normalisation
+  return ProfileTypeService.normalize(value);
 }
 
 /**

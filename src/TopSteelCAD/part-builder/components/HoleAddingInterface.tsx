@@ -96,7 +96,7 @@ const getAvailableFaces = (profileType: string): DSTVFace[] => {
   }
 
   // Tubes rectangulaires et carrés
-  if (['TUBE_RECT', 'TUBE_CARRE', 'RHS', 'SHS'].includes(profileType)) {
+  if (['RHS', 'SHS'].includes(profileType)) {
     return [
       DSTVFace.TOP,
       DSTVFace.BOTTOM,
@@ -106,7 +106,7 @@ const getAvailableFaces = (profileType: string): DSTVFace[] => {
   }
 
   // Tubes ronds
-  if (['TUBE_ROND', 'CHS'].includes(profileType)) {
+  if (['CHS'].includes(profileType)) {
     return [DSTVFace.RADIAL]; // Position radiale avec angle
   }
 
@@ -297,7 +297,7 @@ export const HoleAddingInterface: React.FC<HoleAddingInterfaceProps> = ({
     }
 
     // Tubes rectangulaires
-    if (['TUBE_RECT', 'RHS'].includes(profileType)) {
+    if (['RHS'].includes(profileType)) {
       return (
         <svg viewBox="0 0 100 100" style={style}>
           <rect x="20" y="30" width="60" height="40" fill="none" />
@@ -306,7 +306,7 @@ export const HoleAddingInterface: React.FC<HoleAddingInterfaceProps> = ({
     }
 
     // Tubes carrés
-    if (['TUBE_CARRE', 'SHS'].includes(profileType)) {
+    if (['SHS'].includes(profileType)) {
       return (
         <svg viewBox="0 0 100 100" style={style}>
           <rect x="25" y="25" width="50" height="50" fill="none" />
@@ -315,7 +315,7 @@ export const HoleAddingInterface: React.FC<HoleAddingInterfaceProps> = ({
     }
 
     // Tubes ronds
-    if (['TUBE_ROND', 'CHS'].includes(profileType)) {
+    if (['CHS'].includes(profileType)) {
       return (
         <svg viewBox="0 0 100 100" style={style}>
           <circle cx="50" cy="50" r="30" fill="none" />
@@ -879,7 +879,7 @@ export const HoleAddingInterface: React.FC<HoleAddingInterfaceProps> = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setEditingHoleId(hole.id);
+                            // setEditingHoleId(hole.id);
                             // TODO: Implémenter l'édition
                           }}
                           style={{

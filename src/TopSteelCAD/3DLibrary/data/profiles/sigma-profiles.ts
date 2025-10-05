@@ -9,7 +9,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   // Série Sigma 100
   {
     id: 'SIGMA100x50x1.5',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 100x50x1.5',
     dimensions: {
       height: 100,
@@ -39,7 +39,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'SIGMA100x50x2',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 100x50x2',
     dimensions: {
       height: 100,
@@ -71,7 +71,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   // Série Sigma 120
   {
     id: 'SIGMA120x60x1.5',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 120x60x1.5',
     dimensions: {
       height: 120,
@@ -101,7 +101,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'SIGMA120x60x2',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 120x60x2',
     dimensions: {
       height: 120,
@@ -133,7 +133,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   // Série Sigma 140
   {
     id: 'SIGMA140x70x2',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 140x70x2',
     dimensions: {
       height: 140,
@@ -163,7 +163,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'SIGMA140x70x2.5',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 140x70x2.5',
     dimensions: {
       height: 140,
@@ -195,7 +195,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   // Série Sigma 160
   {
     id: 'SIGMA160x80x2.5',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 160x80x2.5',
     dimensions: {
       height: 160,
@@ -225,7 +225,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'SIGMA160x80x3',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 160x80x3',
     dimensions: {
       height: 160,
@@ -257,7 +257,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   // Série Sigma 200
   {
     id: 'SIGMA200x100x3',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 200x100x3',
     dimensions: {
       height: 200,
@@ -287,7 +287,7 @@ export const SIGMA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'SIGMA200x100x4',
-    type: ProfileType.SIGMA_PROFILE,
+    type: ProfileType.SIGMA,
     designation: 'Σ 200x100x4',
     dimensions: {
       height: 200,

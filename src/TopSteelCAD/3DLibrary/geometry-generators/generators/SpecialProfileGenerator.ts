@@ -11,11 +11,11 @@ export class SpecialProfileGenerator extends BaseProfileGenerator {
   
   constructor() {
     super([
-      ProfileType.W_SHAPE,
-      ProfileType.S_SHAPE,
-      ProfileType.HP_SHAPE,
-      ProfileType.SIGMA_PROFILE,
-      ProfileType.OMEGA_PROFILE
+      ProfileType.W,
+      ProfileType.S,
+      ProfileType.HP,
+      ProfileType.SIGMA,
+      ProfileType.OMEGA
     ]);
   }
 
@@ -27,19 +27,19 @@ export class SpecialProfileGenerator extends BaseProfileGenerator {
     const profileType = this.determineProfileType(dimensions);
     
     switch (profileType) {
-      case ProfileType.W_SHAPE:
-      case ProfileType.HP_SHAPE:
+      case ProfileType.W:
+      case ProfileType.HP:
         // W et HP sont similaires aux profils I (wide flange)
         return this.generateWProfile(dimensions, length);
         
-      case ProfileType.S_SHAPE:
+      case ProfileType.S:
         // S est similaire aux profils I mais avec semelles inclinées
         return this.generateSProfile(dimensions, length);
         
-      case ProfileType.SIGMA_PROFILE:
+      case ProfileType.SIGMA:
         return this.generateSigmaProfile(dimensions, length);
         
-      case ProfileType.OMEGA_PROFILE:
+      case ProfileType.OMEGA:
         return this.generateOmegaProfile(dimensions, length);
         
       default:
@@ -50,7 +50,7 @@ export class SpecialProfileGenerator extends BaseProfileGenerator {
   private determineProfileType(_dimensions: ProfileDimensions): ProfileType {
     // Logique pour déterminer le type si nécessaire
     // Pour l'instant, on suppose que le type est déjà défini
-    return ProfileType.W_SHAPE;
+    return ProfileType.W;
   }
 
   /**

@@ -4,6 +4,7 @@ import { MinimalViewer } from './TopSteelCAD/MinimalViewer';
 import { StandardViewer } from './TopSteelCAD/StandardViewer';
 import { ProfessionalViewer } from './TopSteelCAD/ProfessionalViewer';
 import { PartBuilder } from './TopSteelCAD/part-builder';
+import { ProfileCreatorApp } from './TopSteelCAD/custom-profile-creator/ProfileCreatorApp';
 import { PivotElement, MaterialType } from './types/viewer';
 
 // Initialiser le logger
@@ -146,7 +147,7 @@ const createTestElements = (): PivotElement[] => {
 };
 
 // Types de modes disponibles
-type ViewerMode = 'minimal' | 'standard' | 'professional' | 'part-builder';
+type ViewerMode = 'minimal' | 'standard' | 'professional' | 'part-builder' | 'profile-creator';
 
 // Composant de démonstration
 const DemoApp: React.FC = () => {
@@ -230,8 +231,8 @@ const DemoApp: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <label style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Mode:</label>
-              <select 
-                value={mode} 
+              <select
+                value={mode}
                 onChange={(e) => setMode(e.target.value as ViewerMode)}
                 style={{
                   padding: '0.5rem 1rem',
@@ -247,13 +248,14 @@ const DemoApp: React.FC = () => {
                 <option value="minimal">🔹 Mode Minimal</option>
                 <option value="standard">🔷 Mode Standard</option>
                 <option value="professional">🔶 Mode Professionnel</option>
-                <option value="part-builder">🏗️ Part Builder (Nouveau!)</option>
+                <option value="part-builder">🏗️ Part Builder</option>
+                <option value="profile-creator">✏️ Créateur de Profils (Nouveau!)</option>
               </select>
             </div>
             
             <button
               onClick={handleLoadTestElements}
-              disabled={isLoadingElements || mode === 'part-builder'}
+              disabled={isLoadingElements || mode === 'part-builder' || mode === 'profile-creator'}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: isLoadingElements 
@@ -404,6 +406,10 @@ const DemoApp: React.FC = () => {
         {mode === 'part-builder' && (
           <PartBuilder />
         )}
+
+        {mode === 'profile-creator' && (
+          <ProfileCreatorApp />
+        )}
       </div>
 
       {/* Info bar */}
@@ -425,6 +431,7 @@ const DemoApp: React.FC = () => {
           {mode === 'standard' && '🔷 Interface équilibrée avec navigation et outils de base'}
           {mode === 'professional' && '🔶 Interface complète avec tous les outils CAO avancés'}
           {mode === 'part-builder' && '🏗️ Module de création de pièces métalliques de A à Z'}
+          {mode === 'profile-creator' && '✏️ Créez vos propres profils personnalisés avec un éditeur 2D intuitif'}
         </div>
       </div>
     </div>

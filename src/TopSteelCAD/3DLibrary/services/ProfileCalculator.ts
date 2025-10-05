@@ -49,19 +49,19 @@ export class ProfileCalculator {
       case ProfileType.UPE:
         return ProfileCalculator.calculateChannelSurface(dims, length);
       
-      case ProfileType.L_EQUAL:
-      case ProfileType.L_UNEQUAL:
+      case ProfileType.L:
+      case ProfileType.LA:
         return ProfileCalculator.calculateAngleSurface(dims, length);
       
-      case ProfileType.TUBE_SQUARE:
+      case ProfileType.SHS:
       case ProfileType.SHS:
         return ProfileCalculator.calculateSquareTubeSurface(dims, length);
       
-      case ProfileType.TUBE_RECTANGULAR:
+      case ProfileType.RHS:
       case ProfileType.RHS:
         return ProfileCalculator.calculateRectangularTubeSurface(dims, length);
       
-      case ProfileType.TUBE_CIRCULAR:
+      case ProfileType.CHS:
       case ProfileType.CHS:
         return ProfileCalculator.calculateCircularTubeSurface(dims, length);
       

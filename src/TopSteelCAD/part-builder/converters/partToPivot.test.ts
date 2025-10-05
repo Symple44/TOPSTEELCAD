@@ -78,17 +78,22 @@ describe('partToPivot converter', () => {
     expect(result.material.opacity).toBe(1.0);
 
     // Test des features sélectionnables
+    // CORRIGÉ : Les coordonnées sont maintenant transformées correctement selon la face
     expect(result.features).toHaveLength(2);
     expect(result.features![0].id).toBe('hole-1');
     expect(result.features![0].type).toBe(FeatureType.HOLE);
-    expect(result.features![0].position).toEqual([100, 50, 0]);
+    // hole-1: face TOP, DSTV(x=100, y=50) → transformé en coords globales [X, Y, Z]
+    // Convention HoleProcessor: X=largeur, Y=hauteur, Z=longueur
+    // Face TOP: globalX = y - width/2 = 50-50 = 0, globalY = height/2 = 100, globalZ = x = 100
+    expect(result.features![0].position).toEqual([0, 100, 100]);
     expect(result.features![0].selectable).toBe(true);
 
     // Test des features dans metadata pour FeatureApplicator
+    // CORRIGÉ : Les coordonnées transformées sont également dans metadata.features
     expect(result.metadata.features).toHaveLength(2);
     expect(result.metadata.features[0].id).toBe('hole-1');
     expect(result.metadata.features[0].type).toBe('hole');
-    expect(result.metadata.features[0].position).toEqual([100, 50, 0]);
+    expect(result.metadata.features[0].position).toEqual([0, 100, 100]);
     expect(result.metadata.features[0].parameters.diameter).toBe(16);
     expect(result.metadata.features[0].parameters.isThrough).toBe(true);
 
@@ -147,11 +152,125 @@ describe('partToPivot converter', () => {
 
     const result = convertPartElementToPivotElement(elementWithoutDimensions);
 
-    // Doit utiliser les valeurs par défaut
+    // IPE200 : doit parser "200" → height=200, width=100 (fallback)
+    // Sans dimensions définies, thickness=10 (fallback), donc flangeThickness=thickness=10
     expect(result.dimensions.width).toBe(100);
-    expect(result.dimensions.height).toBe(100);
+    expect(result.dimensions.height).toBe(200); // Parsé depuis "200"
     expect(result.dimensions.webThickness).toBe(10);
-    expect(result.dimensions.flangeThickness).toBe(15);
+    expect(result.dimensions.flangeThickness).toBe(10); // = thickness (fallback)
+  });
+
+  test('should parse dimensions from profileSubType for RHS', () => {
+    const rhsElement: PartElement = {
+      ...mockPartElement,
+      profileType: 'RHS' as any,
+      profileSubType: '40x20x2',
+      dimensions: undefined
+    };
+
+    const result = convertPartElementToPivotElement(rhsElement);
+
+    // Doit parser "40x20x2" → width=40, height=20, thickness=2
+    expect(result.dimensions.width).toBe(40);
+    expect(result.dimensions.height).toBe(20);
+    expect(result.dimensions.thickness).toBe(2);
+  });
+
+  test('should parse dimensions from profileSubType for SHS', () => {
+    const shsElement: PartElement = {
+      ...mockPartElement,
+      profileType: 'SHS' as any,
+      profileSubType: '50x50x3',
+      dimensions: undefined
+    };
+
+    const result = convertPartElementToPivotElement(shsElement);
+
+    // Doit parser "50x50x3" → width=50, height=50, thickness=3
+    expect(result.dimensions.width).toBe(50);
+    expect(result.dimensions.height).toBe(50);
+    expect(result.dimensions.thickness).toBe(3);
+  });
+
+  test('should parse dimensions from profileSubType for CHS', () => {
+    const chsElement: PartElement = {
+      ...mockPartElement,
+      profileType: 'CHS' as any,
+      profileSubType: '60.3x2.9',
+      dimensions: undefined
+    };
+
+    const result = convertPartElementToPivotElement(chsElement);
+
+    // Doit parser "60.3x2.9" → diameter=60.3, thickness=2.9
+    expect(result.dimensions.diameter).toBe(60.3);
+    expect(result.dimensions.thickness).toBe(2.9);
+    // Pour CHS, width et height doivent être égaux au diamètre
+    expect(result.dimensions.width).toBe(60.3);
+    expect(result.dimensions.height).toBe(60.3);
+  });
+
+  test('should parse dimensions from profileSubType for FLAT', () => {
+    const flatElement: PartElement = {
+      ...mockPartElement,
+      profileType: 'FLAT' as any,
+      profileSubType: '50x10',
+      dimensions: undefined
+    };
+
+    const result = convertPartElementToPivotElement(flatElement);
+
+    // Doit parser "50x10" → width=50, thickness=10
+    expect(result.dimensions.width).toBe(50);
+    expect(result.dimensions.thickness).toBe(10);
+    expect(result.dimensions.height).toBe(10); // height = thickness pour plats
+  });
+
+  test('should parse dimensions from profileSubType for ROUND_BAR', () => {
+    const roundBarElement: PartElement = {
+      ...mockPartElement,
+      profileType: 'ROUND_BAR' as any,
+      profileSubType: '25',
+      dimensions: undefined
+    };
+
+    const result = convertPartElementToPivotElement(roundBarElement);
+
+    // Doit parser "25" → diameter=25
+    expect(result.dimensions.diameter).toBe(25);
+    expect(result.dimensions.width).toBe(25);
+    expect(result.dimensions.height).toBe(25);
+  });
+
+  test('should parse dimensions from profileSubType for SQUARE_BAR', () => {
+    const squareBarElement: PartElement = {
+      ...mockPartElement,
+      profileType: 'SQUARE_BAR' as any,
+      profileSubType: '30',
+      dimensions: undefined
+    };
+
+    const result = convertPartElementToPivotElement(squareBarElement);
+
+    // Doit parser "30" → width=30, height=30
+    expect(result.dimensions.width).toBe(30);
+    expect(result.dimensions.height).toBe(30);
+  });
+
+  test('should parse dimensions from profileSubType for T profile', () => {
+    const tElement: PartElement = {
+      ...mockPartElement,
+      profileType: 'T' as any,
+      profileSubType: '80x80x8',
+      dimensions: undefined
+    };
+
+    const result = convertPartElementToPivotElement(tElement);
+
+    // Doit parser "80x80x8" → width=80, height=80, thickness=8
+    expect(result.dimensions.width).toBe(80);
+    expect(result.dimensions.height).toBe(80);
+    expect(result.dimensions.thickness).toBe(8);
   });
 
   test('should determine MaterialType from ProfileType correctly', () => {

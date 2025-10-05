@@ -64,17 +64,17 @@ export class UnifiedMaterialsDatabase {
   private async loadProfiles(): Promise<void> {
     try {
       // Récupérer tous les types de profilés
-      const profileTypes = Object.values(ProfileType);
-      
+      const profileTypes = Object.values(ProfileTypeOld);
+
       for (const type of profileTypes) {
         const profiles = await ProfileDatabase.getInstance().getProfilesByType(type);
-        
+
         profiles.forEach(profile => {
           const unifiedElement = this.adaptProfileToUnified(profile);
           this.materials.set(unifiedElement.id, unifiedElement);
         });
       }
-      
+
       console.log(`📐 Chargé ${profileTypes.length} types de profilés`);
     } catch (error) {
       console.warn('⚠️ Erreur lors du chargement des profilés:', error);
@@ -137,12 +137,11 @@ export class UnifiedMaterialsDatabase {
     // car les types exacts ne correspondent pas entre les deux enums
     if (type.includes('IPE') || type.includes('HE')) return ProfileType.IPE;
     if (type.includes('UPN') || type.includes('UAP')) return ProfileType.UPN;
-    if (type.includes('L_')) return ProfileType.L_EQUAL;
-    if (type.includes('TUBE')) return ProfileType.TUBE_CIRCULAR;
+    if (type === ProfileTypeOld.L || type === ProfileTypeOld.LA) return ProfileType.L;
+    if (type.includes('TUBE') || type.includes('CHS')) return ProfileType.CHS;
     if (type.includes('RHS')) return ProfileType.RHS;
     if (type.includes('SHS')) return ProfileType.SHS;
-    if (type.includes('CHS')) return ProfileType.CHS;
-    
+
     // Type par défaut
     return ProfileType.IPE;
   }
@@ -153,16 +152,16 @@ export class UnifiedMaterialsDatabase {
   private getProfileColor(type: ProfileType | ProfileTypeOld): string {
     const colors: Record<string, string> = {
       [ProfileType.IPE]: '#3B82F6',
-      [ProfileType.HEA]: '#10B981', 
+      [ProfileType.HEA]: '#10B981',
       [ProfileType.HEB]: '#8B5CF6',
       [ProfileType.HEM]: '#F59E0B',
       [ProfileType.UPN]: '#EF4444',
       [ProfileType.UAP]: '#EC4899',
-      [ProfileType.L_EQUAL]: '#06B6D4',
-      [ProfileType.L_UNEQUAL]: '#84CC16',
-      [ProfileType.TUBE_CIRCULAR]: '#6B7280',
-      [ProfileType.TUBE_SQUARE]: '#374151',
-      [ProfileType.TUBE_RECTANGULAR]: '#1F2937'
+      [ProfileTypeOld.L]: '#06B6D4',
+      [ProfileTypeOld.LA]: '#84CC16',
+      [ProfileType.CHS]: '#6B7280',
+      [ProfileType.SHS]: '#374151',
+      [ProfileType.RHS]: '#1F2937'
     };
     return colors[type] || '#6B7280';
   }

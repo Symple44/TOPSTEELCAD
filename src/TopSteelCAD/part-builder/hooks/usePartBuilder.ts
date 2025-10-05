@@ -108,8 +108,51 @@ export function usePartBuilder() {
   const createNewElement = useCallback(async (): Promise<PartElement> => {
     const id = generateUniqueId('el');
     const nextRef = `A${state.elements.length + 1}`;
-    const profileType = ProfileType.IPE;
-    const profileDesignation = 'IPE 200';
+
+    // Si c'est le premier élément, ne pas définir de profil par défaut
+    // L'utilisateur devra choisir
+    if (state.elements.length === 0) {
+      return {
+        id,
+        reference: nextRef,
+        designation: 'Nouvelle pièce',
+        quantity: 1,
+        profileType: '' as any, // Vide pour forcer le choix
+        profileSubType: '',
+        length: 3000,
+        material: 'S355',
+        dimensions: undefined,
+        weight: undefined,
+        holes: [],
+        status: 'draft',
+        notes: ''
+      };
+    }
+
+    // Pour les éléments suivants, récupérer le dernier profil utilisé depuis localStorage
+    let profileType: string;
+    let profileSubType: string;
+    let profileDesignation: string;
+
+    try {
+      const lastUsedProfileData = localStorage.getItem('lastUsedProfile');
+      if (lastUsedProfileData) {
+        const lastUsed = JSON.parse(lastUsedProfileData);
+        profileType = lastUsed.profileType;
+        profileSubType = lastUsed.profileSubType;
+        profileDesignation = lastUsed.profileDesignation;
+      } else {
+        // Fallback sur IPE 200 si aucun profil n'est mémorisé
+        profileType = ProfileType.IPE;
+        profileSubType = '200';
+        profileDesignation = 'IPE 200';
+      }
+    } catch {
+      // Fallback en cas d'erreur
+      profileType = ProfileType.IPE;
+      profileSubType = '200';
+      profileDesignation = 'IPE 200';
+    }
 
     // Récupérer les dimensions depuis la base de données
     const profile = await profileDB.getProfile(profileDesignation);
@@ -120,16 +163,20 @@ export function usePartBuilder() {
       flangeThickness: profile.dimensions.flangeThickness || DEFAULT_DIMENSIONS.flangeThickness
     } : DEFAULT_DIMENSIONS;
 
+    // Calculer le poids si disponible
+    const weight = profile?.weight ? profile.weight * (3000 / 1000) : undefined;
+
     return {
       id,
       reference: nextRef,
       designation: 'Nouvelle pièce',
       quantity: 1,
-      profileType: profileType,
-      profileSubType: '200',
+      profileType: profileType as ProfileType,
+      profileSubType: profileSubType,
       length: 3000,
       material: 'S355',
       dimensions,
+      weight,
       holes: [],
       status: 'draft',
       notes: ''
@@ -242,11 +289,24 @@ export function usePartBuilder() {
 
   // Gestion des trous
   const handleAddHole = useCallback((holes: HoleDSTV | HoleDSTV[]) => {
+    console.log('🎯 usePartBuilder.handleAddHole called with:', holes);
+    console.log('📌 Selected element ID:', state.selectedElementId);
+
     if (state.selectedElementId) {
       const element = state.elements.find(el => el.id === state.selectedElementId);
+      console.log('📦 Element found:', element);
+
       if (element) {
         const newHoles = Array.isArray(holes) ? holes : [holes];
         const updatedHoles = [...element.holes, ...newHoles];
+
+        console.log('✅ Updating holes:', {
+          elementId: element.id,
+          oldCount: element.holes.length,
+          newCount: updatedHoles.length,
+          addedHoles: newHoles
+        });
+
         handleUpdateElement(state.selectedElementId, 'holes', updatedHoles);
       }
     }

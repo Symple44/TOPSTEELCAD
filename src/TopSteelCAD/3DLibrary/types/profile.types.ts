@@ -13,54 +13,47 @@ export enum ProfileType {
   HEA = 'HEA',
   HEB = 'HEB',
   HEM = 'HEM',
-  
+
   // Profilés en U
   UPN = 'UPN',
   UAP = 'UAP',
   UPE = 'UPE',
-  
-  // Cornières
-  L_EQUAL = 'L_EQUAL',
-  L_UNEQUAL = 'L_UNEQUAL',
-  
-  // Tubes
-  TUBE_SQUARE = 'TUBE_SQUARE',
-  TUBE_RECTANGULAR = 'TUBE_RECTANGULAR', 
-  TUBE_CIRCULAR = 'TUBE_CIRCULAR',
-  
-  // Aliases for backward compatibility
-  TUBE_RECT = 'TUBE_RECT',
-  TUBE_ROUND = 'TUBE_ROUND',
-  
+
+  // Cornières (Angles)
+  L = 'L',                    // Cornière à ailes égales
+  LA = 'LA',                  // Cornière à ailes inégales (L Angle)
+
+  // Tubes creux (Hollow Sections) - Norme internationale
+  RHS = 'RHS',                // Rectangular Hollow Section (tube rectangulaire)
+  SHS = 'SHS',                // Square Hollow Section (tube carré)
+  CHS = 'CHS',                // Circular Hollow Section (tube circulaire)
+
   // Plats et barres
-  FLAT = 'FLAT',
-  ROUND_BAR = 'ROUND_BAR',
-  SQUARE_BAR = 'SQUARE_BAR',
-  
-  // Profilés fermés
-  RHS = 'RHS', // Rectangular Hollow Section
-  SHS = 'SHS', // Square Hollow Section
-  CHS = 'CHS', // Circular Hollow Section
-  
+  FLAT = 'FLAT',              // Plat
+  ROUND_BAR = 'ROUND_BAR',    // Barre ronde
+  SQUARE_BAR = 'SQUARE_BAR',  // Barre carrée
+
   // Profilés en T
-  T_PROFILE = 'T_PROFILE',
-  TEE = 'TEE',
-  
+  T = 'T',                    // Profilé en T
+
   // Profilés formés à froid
-  Z_PROFILE = 'Z_PROFILE',
-  C_PROFILE = 'C_PROFILE', 
-  SIGMA_PROFILE = 'SIGMA_PROFILE',
-  OMEGA_PROFILE = 'OMEGA_PROFILE',
-  
+  Z = 'Z',                    // Profilé en Z
+  C = 'C',                    // Profilé en C
+  SIGMA = 'SIGMA',            // Profilé Sigma
+  OMEGA = 'OMEGA',            // Profilé Omega
+
   // Profilés américains AISC
-  W_SHAPE = 'W_SHAPE',
-  S_SHAPE = 'S_SHAPE', 
-  HP_SHAPE = 'HP_SHAPE',
-  
+  W = 'W',                    // W-Shape (Wide Flange)
+  S = 'S',                    // S-Shape (I-Beam)
+  HP = 'HP',                  // HP-Shape (H-Pile)
+
   // Types additionnels pour TopSteelCAD
-  PLATE = 'PLATE',        // Plaques et tôles
-  FASTENER = 'FASTENER',  // Éléments de fixation (boulons, écrous, etc.)
-  WELD = 'WELD'           // Soudures
+  PLATE = 'PLATE',            // Plaques et tôles
+  FASTENER = 'FASTENER',      // Éléments de fixation (boulons, écrous, etc.)
+  WELD = 'WELD',              // Soudures
+
+  // Profils personnalisés
+  CUSTOM = 'CUSTOM'           // Profils personnalisés créés par l'utilisateur
 }
 
 // Dimensions des profilés

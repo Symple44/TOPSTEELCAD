@@ -12,8 +12,8 @@ export class LProfileGenerator extends BaseProfileGenerator {
   
   constructor() {
     super([
-      ProfileType.L_EQUAL,
-      ProfileType.L_UNEQUAL
+      ProfileType.L,
+      ProfileType.LA
     ]);
   }
 

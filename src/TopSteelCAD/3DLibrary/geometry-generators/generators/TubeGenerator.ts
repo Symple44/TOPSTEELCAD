@@ -13,11 +13,9 @@ export class TubeGenerator extends BaseProfileGenerator {
   
   constructor() {
     super([
-      ProfileType.TUBE_RECTANGULAR,
-      ProfileType.TUBE_SQUARE,
-      ProfileType.TUBE_CIRCULAR,
-      ProfileType.TUBE_RECT, // Alias for TUBE_RECTANGULAR
-      ProfileType.TUBE_ROUND // Alias for TUBE_CIRCULAR
+      ProfileType.RHS,
+      ProfileType.SHS,
+      ProfileType.CHS
     ]);
   }
 
@@ -48,15 +46,13 @@ export class TubeGenerator extends BaseProfileGenerator {
     let geometry: BufferGeometry;
     
     switch (profileType) {
-      case ProfileType.TUBE_CIRCULAR:
-      case ProfileType.TUBE_ROUND: // Alias
+      case ProfileType.CHS:
         console.log('🔄 TubeGenerator: Generating circular tube');
         geometry = this.generateCircularTube(dimensions, length);
         break;
-        
-      case ProfileType.TUBE_RECTANGULAR:
-      case ProfileType.TUBE_SQUARE:
-      case ProfileType.TUBE_RECT: // Alias
+
+      case ProfileType.RHS:
+      case ProfileType.SHS:
         console.log('🔄 TubeGenerator: Generating rectangular tube');
         geometry = this.generateRectangularTube(dimensions, length);
         break;
@@ -82,14 +78,14 @@ export class TubeGenerator extends BaseProfileGenerator {
    */
   private determineProfileType(dimensions: ProfileDimensions): ProfileType {
     if (dimensions.diameter || dimensions.outerDiameter) {
-      return ProfileType.TUBE_CIRCULAR;
+      return ProfileType.CHS;
     }
     
     if (dimensions.height === dimensions.width) {
-      return ProfileType.TUBE_SQUARE;
+      return ProfileType.SHS;
     }
     
-    return ProfileType.TUBE_RECTANGULAR;
+    return ProfileType.RHS;
   }
 
   /**

@@ -164,8 +164,8 @@ export class ProfileDatabase {
     try {
       const { L_EQUAL_PROFILES } = await import('../data/profiles/l-equal-profiles');
       const { L_UNEQUAL_PROFILES } = await import('../data/profiles/l-unequal-profiles');
-      this.profiles.set(ProfileType.L_EQUAL, L_EQUAL_PROFILES);
-      this.profiles.set(ProfileType.L_UNEQUAL, L_UNEQUAL_PROFILES);
+      this.profiles.set(ProfileType.L, L_EQUAL_PROFILES);
+      this.profiles.set(ProfileType.LA, L_UNEQUAL_PROFILES);
     } catch (error) {
       console.warn('⚠️ Impossible de charger les cornières:', error);
     }
@@ -180,9 +180,9 @@ export class ProfileDatabase {
       const { TUBE_RECTANGULAR_PROFILES } = await import('../data/profiles/tube-rectangular-profiles');
       const { TUBE_CIRCULAR_PROFILES } = await import('../data/profiles/tube-circular-profiles');
       
-      this.profiles.set(ProfileType.TUBE_SQUARE, TUBE_SQUARE_PROFILES);
-      this.profiles.set(ProfileType.TUBE_RECTANGULAR, TUBE_RECTANGULAR_PROFILES);
-      this.profiles.set(ProfileType.TUBE_CIRCULAR, TUBE_CIRCULAR_PROFILES);
+      this.profiles.set(ProfileType.SHS, TUBE_SQUARE_PROFILES);
+      this.profiles.set(ProfileType.RHS, TUBE_RECTANGULAR_PROFILES);
+      this.profiles.set(ProfileType.CHS, TUBE_CIRCULAR_PROFILES);
     } catch (error) {
       console.warn('⚠️ Impossible de charger les tubes:', error);
     }
@@ -195,8 +195,7 @@ export class ProfileDatabase {
     try {
       // Profilés en T et TEE
       const { T_PROFILES } = await import('../data/profiles/t-profiles');
-      this.profiles.set(ProfileType.T_PROFILE, T_PROFILES);
-      this.profiles.set(ProfileType.TEE, T_PROFILES); // Les deux types pointent vers les mêmes données
+      this.profiles.set(ProfileType.T, T_PROFILES);
       
       // Barres et profils plats
       const { FLAT_PROFILES } = await import('../data/profiles/flat-profiles');
@@ -213,19 +212,19 @@ export class ProfileDatabase {
       const { SIGMA_PROFILES } = await import('../data/profiles/sigma-profiles');
       const { OMEGA_PROFILES } = await import('../data/profiles/omega-profiles');
       
-      this.profiles.set(ProfileType.Z_PROFILE, Z_PROFILES);
-      this.profiles.set(ProfileType.C_PROFILE, C_PROFILES);
-      this.profiles.set(ProfileType.SIGMA_PROFILE, SIGMA_PROFILES);
-      this.profiles.set(ProfileType.OMEGA_PROFILE, OMEGA_PROFILES);
+      this.profiles.set(ProfileType.Z, Z_PROFILES);
+      this.profiles.set(ProfileType.C, C_PROFILES);
+      this.profiles.set(ProfileType.SIGMA, SIGMA_PROFILES);
+      this.profiles.set(ProfileType.OMEGA, OMEGA_PROFILES);
       
       // Profilés AISC américains
       const { W_PROFILES } = await import('../data/profiles/w-profiles');
       const { S_PROFILES } = await import('../data/profiles/s-profiles');
       const { HP_PROFILES } = await import('../data/profiles/hp-profiles');
       
-      this.profiles.set(ProfileType.W_SHAPE, W_PROFILES);
-      this.profiles.set(ProfileType.S_SHAPE, S_PROFILES);
-      this.profiles.set(ProfileType.HP_SHAPE, HP_PROFILES);
+      this.profiles.set(ProfileType.W, W_PROFILES);
+      this.profiles.set(ProfileType.S, S_PROFILES);
+      this.profiles.set(ProfileType.HP, HP_PROFILES);
       
     } catch (error) {
       console.warn('⚠️ Impossible de charger les nouveaux profils:', error);

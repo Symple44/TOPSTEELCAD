@@ -11,8 +11,7 @@ export class TProfileGenerator extends BaseProfileGenerator {
   
   constructor() {
     super([
-      ProfileType.T_PROFILE,
-      ProfileType.TEE
+      ProfileType.T
     ]);
   }
 

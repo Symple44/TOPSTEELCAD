@@ -19,7 +19,7 @@ export enum ProfileType {
   U_PROFILE = 'U_PROFILE',       // Profils U (UPN, C-channels)
   TUBE_RECT = 'TUBE_RECT',       // Tubes rectangulaires (HSS, RHS, SHS)
   TUBE_ROUND = 'TUBE_ROUND',     // Tubes ronds (CHS)
-  T_PROFILE = 'T_PROFILE',       // Profils T
+  T = 'T',                       // Profils T
   PLATE = 'PLATE',               // Platines/tôles
   UNKNOWN = 'UNKNOWN'
 }
@@ -84,7 +84,7 @@ export class DSTVFaceMapper {
     ])],
     
     // Profils T
-    [ProfileType.T_PROFILE, new Map([
+    [ProfileType.T, new Map([
       ['v', ProfileFace.WEB],           // Âme verticale
       ['o', ProfileFace.TOP_FLANGE],    // Aile horizontale
       ['u', ProfileFace.BOTTOM],        // Face inférieure
@@ -134,8 +134,8 @@ export class DSTVFaceMapper {
       description: 'U-profiles use v (web), o (top flange), u (bottom flange)'
     }],
     
-    [ProfileType.T_PROFILE, {
-      profileType: ProfileType.T_PROFILE,
+    [ProfileType.T, {
+      profileType: ProfileType.T,
       validFaces: ['v', 'o'],
       description: 'T-profiles use v (vertical web) and o (horizontal flange)'
     }],
@@ -267,7 +267,7 @@ export class DSTVFaceMapper {
         return ProfileType.U_PROFILE;
       }
       if (upperType === 'T') {
-        return ProfileType.T_PROFILE;
+        return ProfileType.T;
       }
       if (upperType.includes('PLATE') || upperType.includes('FLAT')) {
         return ProfileType.PLATE;
@@ -331,7 +331,7 @@ export class DSTVFaceMapper {
     
     // Profils T
     if (upper.includes('T') && !upper.includes('PLATE')) {
-      return ProfileType.T_PROFILE;
+      return ProfileType.T;
     }
     
     // Platines

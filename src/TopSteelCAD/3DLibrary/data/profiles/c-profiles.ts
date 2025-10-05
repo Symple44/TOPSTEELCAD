@@ -9,7 +9,7 @@ export const C_PROFILES: SteelProfile[] = [
   // Série C100
   {
     id: 'C100x50x2',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 100x50x2',
     dimensions: {
       height: 100,
@@ -38,7 +38,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C100x50x2.5',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 100x50x2.5',
     dimensions: {
       height: 100,
@@ -67,7 +67,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C100x50x3',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 100x50x3',
     dimensions: {
       height: 100,
@@ -98,7 +98,7 @@ export const C_PROFILES: SteelProfile[] = [
   // Série C120
   {
     id: 'C120x55x2',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 120x55x2',
     dimensions: {
       height: 120,
@@ -127,7 +127,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C120x55x2.5',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 120x55x2.5',
     dimensions: {
       height: 120,
@@ -156,7 +156,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C120x55x3',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 120x55x3',
     dimensions: {
       height: 120,
@@ -187,7 +187,7 @@ export const C_PROFILES: SteelProfile[] = [
   // Série C140
   {
     id: 'C140x60x2.5',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 140x60x2.5',
     dimensions: {
       height: 140,
@@ -216,7 +216,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C140x60x3',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 140x60x3',
     dimensions: {
       height: 140,
@@ -245,7 +245,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C140x60x4',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 140x60x4',
     dimensions: {
       height: 140,
@@ -276,7 +276,7 @@ export const C_PROFILES: SteelProfile[] = [
   // Série C160
   {
     id: 'C160x65x3',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 160x65x3',
     dimensions: {
       height: 160,
@@ -305,7 +305,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C160x65x4',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 160x65x4',
     dimensions: {
       height: 160,
@@ -336,7 +336,7 @@ export const C_PROFILES: SteelProfile[] = [
   // Série C180
   {
     id: 'C180x70x3',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 180x70x3',
     dimensions: {
       height: 180,
@@ -365,7 +365,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C180x70x4',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 180x70x4',
     dimensions: {
       height: 180,
@@ -396,7 +396,7 @@ export const C_PROFILES: SteelProfile[] = [
   // Série C200
   {
     id: 'C200x75x3',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 200x75x3',
     dimensions: {
       height: 200,
@@ -425,7 +425,7 @@ export const C_PROFILES: SteelProfile[] = [
   },
   {
     id: 'C200x75x4',
-    type: ProfileType.C_PROFILE,
+    type: ProfileType.C,
     designation: 'C 200x75x4',
     dimensions: {
       height: 200,

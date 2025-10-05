@@ -250,7 +250,7 @@ const templates: PartTemplate[] = [
     baseDefinition: {
       type: PartType.PROFILE,
       profileDefinition: {
-        type: ProfileType.TUBE_CIRCULAR,
+        type: ProfileType.CHS,
         designation: 'CHS 219.1x8',
         dimensions: { diameter: 219.1, thickness: 8, length: 3000 } as any,
         length: 3000

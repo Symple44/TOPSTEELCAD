@@ -7,6 +7,119 @@ import {
   MaterialProperties,
   MetalDimensions
 } from '../../../types/viewer';
+import { transformHoleCoordinates } from '../utils/coordinateTransform';
+import { ProfileTypeService } from '../services/ProfileTypeService';
+
+/**
+ * Parse le profileSubType pour extraire les dimensions
+ * Exemples : "40x20x2" (RHS), "40x40x2" (SHS), "40x2" (CHS), "200" (IPE), "20x3" (FLAT)
+ */
+function parseDimensionsFromProfileSubType(profileType: string, profileSubType: string): {
+  width?: number;
+  height?: number;
+  diameter?: number;
+  thickness?: number;
+} {
+  const normalizedType = ProfileTypeService.normalize(profileType).toUpperCase();
+
+  // Enlever les espaces et convertir en minuscules pour parser
+  const subType = profileSubType.trim().toLowerCase();
+
+  // Format: "WxHxT" (RHS rectangulaire) ou "SxSxT" (SHS carré)
+  if (['RHS', 'SHS'].includes(normalizedType)) {
+    const match = subType.match(/^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/);
+    if (match) {
+      return {
+        width: parseFloat(match[1]),
+        height: parseFloat(match[2]),
+        thickness: parseFloat(match[3])
+      };
+    }
+  }
+
+  // Format: "DxT" (CHS tube rond)
+  if (normalizedType === 'CHS') {
+    const match = subType.match(/^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/);
+    if (match) {
+      return {
+        diameter: parseFloat(match[1]),
+        thickness: parseFloat(match[2])
+      };
+    }
+  }
+
+  // Format: "WxHxT" pour cornières (L, LA)
+  if (['L', 'LA'].includes(normalizedType)) {
+    const match = subType.match(/^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/);
+    if (match) {
+      return {
+        width: parseFloat(match[1]),
+        height: parseFloat(match[2]),
+        thickness: parseFloat(match[3])
+      };
+    }
+  }
+
+  // Format: "WxHxT" pour profilés T
+  if (normalizedType === 'T') {
+    const match = subType.match(/^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/);
+    if (match) {
+      return {
+        width: parseFloat(match[1]),
+        height: parseFloat(match[2]),
+        thickness: parseFloat(match[3])
+      };
+    }
+  }
+
+  // Format: "WxT" pour plats (FLAT)
+  if (normalizedType === 'FLAT') {
+    const match = subType.match(/^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/);
+    if (match) {
+      return {
+        width: parseFloat(match[1]),
+        thickness: parseFloat(match[2]),
+        height: parseFloat(match[2]) // Pour les plats, height = thickness
+      };
+    }
+  }
+
+  // Format: "D" pour barres rondes (ROUND_BAR)
+  if (normalizedType === 'ROUND_BAR') {
+    const match = subType.match(/^(\d+(?:\.\d+)?)$/);
+    if (match) {
+      const diameter = parseFloat(match[1]);
+      return {
+        diameter: diameter,
+        width: diameter,
+        height: diameter
+      };
+    }
+  }
+
+  // Format: "S" pour barres carrées (SQUARE_BAR)
+  if (normalizedType === 'SQUARE_BAR') {
+    const match = subType.match(/^(\d+(?:\.\d+)?)$/);
+    if (match) {
+      const size = parseFloat(match[1]);
+      return {
+        width: size,
+        height: size
+      };
+    }
+  }
+
+  // Format: juste un nombre (ex: "200" pour IPE200, HEA200, UPN200, C200, Z200, etc.)
+  const singleNumber = subType.match(/^(\d+(?:\.\d+)?)$/);
+  if (singleNumber) {
+    const value = parseFloat(singleNumber[1]);
+    return {
+      height: value
+    };
+  }
+
+  return {};
+}
 
 /**
  * Convertit un PartElement du Part Builder vers un PivotElement du viewer 3D
@@ -14,15 +127,34 @@ import {
  */
 export function convertPartElementToPivotElement(partElement: PartElement): PivotElement {
   // Conversion des dimensions avec valeurs par défaut
+  // Gérer les cas spéciaux pour les tubes circulaires qui ont outerDiameter au lieu de width/height
+  const dims = partElement.dimensions as any;
+
+  // Si partElement.dimensions est undefined ou vide, parser le profileSubType
+  const parsedDims = (!dims || Object.keys(dims).length === 0)
+    ? parseDimensionsFromProfileSubType(partElement.profileType, partElement.profileSubType)
+    : {};
+
+  // Extraction des dimensions avec priorité sur les valeurs parsées
+  const diameter = dims?.outerDiameter || dims?.diameter || parsedDims.diameter;
+  const thickness = dims?.thickness || dims?.webThickness || parsedDims.thickness || 10;
+
+  // Pour width et height, utiliser les valeurs parsées en priorité
+  // Ne fallback sur diameter que si on n'a pas de width/height parsé
+  const width = dims?.width || parsedDims.width || diameter || 100;
+  const height = dims?.height || parsedDims.height || diameter || 100;
+
   const dimensions: MetalDimensions = {
     length: partElement.length,
-    width: partElement.dimensions?.width || 100,
-    height: partElement.dimensions?.height || 100,
-    thickness: partElement.dimensions?.webThickness || 10,
-    flangeThickness: partElement.dimensions?.flangeThickness || 15,
-    webThickness: partElement.dimensions?.webThickness || 10,
-    flangeWidth: partElement.dimensions?.width || 100,
-    webHeight: partElement.dimensions?.height || 100
+    width: width,
+    height: height,
+    thickness: thickness,
+    flangeThickness: dims?.flangeThickness || thickness, // Utiliser thickness parsé au lieu de 15
+    webThickness: dims?.webThickness || thickness,
+    flangeWidth: width,
+    webHeight: height,
+    // Ne mettre diameter que s'il est réellement défini (pour tubes circulaires)
+    diameter: diameter || undefined
   };
 
   // Conversion des propriétés matériau
@@ -37,11 +169,20 @@ export function convertPartElementToPivotElement(partElement: PartElement): Pivo
   };
 
   // Détermination du MaterialType basé sur le ProfileType
-  const materialType = getMaterialTypeFromProfile(partElement.profileType);
+  // Utilisation du ProfileTypeService centralisé
+  const materialType = ProfileTypeService.toMaterialType(partElement.profileType);
+
+  console.log('🔄 Converting PartElement to PivotElement:', {
+    profileType: partElement.profileType,
+    profileSubType: partElement.profileSubType,
+    materialType: materialType,
+    dimensions: dimensions
+  });
 
   // Conversion des trous en features sélectionnables
+  // CORRIGÉ : Passe maintenant l'élément pour la transformation des coordonnées
   const holeFeatures: SelectableFeature[] = partElement.holes.map(hole =>
-    convertHoleToSelectableFeature(hole, partElement.id)
+    convertHoleToSelectableFeature(hole, partElement.id, partElement)
   );
 
   // Construction de l'objet PivotElement
@@ -79,7 +220,8 @@ export function convertPartElementToPivotElement(partElement: PartElement): Pivo
       originalElement: partElement,
 
       // Features dans metadata pour FeatureApplicator
-      features: partElement.holes.map(hole => convertHoleToFeatureData(hole)),
+      // CORRIGÉ : Passe maintenant l'élément pour la transformation
+      features: partElement.holes.map(hole => convertHoleToFeatureData(hole, partElement)),
 
       // Informations supplémentaires
       quantity: partElement.quantity,
@@ -113,121 +255,117 @@ export function convertPartElementToPivotElement(partElement: PartElement): Pivo
   return pivotElement;
 }
 
-/**
- * Détermine le MaterialType basé sur le ProfileType
- */
-function getMaterialTypeFromProfile(profileType: string): MaterialType {
-  const profileTypeUpper = profileType.toUpperCase();
-
-  switch (profileTypeUpper) {
-    case 'IPE':
-    case 'HEA':
-    case 'HEB':
-    case 'HEM':
-      return MaterialType.BEAM;
-
-    case 'UPN':
-    case 'UAP':
-    case 'UPE':
-      return MaterialType.CHANNEL;
-
-    case 'L_EQUAL':
-    case 'L_UNEQUAL':
-    case 'CORNIERE':
-    case 'L':
-      return MaterialType.ANGLE;
-
-    case 'TEE':
-    case 'T':
-    case 'T_PROFILE':
-      return MaterialType.TEE;
-
-    case 'TUBE_ROUND':
-    case 'TUBE_CIRCULAR':
-    case 'CHS':
-      return MaterialType.TUBE;
-
-    case 'TUBE_SQUARE':
-    case 'TUBE_RECTANGULAR':
-    case 'TUBE_RECT':
-    case 'RHS':
-    case 'SHS':
-      return MaterialType.TUBE;
-
-    case 'PLATE':
-    case 'FLAT':
-    case 'TOLE':
-      return MaterialType.PLATE;
-
-    case 'ROUND_BAR':
-    case 'SQUARE_BAR':
-    case 'ROND':
-    case 'CARRE':
-      return MaterialType.BAR;
-
-    default:
-      return MaterialType.BEAM; // Type par défaut
-  }
-}
+// Note: La fonction getMaterialTypeFromProfile() a été supprimée.
+// Elle est maintenant remplacée par ProfileTypeService.toMaterialType()
+// qui centralise toute la logique de conversion dans un seul service.
 
 /**
  * Convertit un trou DSTV en SelectableFeature
+ * CORRIGÉ : Utilise maintenant la transformation des coordonnées selon la face
  */
-function convertHoleToSelectableFeature(hole: HoleDSTV, elementId: string): SelectableFeature {
-  return {
+function convertHoleToSelectableFeature(hole: HoleDSTV, elementId: string, element: PartElement): SelectableFeature {
+  // Transformation des coordonnées 2D (face) vers 3D (globales)
+  const globalCoords = transformHoleCoordinates(hole, element);
+
+  const radius = hole.diameter / 2;
+
+  // Créer le feature avec toutes les propriétés nécessaires
+  const feature: any = {
     id: hole.id,
     type: FeatureType.HOLE,
     elementId: elementId,
     position: [
-      hole.coordinates.x,
-      hole.coordinates.y,
-      hole.coordinates.z || 0
+      globalCoords.x,
+      globalCoords.y,
+      globalCoords.z
     ],
     boundingBox: {
       min: [
-        hole.coordinates.x - hole.diameter / 2,
-        hole.coordinates.y - hole.diameter / 2,
-        (hole.coordinates.z || 0) - hole.diameter / 2
+        globalCoords.x - radius,
+        globalCoords.y - radius,
+        globalCoords.z - radius
       ],
       max: [
-        hole.coordinates.x + hole.diameter / 2,
-        hole.coordinates.y + hole.diameter / 2,
-        (hole.coordinates.z || 0) + hole.diameter / 2
+        globalCoords.x + radius,
+        globalCoords.y + radius,
+        globalCoords.z + radius
       ]
     },
     selectable: true,
     visible: true,
     highlighted: false,
+
+    // Propriétés du trou
+    diameter: hole.diameter,
+    depth: hole.isThrough ? 0 : (hole.depth || 20),
+    isThrough: hole.isThrough,
+    face: hole.coordinates.face,
+    label: hole.label,
+    holeType: 'round',
+
+    // Coordonnées DSTV pour le renderer
+    originalDSTVCoords: [hole.coordinates.x, hole.coordinates.y, 0],
+    originalPosition: [hole.coordinates.x, hole.coordinates.y, 0],
+
     metadata: {
       diameter: hole.diameter,
       depth: hole.isThrough ? 0 : (hole.depth || 20),
       isThrough: hole.isThrough,
       face: hole.coordinates.face,
       label: hole.label,
-      holeType: 'round'
+      holeType: 'round',
+      // Conserver les coordonnées DSTV originales pour référence
+      dstvCoordinates: {
+        x: hole.coordinates.x,
+        y: hole.coordinates.y,
+        face: hole.coordinates.face
+      },
+      // Pour compatibilité avec FeatureOutlineRenderer
+      originalDSTVCoords: [hole.coordinates.x, hole.coordinates.y, 0]
     }
   };
+
+  return feature as SelectableFeature;
 }
 
 /**
  * Convertit un trou DSTV en données de feature pour FeatureApplicator
+ * CORRIGÉ : Utilise maintenant la transformation des coordonnées
  */
-function convertHoleToFeatureData(hole: HoleDSTV) {
+function convertHoleToFeatureData(hole: HoleDSTV, element: PartElement) {
+  // Transformation des coordonnées 2D (face) vers 3D (globales)
+  const globalCoords = transformHoleCoordinates(hole, element);
+
   return {
     id: hole.id,
     type: 'hole' as const,
     position: [
-      hole.coordinates.x,
-      hole.coordinates.y,
-      hole.coordinates.z || 0
+      globalCoords.x,
+      globalCoords.y,
+      globalCoords.z
     ],
     face: hole.coordinates.face,
+
+    // Propriétés du trou (à la racine pour le processor)
+    diameter: hole.diameter,
+    depth: hole.isThrough ? 0 : (hole.depth || 20),
+    isThrough: hole.isThrough,
+    label: hole.label,
+    holeType: 'round',
+
+    // Coordonnées DSTV originales pour le renderer
+    originalDSTVCoords: [hole.coordinates.x, hole.coordinates.y, 0],
+    originalPosition: [hole.coordinates.x, hole.coordinates.y, 0],
+
     parameters: {
       diameter: hole.diameter,
       depth: hole.isThrough ? 0 : (hole.depth || 20),
       holeType: 'round',
       isThrough: hole.isThrough,
-      label: hole.label
+      label: hole.label,
+      // Coordonnées DSTV originales
+      dstvX: hole.coordinates.x,
+      dstvY: hole.coordinates.y
     }
   };
 }

@@ -5,7 +5,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-21.3x2.0',
     designation: 'TC 21.3x2.0',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 21.3,
       thickness: 2.0,
@@ -28,7 +28,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-26.9x2.0',
     designation: 'TC 26.9x2.0',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 26.9,
       thickness: 2.0,
@@ -51,7 +51,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-33.7x2.6',
     designation: 'TC 33.7x2.6',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 33.7,
       thickness: 2.6,
@@ -74,7 +74,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-42.4x2.6',
     designation: 'TC 42.4x2.6',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 42.4,
       thickness: 2.6,
@@ -97,7 +97,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-48.3x2.9',
     designation: 'TC 48.3x2.9',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 48.3,
       thickness: 2.9,
@@ -120,7 +120,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-60.3x2.9',
     designation: 'TC 60.3x2.9',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 60.3,
       thickness: 2.9,
@@ -143,7 +143,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-76.1x2.9',
     designation: 'TC 76.1x2.9',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 76.1,
       thickness: 2.9,
@@ -166,7 +166,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-88.9x3.2',
     designation: 'TC 88.9x3.2',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 88.9,
       thickness: 3.2,
@@ -189,7 +189,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-101.6x3.6',
     designation: 'TC 101.6x3.6',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 101.6,
       thickness: 3.6,
@@ -212,7 +212,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-114.3x3.6',
     designation: 'TC 114.3x3.6',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 114.3,
       thickness: 3.6,
@@ -235,7 +235,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-139.7x4.0',
     designation: 'TC 139.7x4.0',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 139.7,
       thickness: 4.0,
@@ -258,7 +258,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-168.3x4.5',
     designation: 'TC 168.3x4.5',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 168.3,
       thickness: 4.5,
@@ -281,7 +281,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-193.7x5.0',
     designation: 'TC 193.7x5.0',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 193.7,
       thickness: 5.0,
@@ -304,7 +304,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-219.1x5.9',
     designation: 'TC 219.1x5.9',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 219.1,
       thickness: 5.9,
@@ -327,7 +327,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-273.0x6.3',
     designation: 'TC 273.0x6.3',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 273.0,
       thickness: 6.3,
@@ -350,7 +350,7 @@ export const TUBE_CIRCULAR_PROFILES: SteelProfile[] = [
   {
     id: 'TC-323.9x7.1',
     designation: 'TC 323.9x7.1',
-    type: ProfileType.TUBE_CIRCULAR,
+    type: ProfileType.CHS,
     dimensions: {
       outerDiameter: 323.9,
       thickness: 7.1,

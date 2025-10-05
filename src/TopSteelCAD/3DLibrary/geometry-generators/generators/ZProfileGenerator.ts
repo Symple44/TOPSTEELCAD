@@ -11,7 +11,7 @@ export class ZProfileGenerator extends BaseProfileGenerator {
   
   constructor() {
     super([
-      ProfileType.Z_PROFILE
+      ProfileType.Z
     ]);
   }
 

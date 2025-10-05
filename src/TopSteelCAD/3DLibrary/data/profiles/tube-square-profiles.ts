@@ -5,7 +5,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-20x20x2',
     designation: 'TS 20x20x2',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 20,
       width: 20,
@@ -30,7 +30,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-25x25x2',
     designation: 'TS 25x25x2',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 25,
       width: 25,
@@ -55,7 +55,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-30x30x2.5',
     designation: 'TS 30x30x2.5',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 30,
       width: 30,
@@ -80,7 +80,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-40x40x3',
     designation: 'TS 40x40x3',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 40,
       width: 40,
@@ -105,7 +105,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-50x50x3',
     designation: 'TS 50x50x3',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 50,
       width: 50,
@@ -130,7 +130,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-60x60x4',
     designation: 'TS 60x60x4',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 60,
       width: 60,
@@ -155,7 +155,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-70x70x4',
     designation: 'TS 70x70x4',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 70,
       width: 70,
@@ -180,7 +180,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-80x80x5',
     designation: 'TS 80x80x5',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 80,
       width: 80,
@@ -205,7 +205,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-90x90x5',
     designation: 'TS 90x90x5',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 90,
       width: 90,
@@ -230,7 +230,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-100x100x6',
     designation: 'TS 100x100x6',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 100,
       width: 100,
@@ -255,7 +255,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-120x120x6',
     designation: 'TS 120x120x6',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 120,
       width: 120,
@@ -280,7 +280,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-140x140x8',
     designation: 'TS 140x140x8',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 140,
       width: 140,
@@ -305,7 +305,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-150x150x8',
     designation: 'TS 150x150x8',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 150,
       width: 150,
@@ -330,7 +330,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-160x160x10',
     designation: 'TS 160x160x10',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 160,
       width: 160,
@@ -355,7 +355,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-180x180x10',
     designation: 'TS 180x180x10',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 180,
       width: 180,
@@ -380,7 +380,7 @@ export const TUBE_SQUARE_PROFILES: SteelProfile[] = [
   {
     id: 'TS-200x200x12',
     designation: 'TS 200x200x12',
-    type: ProfileType.TUBE_SQUARE,
+    type: ProfileType.SHS,
     dimensions: {
       height: 200,
       width: 200,

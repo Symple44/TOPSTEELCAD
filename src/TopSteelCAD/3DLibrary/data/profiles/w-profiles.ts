@@ -9,7 +9,7 @@ export const W_PROFILES: SteelProfile[] = [
   // Série W4
   {
     id: 'W4x13',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 4x13',
     dimensions: {
       height: 106,
@@ -42,7 +42,7 @@ export const W_PROFILES: SteelProfile[] = [
   // Série W6
   {
     id: 'W6x15',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 6x15',
     dimensions: {
       height: 152,
@@ -73,7 +73,7 @@ export const W_PROFILES: SteelProfile[] = [
   },
   {
     id: 'W6x20',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 6x20',
     dimensions: {
       height: 157,
@@ -106,7 +106,7 @@ export const W_PROFILES: SteelProfile[] = [
   // Série W8
   {
     id: 'W8x18',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 8x18',
     dimensions: {
       height: 203,
@@ -137,7 +137,7 @@ export const W_PROFILES: SteelProfile[] = [
   },
   {
     id: 'W8x31',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 8x31',
     dimensions: {
       height: 203,
@@ -170,7 +170,7 @@ export const W_PROFILES: SteelProfile[] = [
   // Série W10
   {
     id: 'W10x22',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 10x22',
     dimensions: {
       height: 254,
@@ -201,7 +201,7 @@ export const W_PROFILES: SteelProfile[] = [
   },
   {
     id: 'W10x49',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 10x49',
     dimensions: {
       height: 254,
@@ -234,7 +234,7 @@ export const W_PROFILES: SteelProfile[] = [
   // Série W12
   {
     id: 'W12x26',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 12x26',
     dimensions: {
       height: 305,
@@ -265,7 +265,7 @@ export const W_PROFILES: SteelProfile[] = [
   },
   {
     id: 'W12x65',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 12x65',
     dimensions: {
       height: 305,
@@ -298,7 +298,7 @@ export const W_PROFILES: SteelProfile[] = [
   // Série W14
   {
     id: 'W14x30',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 14x30',
     dimensions: {
       height: 356,
@@ -329,7 +329,7 @@ export const W_PROFILES: SteelProfile[] = [
   },
   {
     id: 'W14x82',
-    type: ProfileType.W_SHAPE,
+    type: ProfileType.W,
     designation: 'W 14x82',
     dimensions: {
       height: 356,

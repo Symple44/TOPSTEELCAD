@@ -9,7 +9,7 @@ export const Z_PROFILES: SteelProfile[] = [
   // Série Z100
   {
     id: 'Z100x50x15x2',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 100x50x15x2',
     dimensions: {
       height: 100,
@@ -39,7 +39,7 @@ export const Z_PROFILES: SteelProfile[] = [
   },
   {
     id: 'Z100x50x15x2.5',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 100x50x15x2.5',
     dimensions: {
       height: 100,
@@ -71,7 +71,7 @@ export const Z_PROFILES: SteelProfile[] = [
   // Série Z120
   {
     id: 'Z120x55x15x2',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 120x55x15x2',
     dimensions: {
       height: 120,
@@ -101,7 +101,7 @@ export const Z_PROFILES: SteelProfile[] = [
   },
   {
     id: 'Z120x55x15x2.5',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 120x55x15x2.5',
     dimensions: {
       height: 120,
@@ -133,7 +133,7 @@ export const Z_PROFILES: SteelProfile[] = [
   // Série Z140
   {
     id: 'Z140x60x15x2.5',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 140x60x15x2.5',
     dimensions: {
       height: 140,
@@ -163,7 +163,7 @@ export const Z_PROFILES: SteelProfile[] = [
   },
   {
     id: 'Z140x60x15x3',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 140x60x15x3',
     dimensions: {
       height: 140,
@@ -195,7 +195,7 @@ export const Z_PROFILES: SteelProfile[] = [
   // Série Z160
   {
     id: 'Z160x65x20x2.5',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 160x65x20x2.5',
     dimensions: {
       height: 160,
@@ -225,7 +225,7 @@ export const Z_PROFILES: SteelProfile[] = [
   },
   {
     id: 'Z160x65x20x3',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 160x65x20x3',
     dimensions: {
       height: 160,
@@ -257,7 +257,7 @@ export const Z_PROFILES: SteelProfile[] = [
   // Série Z180
   {
     id: 'Z180x70x20x3',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 180x70x20x3',
     dimensions: {
       height: 180,
@@ -287,7 +287,7 @@ export const Z_PROFILES: SteelProfile[] = [
   },
   {
     id: 'Z180x70x20x4',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 180x70x20x4',
     dimensions: {
       height: 180,
@@ -319,7 +319,7 @@ export const Z_PROFILES: SteelProfile[] = [
   // Série Z200
   {
     id: 'Z200x75x20x3',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 200x75x20x3',
     dimensions: {
       height: 200,
@@ -349,7 +349,7 @@ export const Z_PROFILES: SteelProfile[] = [
   },
   {
     id: 'Z200x75x20x4',
-    type: ProfileType.Z_PROFILE,
+    type: ProfileType.Z,
     designation: 'Z 200x75x20x4',
     dimensions: {
       height: 200,

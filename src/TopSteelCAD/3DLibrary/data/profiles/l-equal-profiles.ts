@@ -8,7 +8,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 20 x 20 x 3
   {
     id: 'L20X20X3',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 20×20×3',
     dimensions: {
       height: 20,
@@ -46,7 +46,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 25 x 25 x 3
   {
     id: 'L25X25X3',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 25×25×3',
     dimensions: {
       height: 25,
@@ -84,7 +84,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 25 x 25 x 4
   {
     id: 'L25X25X4',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 25×25×4',
     dimensions: {
       height: 25,
@@ -122,7 +122,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 30 x 30 x 3
   {
     id: 'L30X30X3',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 30×30×3',
     dimensions: {
       height: 30,
@@ -160,7 +160,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 30 x 30 x 4
   {
     id: 'L30X30X4',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 30×30×4',
     dimensions: {
       height: 30,
@@ -198,7 +198,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 35 x 35 x 4
   {
     id: 'L35X35X4',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 35×35×4',
     dimensions: {
       height: 35,
@@ -236,7 +236,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 40 x 40 x 4
   {
     id: 'L40X40X4',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 40×40×4',
     dimensions: {
       height: 40,
@@ -274,7 +274,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 40 x 40 x 5
   {
     id: 'L40X40X5',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 40×40×5',
     dimensions: {
       height: 40,
@@ -312,7 +312,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 45 x 45 x 4.5
   {
     id: 'L45X45X4_5',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 45×45×4.5',
     dimensions: {
       height: 45,
@@ -350,7 +350,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 50 x 50 x 5
   {
     id: 'L50X50X5',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 50×50×5',
     dimensions: {
       height: 50,
@@ -388,7 +388,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 50 x 50 x 6
   {
     id: 'L50X50X6',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 50×50×6',
     dimensions: {
       height: 50,
@@ -426,7 +426,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 60 x 60 x 5
   {
     id: 'L60X60X5',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 60×60×5',
     dimensions: {
       height: 60,
@@ -464,7 +464,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 60 x 60 x 6
   {
     id: 'L60X60X6',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 60×60×6',
     dimensions: {
       height: 60,
@@ -502,7 +502,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 60 x 60 x 8
   {
     id: 'L60X60X8',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 60×60×8',
     dimensions: {
       height: 60,
@@ -540,7 +540,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 70 x 70 x 6
   {
     id: 'L70X70X6',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 70×70×6',
     dimensions: {
       height: 70,
@@ -578,7 +578,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 70 x 70 x 7
   {
     id: 'L70X70X7',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 70×70×7',
     dimensions: {
       height: 70,
@@ -616,7 +616,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 80 x 80 x 6
   {
     id: 'L80X80X6',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 80×80×6',
     dimensions: {
       height: 80,
@@ -654,7 +654,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 80 x 80 x 8
   {
     id: 'L80X80X8',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 80×80×8',
     dimensions: {
       height: 80,
@@ -692,7 +692,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 80 x 80 x 10
   {
     id: 'L80X80X10',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 80×80×10',
     dimensions: {
       height: 80,
@@ -730,7 +730,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 90 x 90 x 7
   {
     id: 'L90X90X7',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 90×90×7',
     dimensions: {
       height: 90,
@@ -768,7 +768,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 90 x 90 x 8
   {
     id: 'L90X90X8',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 90×90×8',
     dimensions: {
       height: 90,
@@ -806,7 +806,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 90 x 90 x 9
   {
     id: 'L90X90X9',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 90×90×9',
     dimensions: {
       height: 90,
@@ -844,7 +844,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 90 x 90 x 10
   {
     id: 'L90X90X10',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 90×90×10',
     dimensions: {
       height: 90,
@@ -882,7 +882,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 100 x 8
   {
     id: 'L100X100X8',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 100×100×8',
     dimensions: {
       height: 100,
@@ -920,7 +920,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 100 x 10
   {
     id: 'L100X100X10',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 100×100×10',
     dimensions: {
       height: 100,
@@ -958,7 +958,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 100 x 100 x 12
   {
     id: 'L100X100X12',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 100×100×12',
     dimensions: {
       height: 100,
@@ -996,7 +996,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 120 x 120 x 8
   {
     id: 'L120X120X8',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 120×120×8',
     dimensions: {
       height: 120,
@@ -1034,7 +1034,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 120 x 120 x 10
   {
     id: 'L120X120X10',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 120×120×10',
     dimensions: {
       height: 120,
@@ -1072,7 +1072,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 120 x 120 x 12
   {
     id: 'L120X120X12',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 120×120×12',
     dimensions: {
       height: 120,
@@ -1110,7 +1110,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 130 x 130 x 12
   {
     id: 'L130X130X12',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 130×130×12',
     dimensions: {
       height: 130,
@@ -1148,7 +1148,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 150 x 10
   {
     id: 'L150X150X10',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 150×150×10',
     dimensions: {
       height: 150,
@@ -1186,7 +1186,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 150 x 12
   {
     id: 'L150X150X12',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 150×150×12',
     dimensions: {
       height: 150,
@@ -1224,7 +1224,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 150 x 150 x 15
   {
     id: 'L150X150X15',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 150×150×15',
     dimensions: {
       height: 150,
@@ -1262,7 +1262,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 200 x 200 x 16
   {
     id: 'L200X200X16',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 200×200×16',
     dimensions: {
       height: 200,
@@ -1300,7 +1300,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 200 x 200 x 18
   {
     id: 'L200X200X18',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 200×200×18',
     dimensions: {
       height: 200,
@@ -1338,7 +1338,7 @@ export const L_EQUAL_PROFILES: SteelProfile[] = [
   // L 200 x 200 x 20
   {
     id: 'L200X200X20',
-    type: ProfileType.L_EQUAL,
+    type: ProfileType.L,
     designation: 'L 200×200×20',
     dimensions: {
       height: 200,

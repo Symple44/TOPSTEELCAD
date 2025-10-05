@@ -9,7 +9,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   // Série Omega 80
   {
     id: 'OMEGA80x40x1.5',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 80x40x1.5',
     dimensions: {
       height: 80,
@@ -39,7 +39,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'OMEGA80x40x2',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 80x40x2',
     dimensions: {
       height: 80,
@@ -71,7 +71,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   // Série Omega 100
   {
     id: 'OMEGA100x50x1.5',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 100x50x1.5',
     dimensions: {
       height: 100,
@@ -101,7 +101,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'OMEGA100x50x2',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 100x50x2',
     dimensions: {
       height: 100,
@@ -133,7 +133,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   // Série Omega 120
   {
     id: 'OMEGA120x60x2',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 120x60x2',
     dimensions: {
       height: 120,
@@ -163,7 +163,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'OMEGA120x60x2.5',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 120x60x2.5',
     dimensions: {
       height: 120,
@@ -195,7 +195,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   // Série Omega 140
   {
     id: 'OMEGA140x70x2.5',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 140x70x2.5',
     dimensions: {
       height: 140,
@@ -225,7 +225,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'OMEGA140x70x3',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 140x70x3',
     dimensions: {
       height: 140,
@@ -257,7 +257,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   // Série Omega 160
   {
     id: 'OMEGA160x80x3',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 160x80x3',
     dimensions: {
       height: 160,
@@ -287,7 +287,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'OMEGA160x80x4',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 160x80x4',
     dimensions: {
       height: 160,
@@ -319,7 +319,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   // Série Omega 200
   {
     id: 'OMEGA200x100x3',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 200x100x3',
     dimensions: {
       height: 200,
@@ -349,7 +349,7 @@ export const OMEGA_PROFILES: SteelProfile[] = [
   },
   {
     id: 'OMEGA200x100x4',
-    type: ProfileType.OMEGA_PROFILE,
+    type: ProfileType.OMEGA,
     designation: 'Ω 200x100x4',
     dimensions: {
       height: 200,

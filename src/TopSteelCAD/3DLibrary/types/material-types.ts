@@ -37,26 +37,21 @@ export enum ProfileType {
   UPE = 'UPE',
   
   // Cornières
-  L_EQUAL = 'L_EQUAL',
-  L_UNEQUAL = 'L_UNEQUAL',
-  
+  L = 'L',
+  LA = 'LA',
+
   // Tubes
-  TUBE_SQUARE = 'TUBE_SQUARE',
-  TUBE_RECTANGULAR = 'TUBE_RECTANGULAR', 
-  TUBE_CIRCULAR = 'TUBE_CIRCULAR',
-  
+  SHS = 'SHS',
+  RHS = 'RHS',
+  CHS = 'CHS',
+
   // Plats et barres
   FLAT = 'FLAT',
   ROUND_BAR = 'ROUND_BAR',
   SQUARE_BAR = 'SQUARE_BAR',
-  
-  // Profilés fermés
-  RHS = 'RHS',
-  SHS = 'SHS', 
-  CHS = 'CHS',
-  
+
   // Profilé T
-  TEE = 'TEE'
+  T = 'T'
 }
 
 // Types de plaques et tôles

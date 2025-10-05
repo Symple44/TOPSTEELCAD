@@ -156,7 +156,7 @@ export class ProfileValidator {
         if (!dims.flangeThickness) errors.push('Épaisseur de semelle requise pour profilé en U');
         break;
 
-      case ProfileType.L_EQUAL:
+      case ProfileType.L:
         if (!dims.width && !dims.leg1Length) {
           errors.push('Dimension des ailes requise pour cornière à ailes égales');
         }
@@ -166,7 +166,7 @@ export class ProfileValidator {
         }
         break;
 
-      case ProfileType.L_UNEQUAL:
+      case ProfileType.LA:
         if (!dims.leg1Length) errors.push('Longueur première aile requise pour cornière');
         if (!dims.leg2Length) errors.push('Longueur deuxième aile requise pour cornière');
         if (!dims.thickness) errors.push('Épaisseur requise pour cornière');
@@ -175,7 +175,7 @@ export class ProfileValidator {
         }
         break;
 
-      case ProfileType.TUBE_CIRCULAR:
+      case ProfileType.CHS:
       case ProfileType.CHS:
         if (!dims.diameter) errors.push('Diamètre requis pour tube circulaire');
         if (!dims.wallThickness && !dims.thickness) {
@@ -183,7 +183,7 @@ export class ProfileValidator {
         }
         break;
 
-      case ProfileType.TUBE_SQUARE:
+      case ProfileType.SHS:
       case ProfileType.SHS:
         if (!dims.width && !dims.height) {
           errors.push('Dimension requise pour tube carré');
@@ -196,7 +196,7 @@ export class ProfileValidator {
         }
         break;
 
-      case ProfileType.TUBE_RECTANGULAR:
+      case ProfileType.RHS:
       case ProfileType.RHS:
         if (!dims.width) errors.push('Largeur requise pour tube rectangulaire');
         if (!dims.height) errors.push('Hauteur requise pour tube rectangulaire');
@@ -344,7 +344,7 @@ export class ProfileValidator {
       const match = normalized.match(/L\s*(\d+)x(\d+)/);
       if (match) {
         const [, dim1, dim2] = match;
-        return dim1 === dim2 ? ProfileType.L_EQUAL : ProfileType.L_UNEQUAL;
+        return dim1 === dim2 ? ProfileType.L : ProfileType.LA;
       }
     }
     if (normalized.startsWith('RHS')) return ProfileType.RHS;

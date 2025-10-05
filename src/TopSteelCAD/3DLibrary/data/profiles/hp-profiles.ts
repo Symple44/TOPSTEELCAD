@@ -9,7 +9,7 @@ export const HP_PROFILES: SteelProfile[] = [
   // Série HP8
   {
     id: 'HP8x36',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 8x36',
     dimensions: {
       height: 203,
@@ -42,7 +42,7 @@ export const HP_PROFILES: SteelProfile[] = [
   // Série HP10
   {
     id: 'HP10x42',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 10x42',
     dimensions: {
       height: 254,
@@ -73,7 +73,7 @@ export const HP_PROFILES: SteelProfile[] = [
   },
   {
     id: 'HP10x57',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 10x57',
     dimensions: {
       height: 254,
@@ -106,7 +106,7 @@ export const HP_PROFILES: SteelProfile[] = [
   // Série HP12
   {
     id: 'HP12x53',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 12x53',
     dimensions: {
       height: 305,
@@ -137,7 +137,7 @@ export const HP_PROFILES: SteelProfile[] = [
   },
   {
     id: 'HP12x63',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 12x63',
     dimensions: {
       height: 305,
@@ -168,7 +168,7 @@ export const HP_PROFILES: SteelProfile[] = [
   },
   {
     id: 'HP12x74',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 12x74',
     dimensions: {
       height: 305,
@@ -201,7 +201,7 @@ export const HP_PROFILES: SteelProfile[] = [
   // Série HP14
   {
     id: 'HP14x73',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 14x73',
     dimensions: {
       height: 356,
@@ -232,7 +232,7 @@ export const HP_PROFILES: SteelProfile[] = [
   },
   {
     id: 'HP14x89',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 14x89',
     dimensions: {
       height: 356,
@@ -263,7 +263,7 @@ export const HP_PROFILES: SteelProfile[] = [
   },
   {
     id: 'HP14x102',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 14x102',
     dimensions: {
       height: 356,
@@ -296,7 +296,7 @@ export const HP_PROFILES: SteelProfile[] = [
   // Série HP16
   {
     id: 'HP16x88',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 16x88',
     dimensions: {
       height: 406,
@@ -327,7 +327,7 @@ export const HP_PROFILES: SteelProfile[] = [
   },
   {
     id: 'HP16x101',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 16x101',
     dimensions: {
       height: 406,
@@ -358,7 +358,7 @@ export const HP_PROFILES: SteelProfile[] = [
   },
   {
     id: 'HP16x141',
-    type: ProfileType.HP_SHAPE,
+    type: ProfileType.HP,
     designation: 'HP 16x141',
     dimensions: {
       height: 406,

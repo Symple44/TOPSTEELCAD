@@ -9,7 +9,7 @@ export const T_PROFILES: SteelProfile[] = [
   // Série T 20-40
   {
     id: 'T20x20x3',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 20x20x3',
     dimensions: {
       height: 20,
@@ -36,7 +36,7 @@ export const T_PROFILES: SteelProfile[] = [
   },
   {
     id: 'T25x25x3',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 25x25x3',
     dimensions: {
       height: 25,
@@ -63,7 +63,7 @@ export const T_PROFILES: SteelProfile[] = [
   },
   {
     id: 'T30x30x4',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 30x30x4',
     dimensions: {
       height: 30,
@@ -90,7 +90,7 @@ export const T_PROFILES: SteelProfile[] = [
   },
   {
     id: 'T40x40x4',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 40x40x4',
     dimensions: {
       height: 40,
@@ -119,7 +119,7 @@ export const T_PROFILES: SteelProfile[] = [
   // Série T 50-100
   {
     id: 'T50x50x5',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 50x50x5',
     dimensions: {
       height: 50,
@@ -146,7 +146,7 @@ export const T_PROFILES: SteelProfile[] = [
   },
   {
     id: 'T60x60x6',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 60x60x6',
     dimensions: {
       height: 60,
@@ -173,7 +173,7 @@ export const T_PROFILES: SteelProfile[] = [
   },
   {
     id: 'T70x70x7',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 70x70x7',
     dimensions: {
       height: 70,
@@ -200,7 +200,7 @@ export const T_PROFILES: SteelProfile[] = [
   },
   {
     id: 'T80x80x8',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 80x80x8',
     dimensions: {
       height: 80,
@@ -227,7 +227,7 @@ export const T_PROFILES: SteelProfile[] = [
   },
   {
     id: 'T100x100x10',
-    type: ProfileType.TEE,
+    type: ProfileType.T,
     designation: 'T 100x100x10',
     dimensions: {
       height: 100,

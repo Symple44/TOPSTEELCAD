@@ -24,6 +24,8 @@ import { UProfileGenerator } from '../../3DLibrary/geometry-generators/generator
 import { LProfileGenerator } from '../../3DLibrary/geometry-generators/generators/LProfileGenerator';
 import { TubeGenerator } from '../../3DLibrary/geometry-generators/generators/TubeGenerator';
 import { PlateGenerator } from '../../3DLibrary/geometry-generators/generators/PlateGenerator';
+import { ProfileType } from '../../3DLibrary/types/profile.types';
+import { ProfileTypeService } from '../../part-builder/services/ProfileTypeService';
 
 export interface Viewer3DProps {
   // Profil
@@ -96,33 +98,38 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
     ): Promise<THREE.Mesh> {
       let geometry: THREE.BufferGeometry;
 
+      // Normaliser le type de profil pour supporter les anciens et nouveaux noms
+      const normalizedType = ProfileTypeService.normalize(type);
+
       // Sélectionner le bon générateur
-      switch (type) {
-        case 'IPE':
-        case 'HEA':
-        case 'HEB':
-        case 'HEM': {
+      switch (normalizedType) {
+        case ProfileType.IPE:
+        case ProfileType.HEA:
+        case ProfileType.HEB:
+        case ProfileType.HEM: {
           const generator = new IProfileGenerator();
           geometry = generator.generate(dims as any, dims.length);
           break;
         }
 
-        case 'UPN':
-        case 'UAP': {
+        case ProfileType.UPN:
+        case ProfileType.UAP:
+        case ProfileType.UPE: {
           const generator = new UProfileGenerator();
           geometry = generator.generate(dims as any, dims.length);
           break;
         }
 
-        case 'L': {
+        case ProfileType.L:
+        case ProfileType.LA: {
           const generator = new LProfileGenerator();
           geometry = generator.generate(dims as any, dims.length);
           break;
         }
 
-        case 'TUBES_RECT':
-        case 'TUBES_CARRE':
-        case 'TUBES_ROND': {
+        case ProfileType.RHS:
+        case ProfileType.SHS:
+        case ProfileType.CHS: {
           const generator = new TubeGenerator();
           geometry = generator.generate(dims as any, dims.length);
           break;

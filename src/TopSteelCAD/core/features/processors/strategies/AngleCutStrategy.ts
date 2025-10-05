@@ -416,22 +416,25 @@ export class AngleCutStrategy extends ExteriorCutStrategy {
     
     // Détection basée sur le type d'élément
     if (elementType === 'TUBE_RECT' || elementType === 'TUBE_ROUND') {
-      return elementType === 'TUBE_ROUND' ? ProfileType.TUBE_ROUND : ProfileType.TUBE_RECT;
+      return elementType === 'TUBE_ROUND' ? ProfileType.CHS : ProfileType.RHS;
     }
-    
+
     // Détection basée sur le nom du profil
     const upperName = profileName.toUpperCase();
-    if (upperName.includes('HSS') || upperName.includes('RHS') || upperName.includes('SHS')) {
-      return ProfileType.TUBE_RECT;
+    if (upperName.includes('RHS')) {
+      return ProfileType.RHS;
+    }
+    if (upperName.includes('SHS')) {
+      return ProfileType.SHS;
     }
     if (upperName.includes('CHS') || upperName.includes('PIPE')) {
-      return ProfileType.TUBE_ROUND;
+      return ProfileType.CHS;
     }
     if (upperName.includes('IPE') || upperName.includes('HE') || upperName.includes('UB') || upperName.includes('UC')) {
       return ProfileType.IPE;
     }
     if (upperName.includes('L') || upperName.includes('ANGLE')) {
-      return ProfileType.L_EQUAL;
+      return ProfileType.L;
     }
     if (upperName.includes('UPN') || upperName.includes('CHANNEL')) {
       return ProfileType.UPN;

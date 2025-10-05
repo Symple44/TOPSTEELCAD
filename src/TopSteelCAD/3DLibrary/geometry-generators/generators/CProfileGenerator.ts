@@ -11,7 +11,7 @@ export class CProfileGenerator extends BaseProfileGenerator {
   
   constructor() {
     super([
-      ProfileType.C_PROFILE
+      ProfileType.C
     ]);
   }
 

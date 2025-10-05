@@ -280,7 +280,7 @@ export async function advancedSearchExamples() {
   
   // 4. Profils pour contreventement
   console.log('\n4. Profils pour contreventement (cornières):');
-  const angles = await profileDb.getProfilesByType(ProfileType.L_EQUAL);
+  const angles = await profileDb.getProfilesByType(ProfileType.L);
   const bracingAngles = angles
     .filter(p => (p.dimensions.height || 0) <= 100 && p.weight <= 15)
     .slice(0, 5);

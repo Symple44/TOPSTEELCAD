@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PartElement, HoleDSTV, DetailModalProps } from '../types/partBuilder.types';
-import { HoleAddingInterface } from './HoleAddingInterface';
+import { HoleAddingSimple } from './HoleAddingSimple';
+import { ProfileDatabase } from '../../3DLibrary/database/ProfileDatabase';
+import { ProfileType, SteelProfile } from '../../3DLibrary/types/profile.types';
+import { ProfileTypeService } from '../services/ProfileTypeService';
 
 export const PartDetailModal: React.FC<DetailModalProps> = ({
   element,
@@ -13,6 +16,95 @@ export const PartDetailModal: React.FC<DetailModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'holes'>('holes');
   const [editedElement, setEditedElement] = useState<PartElement>(element);
+  const [availableProfiles, setAvailableProfiles] = useState<SteelProfile[]>([]);
+  const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
+
+  const profileDB = ProfileDatabase.getInstance();
+
+  // Fonction pour sauvegarder le dernier profil utilisé
+  const saveLastUsedProfile = (profileType: string, profileSubType: string) => {
+    const profileDesignation = ProfileTypeService.buildDesignation(profileType, profileSubType);
+    localStorage.setItem('lastUsedProfile', JSON.stringify({
+      profileType,
+      profileSubType,
+      profileDesignation
+    }));
+  };
+
+  // Synchroniser l'élément édité avec l'élément reçu en props
+  React.useEffect(() => {
+    setEditedElement(element);
+  }, [element]);
+
+  // Charger les profils disponibles quand le type de profil change
+  useEffect(() => {
+    const loadProfiles = async () => {
+      if (!editedElement.profileType) return;
+
+      setIsLoadingProfiles(true);
+      try {
+        // Normaliser le type de profil pour les anciens noms (TUBES_* → TUBE_*)
+        const normalizedType = ProfileTypeService.normalize(editedElement.profileType);
+        console.log('🔍 Loading profiles for type:', {
+          original: editedElement.profileType,
+          normalized: normalizedType
+        });
+
+        const profiles = await profileDB.getProfilesByType(normalizedType);
+        console.log('✅ Loaded profiles:', profiles.length);
+        setAvailableProfiles(profiles);
+      } catch (error) {
+        console.error('Erreur lors du chargement des profils:', error);
+        setAvailableProfiles([]);
+      } finally {
+        setIsLoadingProfiles(false);
+      }
+    };
+
+    loadProfiles();
+  }, [editedElement.profileType]);
+
+  // Gérer le changement de type de profil
+  const handleProfileTypeChange = async (newType: string) => {
+    setEditedElement({
+      ...editedElement,
+      profileType: newType as ProfileType,
+      profileSubType: '',
+      dimensions: undefined
+    });
+  };
+
+  // Gérer la sélection d'un profil spécifique
+  const handleProfileSelect = async (designation: string) => {
+    const profile = await profileDB.getProfile(designation);
+    if (profile) {
+      console.log('📦 Selected profile:', {
+        designation,
+        dimensions: profile.dimensions
+      });
+
+      // Extraire le sous-type de la désignation en utilisant le ProfileTypeService
+      // Cela gère correctement tous les préfixes (TR, TC, IPE, etc.)
+      const subType = ProfileTypeService.extractSubType(designation, editedElement.profileType);
+
+      // Sauvegarder le dernier profil utilisé
+      saveLastUsedProfile(editedElement.profileType, subType);
+
+      setEditedElement({
+        ...editedElement,
+        profileSubType: subType,
+        dimensions: {
+          height: profile.dimensions.height,
+          width: profile.dimensions.width,
+          webThickness: profile.dimensions.webThickness || profile.dimensions.thickness || 10,
+          flangeThickness: profile.dimensions.flangeThickness || 15,
+          thickness: profile.dimensions.thickness,
+          outerDiameter: profile.dimensions.outerDiameter || profile.dimensions.diameter
+        } as any,
+        weight: profile.weight ? profile.weight * (editedElement.length / 1000) : undefined
+      });
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -145,36 +237,50 @@ export const PartDetailModal: React.FC<DetailModalProps> = ({
   };
 
   const handleAddHoles = (holes: HoleDSTV[]) => {
+    console.log('🔧 PartDetailModal: Adding holes', holes);
+    console.log('📝 Current element holes:', editedElement.holes);
+    console.log('📍 Element details:', {
+      id: editedElement.id,
+      length: editedElement.length,
+      profileType: editedElement.profileType,
+      dimensions: editedElement.dimensions
+    });
+
     if (onAddHole) {
       onAddHole(holes);
     }
-    // Mettre à jour l'élément local
-    setEditedElement({
-      ...editedElement,
-      holes: [...editedElement.holes, ...holes]
-    });
+
+    // Mettre à jour l'élément local pour l'UI réactive
+    setEditedElement(prev => ({
+      ...prev,
+      holes: [...prev.holes, ...holes]
+    }));
   };
 
   const handleEditHole = (id: string, hole: HoleDSTV) => {
+    console.log('✏️ PartDetailModal: Editing hole', id, hole);
+
     if (onEditHole) {
       onEditHole(id, hole);
     }
     // Mettre à jour l'élément local
-    setEditedElement({
-      ...editedElement,
-      holes: editedElement.holes.map(h => h.id === id ? hole : h)
-    });
+    setEditedElement(prev => ({
+      ...prev,
+      holes: prev.holes.map(h => h.id === id ? hole : h)
+    }));
   };
 
   const handleDeleteHole = (id: string) => {
+    console.log('🗑️ PartDetailModal: Deleting hole', id);
+
     if (onDeleteHole) {
       onDeleteHole(id);
     }
     // Mettre à jour l'élément local
-    setEditedElement({
-      ...editedElement,
-      holes: editedElement.holes.filter(h => h.id !== id)
-    });
+    setEditedElement(prev => ({
+      ...prev,
+      holes: prev.holes.filter(h => h.id !== id)
+    }));
   };
 
   return (
@@ -289,12 +395,70 @@ export const PartDetailModal: React.FC<DetailModalProps> = ({
                 <div style={formGridStyle}>
                   <div style={inputGroupStyle}>
                     <label style={labelStyle}>Type de profil</label>
-                    <input
-                      type="text"
-                      value={`${editedElement.profileType} ${editedElement.profileSubType}`}
-                      disabled
-                      style={{ ...inputStyle, backgroundColor: '#ecf0f1' }}
-                    />
+                    <select
+                      value={editedElement.profileType}
+                      onChange={(e) => handleProfileTypeChange(e.target.value)}
+                      style={inputStyle}
+                    >
+                      <option value="">Sélectionner un type...</option>
+                      <optgroup label="Profilés en I">
+                        <option value={ProfileType.IPE}>IPE - Poutrelles européennes</option>
+                        <option value={ProfileType.HEA}>HEA - Poutrelles H légères</option>
+                        <option value={ProfileType.HEB}>HEB - Poutrelles H moyennes</option>
+                        <option value={ProfileType.HEM}>HEM - Poutrelles H lourdes</option>
+                      </optgroup>
+                      <optgroup label="Profilés en U">
+                        <option value={ProfileType.UPN}>UPN - Profilés U normaux</option>
+                        <option value={ProfileType.UAP}>UAP - Profilés U à ailes parallèles</option>
+                        <option value={ProfileType.UPE}>UPE - Profilés U européens</option>
+                      </optgroup>
+                      <optgroup label="Cornières">
+                        <option value={ProfileType.L}>L - Cornières à ailes égales</option>
+                        <option value={ProfileType.LA}>LA - Cornières à ailes inégales</option>
+                      </optgroup>
+                      <optgroup label="Tubes et profilés creux">
+                        <option value={ProfileType.SHS}>SHS - Tube carré</option>
+                        <option value={ProfileType.RHS}>RHS - Tube rectangulaire</option>
+                        <option value={ProfileType.CHS}>CHS - Tube rond</option>
+                      </optgroup>
+                      <optgroup label="Plats et barres">
+                        <option value={ProfileType.FLAT}>Plat</option>
+                        <option value={ProfileType.ROUND_BAR}>Barre ronde</option>
+                        <option value={ProfileType.SQUARE_BAR}>Barre carrée</option>
+                      </optgroup>
+                      <optgroup label="Profilés en T">
+                        <option value={ProfileType.T}>T - Profilés en T</option>
+                      </optgroup>
+                      <optgroup label="Profilés formés à froid">
+                        <option value={ProfileType.Z}>Z - Profilés en Z</option>
+                        <option value={ProfileType.C}>C - Profilés en C</option>
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div style={inputGroupStyle}>
+                    <label style={labelStyle}>Profil spécifique</label>
+                    <select
+                      value={editedElement.profileType && editedElement.profileSubType
+                        ? `${editedElement.profileType} ${editedElement.profileSubType}`
+                        : ''}
+                      onChange={(e) => handleProfileSelect(e.target.value)}
+                      style={inputStyle}
+                      disabled={!editedElement.profileType || isLoadingProfiles}
+                    >
+                      <option value="">
+                        {isLoadingProfiles
+                          ? 'Chargement...'
+                          : editedElement.profileType
+                            ? 'Sélectionner un profil...'
+                            : 'Sélectionner d\'abord un type'}
+                      </option>
+                      {availableProfiles.map(profile => (
+                        <option key={profile.id} value={profile.designation}>
+                          {profile.designation}
+                          {profile.dimensions.height && ` (h=${profile.dimensions.height}mm)`}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div style={inputGroupStyle}>
                     <label style={labelStyle}>Longueur (mm)</label>
@@ -414,8 +578,8 @@ export const PartDetailModal: React.FC<DetailModalProps> = ({
               </div>
             </>
           ) : (
-            // Interface de configuration des trous
-            <HoleAddingInterface
+            // Interface de configuration des trous - VERSION SIMPLIFIÉE
+            <HoleAddingSimple
               element={editedElement}
               holes={editedElement.holes}
               onAddHole={handleAddHoles}

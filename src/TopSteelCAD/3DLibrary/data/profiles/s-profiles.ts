@@ -9,7 +9,7 @@ export const S_PROFILES: SteelProfile[] = [
   // Série S3
   {
     id: 'S3x5.7',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 3x5.7',
     dimensions: {
       height: 76,
@@ -40,7 +40,7 @@ export const S_PROFILES: SteelProfile[] = [
   },
   {
     id: 'S3x7.5',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 3x7.5',
     dimensions: {
       height: 76,
@@ -73,7 +73,7 @@ export const S_PROFILES: SteelProfile[] = [
   // Série S4
   {
     id: 'S4x7.7',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 4x7.7',
     dimensions: {
       height: 102,
@@ -104,7 +104,7 @@ export const S_PROFILES: SteelProfile[] = [
   },
   {
     id: 'S4x9.5',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 4x9.5',
     dimensions: {
       height: 102,
@@ -137,7 +137,7 @@ export const S_PROFILES: SteelProfile[] = [
   // Série S5
   {
     id: 'S5x10',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 5x10',
     dimensions: {
       height: 127,
@@ -168,7 +168,7 @@ export const S_PROFILES: SteelProfile[] = [
   },
   {
     id: 'S5x14.75',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 5x14.75',
     dimensions: {
       height: 127,
@@ -201,7 +201,7 @@ export const S_PROFILES: SteelProfile[] = [
   // Série S6
   {
     id: 'S6x12.5',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 6x12.5',
     dimensions: {
       height: 152,
@@ -232,7 +232,7 @@ export const S_PROFILES: SteelProfile[] = [
   },
   {
     id: 'S6x17.25',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 6x17.25',
     dimensions: {
       height: 152,
@@ -265,7 +265,7 @@ export const S_PROFILES: SteelProfile[] = [
   // Série S8
   {
     id: 'S8x18.4',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 8x18.4',
     dimensions: {
       height: 203,
@@ -296,7 +296,7 @@ export const S_PROFILES: SteelProfile[] = [
   },
   {
     id: 'S8x23',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 8x23',
     dimensions: {
       height: 203,
@@ -329,7 +329,7 @@ export const S_PROFILES: SteelProfile[] = [
   // Série S10
   {
     id: 'S10x25.4',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 10x25.4',
     dimensions: {
       height: 254,
@@ -360,7 +360,7 @@ export const S_PROFILES: SteelProfile[] = [
   },
   {
     id: 'S10x35',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 10x35',
     dimensions: {
       height: 254,
@@ -393,7 +393,7 @@ export const S_PROFILES: SteelProfile[] = [
   // Série S12
   {
     id: 'S12x31.8',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 12x31.8',
     dimensions: {
       height: 305,
@@ -424,7 +424,7 @@ export const S_PROFILES: SteelProfile[] = [
   },
   {
     id: 'S12x50',
-    type: ProfileType.S_SHAPE,
+    type: ProfileType.S,
     designation: 'S 12x50',
     dimensions: {
       height: 305,
