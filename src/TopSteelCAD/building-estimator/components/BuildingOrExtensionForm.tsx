@@ -7,6 +7,7 @@ import React from 'react';
 import { BuildingType, BuildingExtension, BuildingDimensions, BuildingParameters, ExtensionAttachmentType } from '../types';
 import { ExtensionPositionSelector } from './ExtensionPositionSelector';
 import { CustomSpacingEditor } from './CustomSpacingEditor';
+import { PostHeightEditor } from './PostHeightEditor';
 import {
   formSectionStyle,
   formRowStyle,
@@ -422,6 +423,33 @@ export const BuildingOrExtensionForm: React.FC<BuildingOrExtensionFormProps> = (
             </div>
           </div>
         )}
+
+        {/* Suivre dimensions parent (Extensions attachées) */}
+        {isExtension && extension && (
+          extension.attachmentType === ExtensionAttachmentType.LONG_PAN ||
+          extension.attachmentType === ExtensionAttachmentType.TRAVEE ||
+          extension.attachmentType === ExtensionAttachmentType.PIGNON_GAUCHE ||
+          extension.attachmentType === ExtensionAttachmentType.PIGNON_DROIT
+        ) && (
+          <div style={formRowStyle}>
+            <div style={formGroupStyle}>
+              <label style={labelStyle}>
+                <input
+                  type="checkbox"
+                  checked={extension.followParentDimensions !== false}
+                  onChange={(e) => onExtensionFieldChange?.('followParentDimensions', e.target.checked)}
+                  style={{ marginRight: '8px' }}
+                />
+                Suivre automatiquement les dimensions du parent
+              </label>
+              <small style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginTop: '4px', marginLeft: '26px' }}>
+                {extension.attachmentType === ExtensionAttachmentType.PIGNON_GAUCHE || extension.attachmentType === ExtensionAttachmentType.PIGNON_DROIT
+                  ? "Si activé, l'extension s'adaptera automatiquement aux modifications de largeur du parent"
+                  : "Si activé, l'extension s'adaptera automatiquement aux modifications de longueur/entraxe du parent"}
+              </small>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Sélecteur de position (Extensions uniquement) */}
@@ -532,11 +560,23 @@ export const BuildingOrExtensionForm: React.FC<BuildingOrExtensionFormProps> = (
               min={3000}
               max={8000}
               step={500}
-              disabled={parameters.customSpacingMode}
+              disabled={
+                parameters.customSpacingMode ||
+                (isExtension && extension?.followParentDimensions !== false &&
+                 (extension?.attachmentType === ExtensionAttachmentType.LONG_PAN ||
+                  extension?.attachmentType === ExtensionAttachmentType.TRAVEE))
+              }
             />
             {parameters.customSpacingMode && (
               <small style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '4px', fontWeight: '600' }}>
                 ⚠️ Mode personnalisé actif
+              </small>
+            )}
+            {isExtension && extension?.followParentDimensions !== false &&
+             (extension?.attachmentType === ExtensionAttachmentType.LONG_PAN ||
+              extension?.attachmentType === ExtensionAttachmentType.TRAVEE) && (
+              <small style={{ fontSize: '0.75rem', color: '#3b82f6', marginTop: '4px', fontWeight: '600' }}>
+                ℹ️ Hérité du parent
               </small>
             )}
           </div>
@@ -583,7 +623,19 @@ export const BuildingOrExtensionForm: React.FC<BuildingOrExtensionFormProps> = (
       </div>
 
       {/* Mode personnalisé pour les entraxes */}
-      <CustomSpacingEditor
+      {/* Masquer pour les extensions suivant le parent (LONG_PAN/TRAVEE) */}
+      {!(isExtension && extension?.followParentDimensions !== false &&
+         (extension?.attachmentType === ExtensionAttachmentType.LONG_PAN ||
+          extension?.attachmentType === ExtensionAttachmentType.TRAVEE)) && (
+        <CustomSpacingEditor
+          buildingLength={isMain ? dimensions.length : (parentLength || dimensions.length || 20000)}
+          parameters={parameters}
+          onParametersChange={onParametersChange}
+        />
+      )}
+
+      {/* Ajustement des hauteurs de poteaux (toujours actif) */}
+      <PostHeightEditor
         buildingLength={isMain ? dimensions.length : (parentLength || dimensions.length || 20000)}
         parameters={parameters}
         onParametersChange={onParametersChange}

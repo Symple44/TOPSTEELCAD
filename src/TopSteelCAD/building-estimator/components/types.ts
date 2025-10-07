@@ -112,9 +112,9 @@ export interface Step3FinishesProps {
  * Props pour Step4_Summary
  */
 export interface Step4SummaryProps {
-  building: MonoPenteBuilding;
-  nomenclature: Nomenclature;
-  isGenerating: boolean;
+  building: MonoPenteBuilding | null;
+  nomenclature: Nomenclature | null;
+  isGenerating?: boolean;
   onPrevious: () => void;
   onExport: (format: 'csv' | 'json' | 'ifc') => void;
   onReset: () => void;

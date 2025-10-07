@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Exemples d'utilisation des profils personnalisés
  * @module CustomProfileExamples

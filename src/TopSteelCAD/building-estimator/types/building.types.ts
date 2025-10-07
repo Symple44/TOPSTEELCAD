@@ -67,6 +67,16 @@ export interface BuildingDimensions {
   heightWall: number;      // Hauteur au mur (mm)
   slope: number;           // Pente en % (ex: 10 pour 10%)
   heightRidge?: number;    // Hauteur au faîtage (calculée)
+
+  // Propriétés optionnelles pour les types dérivés
+  leftSlope?: number;         // Pente côté gauche (%)
+  rightSlope?: number;        // Pente côté droit (%)
+  leftWallHeight?: number;    // Hauteur au mur côté gauche (mm)
+  rightWallHeight?: number;   // Hauteur au mur côté droit (mm)
+  ridgeOffset?: number;       // Position du faîtage (% de la largeur)
+  backHeight?: number;        // Hauteur arrière pour auvent (mm)
+  hasBackWall?: boolean;      // Mur arrière fermé (auvent)
+  hasSideWalls?: boolean;     // Murs latéraux fermés (auvent)
 }
 
 /**
@@ -270,6 +280,9 @@ export interface BuildingExtension {
 
   // Options de pente
   reversedSlope?: boolean;                   // Inverser le sens de la pente (bas côté bâtiment ou extérieur)
+
+  // Suivi des dimensions du parent
+  followParentDimensions?: boolean;          // Suivre automatiquement les modifications du parent (default: true)
 
   // Structure générée
   structure?: BuildingStructure;

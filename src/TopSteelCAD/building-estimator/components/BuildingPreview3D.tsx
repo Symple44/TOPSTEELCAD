@@ -5,7 +5,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three-stdlib';
 import { BuildingType, BuildingDimensions, BuildingParameters, BuildingExtension, ExtensionAttachmentType } from '../types';
 import { createProfileMesh } from '../utils/ProfileShapes';
 
@@ -535,17 +535,28 @@ function createBuildingStructure(
 
   // Couverture (faces transparentes)
   if (buildingType === BuildingType.MONO_PENTE) {
-    const roofGeometry = new THREE.BufferGeometry();
-    const roofVertices = new Float32Array([
-      0, frontPostHeight, 0,
-      dimensions.length, frontPostHeight, 0,
-      dimensions.length, backPostHeight, dimensions.width,
-      0, backPostHeight, dimensions.width
-    ]);
-    roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
-    roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
-    roofGeometry.computeVertexNormals();
-    buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+    // Créer des segments de couverture entre chaque portique
+    for (let p = 0; p < portalPositions.length - 1; p++) {
+      const startPortal = portalPositions[p];
+      const endPortal = portalPositions[p + 1];
+
+      const startFrontHeight = frontPostHeight + startPortal.frontYOffset;
+      const startBackHeight = backPostHeight + startPortal.backYOffset;
+      const endFrontHeight = frontPostHeight + endPortal.frontYOffset;
+      const endBackHeight = backPostHeight + endPortal.backYOffset;
+
+      const roofGeometry = new THREE.BufferGeometry();
+      const roofVertices = new Float32Array([
+        startPortal.x, startFrontHeight, 0,
+        endPortal.x, endFrontHeight, 0,
+        endPortal.x, endBackHeight, dimensions.width,
+        startPortal.x, startBackHeight, dimensions.width
+      ]);
+      roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
+      roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+      roofGeometry.computeVertexNormals();
+      buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+    }
 
   } else if (buildingType === BuildingType.BI_PENTE || buildingType === BuildingType.BI_PENTE_ASYM) {
     // Calculer la position du faîtage
@@ -606,30 +617,50 @@ function createBuildingStructure(
     }
 
   } else if (buildingType === BuildingType.AUVENT) {
-    const roofGeometry = new THREE.BufferGeometry();
-    const roofVertices = new Float32Array([
-      0, frontPostHeight, 0,
-      dimensions.length, frontPostHeight, 0,
-      dimensions.length, backPostHeight, dimensions.width,
-      0, backPostHeight, dimensions.width
-    ]);
-    roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
-    roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
-    roofGeometry.computeVertexNormals();
-    buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+    // Créer des segments de couverture entre chaque portique
+    for (let p = 0; p < portalPositions.length - 1; p++) {
+      const startPortal = portalPositions[p];
+      const endPortal = portalPositions[p + 1];
+
+      const startFrontHeight = frontPostHeight + startPortal.frontYOffset;
+      const startBackHeight = backPostHeight + startPortal.backYOffset;
+      const endFrontHeight = frontPostHeight + endPortal.frontYOffset;
+      const endBackHeight = backPostHeight + endPortal.backYOffset;
+
+      const roofGeometry = new THREE.BufferGeometry();
+      const roofVertices = new Float32Array([
+        startPortal.x, startFrontHeight, 0,
+        endPortal.x, endFrontHeight, 0,
+        endPortal.x, endBackHeight, dimensions.width,
+        startPortal.x, startBackHeight, dimensions.width
+      ]);
+      roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
+      roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+      roofGeometry.computeVertexNormals();
+      buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+    }
   } else if (buildingType === BuildingType.PLANCHER) {
-    // Plancher: face plane horizontale
-    const roofGeometry = new THREE.BufferGeometry();
-    const roofVertices = new Float32Array([
-      0, frontPostHeight, 0,
-      dimensions.length, frontPostHeight, 0,
-      dimensions.length, frontPostHeight, dimensions.width,
-      0, frontPostHeight, dimensions.width
-    ]);
-    roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
-    roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
-    roofGeometry.computeVertexNormals();
-    buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+    // Plancher: face plane horizontale - créer des segments entre chaque portique
+    for (let p = 0; p < portalPositions.length - 1; p++) {
+      const startPortal = portalPositions[p];
+      const endPortal = portalPositions[p + 1];
+
+      // Pour un plancher, la hauteur est uniforme mais peut varier avec yOffset
+      const startHeight = frontPostHeight + ((startPortal.frontYOffset + startPortal.backYOffset) / 2);
+      const endHeight = frontPostHeight + ((endPortal.frontYOffset + endPortal.backYOffset) / 2);
+
+      const roofGeometry = new THREE.BufferGeometry();
+      const roofVertices = new Float32Array([
+        startPortal.x, startHeight, 0,
+        endPortal.x, endHeight, 0,
+        endPortal.x, endHeight, dimensions.width,
+        startPortal.x, startHeight, dimensions.width
+      ]);
+      roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
+      roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+      roofGeometry.computeVertexNormals();
+      buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+    }
   }
 
   // Acrotères (si activés)
@@ -1193,7 +1224,9 @@ export const BuildingPreview3D: React.FC<BuildingPreview3DProps> = ({
       // Déterminer position et dimensions selon type d'attachement (RELATIF AU PARENT)
       if (ext.attachmentType === ExtensionAttachmentType.LONG_PAN) {
         // Long-Pan : suit la longueur complète du parent et respecte ses entraxes
-        extDimensions.length = parentInfo.dimensions.length; // Même longueur que le parent
+        // Suivre ou non les dimensions du parent
+        const followParent = ext.followParentDimensions !== false; // true par défaut
+        extDimensions.length = followParent ? parentInfo.dimensions.length : ext.dimensions.length; // Même longueur que le parent (ou fixe)
 
         if (ext.side === 'front') {
           extPosX = parentInfo.position.x;
@@ -1209,8 +1242,14 @@ export const BuildingPreview3D: React.FC<BuildingPreview3DProps> = ({
           extPosZ = parentInfo.position.z;
         }
 
-        // IMPORTANT : Hériter de l'entraxe du parent
-        const extParameters = {
+        // IMPORTANT : Hériter des paramètres du parent si suivi activé
+        const extParameters = followParent && parentInfo.parameters ? {
+          ...ext.parameters,
+          postSpacing: parentInfo.postSpacing,
+          customSpacingMode: parentInfo.parameters.customSpacingMode,
+          customBays: parentInfo.parameters.customBays,
+          customPortals: parentInfo.parameters.customPortals
+        } : {
           ...ext.parameters,
           postSpacing: parentInfo.postSpacing
         };
@@ -1265,7 +1304,9 @@ export const BuildingPreview3D: React.FC<BuildingPreview3DProps> = ({
           xPos = parentInfo.position.x + (ext.bayIndex * parentInfo.postSpacing);
         }
 
-        extDimensions.length = bayLength;
+        // Suivre ou non les dimensions du parent
+        const followParent = ext.followParentDimensions !== false; // true par défaut
+        extDimensions.length = followParent ? bayLength : ext.dimensions.length;
 
         if (ext.side === 'front') {
           extPosX = xPos;
@@ -1305,8 +1346,10 @@ export const BuildingPreview3D: React.FC<BuildingPreview3DProps> = ({
 
       } else if (ext.attachmentType === ExtensionAttachmentType.PIGNON_GAUCHE) {
         // Pignon Gauche : extension perpendiculaire au pignon gauche du parent
+        const followParent = ext.followParentDimensions !== false; // true par défaut
+
         extDimensions.length = ext.dimensions.width; // Profondeur de l'extension (direction X)
-        extDimensions.width = parentInfo.dimensions.width; // Sur toute la largeur du parent (direction Z)
+        extDimensions.width = followParent ? parentInfo.dimensions.width : ext.dimensions.length; // Largeur suivant parent ou fixe
         extPosX = parentInfo.position.x - extDimensions.length; // Extension vers la gauche du parent
         extPosZ = parentInfo.position.z;
 
@@ -1340,8 +1383,10 @@ export const BuildingPreview3D: React.FC<BuildingPreview3DProps> = ({
 
       } else if (ext.attachmentType === ExtensionAttachmentType.PIGNON_DROIT) {
         // Pignon Droit : extension perpendiculaire au pignon droit du parent
+        const followParent = ext.followParentDimensions !== false; // true par défaut
+
         extDimensions.length = ext.dimensions.width; // Profondeur de l'extension (direction X)
-        extDimensions.width = parentInfo.dimensions.width; // Sur toute la largeur du parent (direction Z)
+        extDimensions.width = followParent ? parentInfo.dimensions.width : ext.dimensions.length; // Largeur suivant parent ou fixe
         extPosX = parentInfo.position.x + parentInfo.dimensions.length; // Extension vers la droite du parent
         extPosZ = parentInfo.position.z;
 

@@ -57,7 +57,8 @@ export const ExtensionsManagerTabs: React.FC<ExtensionsManagerTabsProps> = ({
       slope: 10
     },
     parameters: defaultParameters,
-    reversedSlope: false
+    reversedSlope: false,
+    followParentDimensions: true
   });
 
   // Prévisualisation en temps réel de l'extension en cours de création
@@ -82,7 +83,8 @@ export const ExtensionsManagerTabs: React.FC<ExtensionsManagerTabsProps> = ({
       parentId: newExtension.parentId, // ID du parent (undefined = bâtiment principal)
       dimensions: newExtension.dimensions as BuildingDimensions,
       parameters: newExtension.parameters || defaultParameters,
-      reversedSlope: newExtension.reversedSlope || false
+      reversedSlope: newExtension.reversedSlope || false,
+      followParentDimensions: newExtension.followParentDimensions !== false // true par défaut
     };
 
     onAdd(extension);
@@ -103,7 +105,8 @@ export const ExtensionsManagerTabs: React.FC<ExtensionsManagerTabsProps> = ({
         slope: 10
       },
       parameters: defaultParameters,
-      reversedSlope: false
+      reversedSlope: false,
+      followParentDimensions: true
     });
   };
 
@@ -233,6 +236,31 @@ export const ExtensionsManagerTabs: React.FC<ExtensionsManagerTabsProps> = ({
                   />
                   Inverser la pente (bas côté extérieur)
                 </label>
+              </div>
+            </div>
+          )}
+
+          {/* Suivre dimensions parent (Extensions attachées) */}
+          {(extension.attachmentType === ExtensionAttachmentType.LONG_PAN ||
+            extension.attachmentType === ExtensionAttachmentType.TRAVEE ||
+            extension.attachmentType === ExtensionAttachmentType.PIGNON_GAUCHE ||
+            extension.attachmentType === ExtensionAttachmentType.PIGNON_DROIT) && (
+            <div style={formRowStyle}>
+              <div style={formGroupStyle}>
+                <label style={labelStyle}>
+                  <input
+                    type="checkbox"
+                    checked={extension.followParentDimensions !== false}
+                    onChange={(e) => updateField('followParentDimensions', e.target.checked)}
+                    style={{ marginRight: '8px' }}
+                  />
+                  Suivre automatiquement les dimensions du parent
+                </label>
+                <small style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginTop: '4px', marginLeft: '26px' }}>
+                  {extension.attachmentType === ExtensionAttachmentType.PIGNON_GAUCHE || extension.attachmentType === ExtensionAttachmentType.PIGNON_DROIT
+                    ? "Si activé, l'extension s'adaptera automatiquement aux modifications de largeur du parent"
+                    : "Si activé, l'extension s'adaptera automatiquement aux modifications de longueur/entraxe du parent"}
+                </small>
               </div>
             </div>
           )}

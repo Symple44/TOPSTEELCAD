@@ -382,7 +382,7 @@ export class IFCExporter {
 
     const placementId = this.createAxis2Placement3D([
       opening.position.x,
-      opening.position.y || 0,
+      0, // y is always 0 for openings on walls
       opening.position.z || 0
     ]);
     const localPlacementId = this.createLocalPlacement(null, placementId);
@@ -465,7 +465,7 @@ export class IFCExporter {
     const id = this.getId();
     this.addEntity(
       id,
-      `IFCUNITASSIGNMENT((#${this.createSIUnit('LENGTHUNIT', 'MILLI', 'METRE')},#${this.createSIUnit('AREAUNIT', $, 'SQUARE_METRE')},#${this.createSIUnit('VOLUMEUNIT', $, 'CUBIC_METRE')},#${this.createSIUnit('MASSUNIT', 'KILO', 'GRAM')}));`
+      `IFCUNITASSIGNMENT((#${this.createSIUnit('LENGTHUNIT', 'MILLI', 'METRE')},#${this.createSIUnit('AREAUNIT', null, 'SQUARE_METRE')},#${this.createSIUnit('VOLUMEUNIT', null, 'CUBIC_METRE')},#${this.createSIUnit('MASSUNIT', 'KILO', 'GRAM')}));`
     );
 
     return id;

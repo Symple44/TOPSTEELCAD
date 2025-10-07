@@ -26,16 +26,13 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
 }) => {
   const isCustomMode = parameters.customSpacingMode || false;
   const customBays = parameters.customBays || [];
-  const customPortals = parameters.customPortals || [];
 
   // Calculer le nombre de travées avec l'entraxe standard
   const standardBayCount = Math.ceil(buildingLength / parameters.postSpacing);
-  const standardPortalCount = standardBayCount + 1;
 
   // Initialiser le mode personnalisé
   const initializeCustomMode = () => {
     const bays: CustomBay[] = [];
-    const portals: CustomPortal[] = [];
 
     // Créer les travées
     for (let i = 0; i < standardBayCount; i++) {
@@ -45,19 +42,9 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
       });
     }
 
-    // Créer les portiques (nombre de travées + 1)
-    for (let i = 0; i < standardPortalCount; i++) {
-      portals.push({
-        portalIndex: i,
-        frontPostYOffset: 0,
-        backPostYOffset: 0
-      });
-    }
-
     onParametersChange({
       customSpacingMode: true,
-      customBays: bays,
-      customPortals: portals
+      customBays: bays
     });
   };
 
@@ -65,8 +52,7 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
   const disableCustomMode = () => {
     onParametersChange({
       customSpacingMode: false,
-      customBays: [],
-      customPortals: []
+      customBays: []
     });
   };
 
@@ -77,18 +63,6 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
     if (bay) {
       bay.spacing = spacing;
       onParametersChange({ customBays: updatedBays });
-    }
-  };
-
-  // Mettre à jour un portique
-  const updatePortal = (portalIndex: number, field: 'frontPostYOffset' | 'backPostYOffset', value: string) => {
-    const updatedPortals = [...customPortals];
-    const portal = updatedPortals.find(p => p.portalIndex === portalIndex);
-    if (portal) {
-      // Convertir la valeur, permettre "-" seul pendant la saisie
-      const numValue = parseFloat(value);
-      portal[field] = isNaN(numValue) ? 0 : numValue;
-      onParametersChange({ customPortals: updatedPortals });
     }
   };
 
@@ -103,14 +77,8 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
       bayIndex: customBays.length,
       spacing: parameters.postSpacing
     };
-    const newPortal: CustomPortal = {
-      portalIndex: customPortals.length,
-      frontPostYOffset: 0,
-      backPostYOffset: 0
-    };
     onParametersChange({
-      customBays: [...customBays, newBay],
-      customPortals: [...customPortals, newPortal]
+      customBays: [...customBays, newBay]
     });
   };
 
@@ -118,8 +86,7 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
   const removeBay = () => {
     if (customBays.length > 1) {
       onParametersChange({
-        customBays: customBays.slice(0, -1),
-        customPortals: customPortals.slice(0, -1)
+        customBays: customBays.slice(0, -1)
       });
     }
   };
@@ -156,14 +123,12 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
           fontSize: '0.9rem',
           border: '1px dashed #cbd5e1'
         }}>
-          <strong>Mode Standard :</strong> Tous les portiques sont espacés de manière uniforme ({parameters.postSpacing}mm).
+          <strong>Mode Standard :</strong> Toutes les travées ont un entraxe uniforme de {parameters.postSpacing}mm.
           <br />
           <strong>Nombre de travées :</strong> {standardBayCount}
           <br />
-          <strong>Nombre de portiques :</strong> {standardPortalCount} (2 poteaux × {standardPortalCount} = {standardPortalCount * 2} poteaux)
           <br />
-          <br />
-          💡 <em>Activez le mode personnalisé pour ajuster individuellement l'entraxe de chaque travée et la hauteur de départ de chaque poteau.</em>
+          💡 <em>Activez le mode personnalisé pour ajuster individuellement l'entraxe de chaque travée.</em>
         </div>
       )}
 
@@ -187,7 +152,7 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
               </span>
             )}
             <br />
-            <strong>Travées :</strong> {customBays.length} | <strong>Portiques :</strong> {customPortals.length} ({customPortals.length * 2} poteaux)
+            <strong>Travées :</strong> {customBays.length}
           </div>
 
           {/* Section TRAVÉES */}
@@ -258,125 +223,6 @@ export const CustomSpacingEditor: React.FC<CustomSpacingEditorProps> = ({
                     marginTop: '3px'
                   }}>
                     Entraxe (mm)
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Section PORTIQUES */}
-          <div style={{
-            marginBottom: '20px',
-            padding: '16px',
-            background: '#fefefe',
-            border: '2px solid #10b981',
-            borderRadius: '8px'
-          }}>
-            <h4 style={{
-              margin: '0 0 16px 0',
-              fontSize: '1rem',
-              fontWeight: '700',
-              color: '#059669'
-            }}>
-              ⬆️ Portiques (Décalages verticaux des poteaux)
-            </h4>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-              gap: '12px'
-            }}>
-              {customPortals.map((portal, index) => (
-                <div
-                  key={portal.portalIndex}
-                  style={{
-                    padding: '12px',
-                    background: '#ffffff',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '6px'
-                  }}
-                >
-                  <div style={{
-                    fontSize: '0.85rem',
-                    fontWeight: '700',
-                    color: '#10b981',
-                    marginBottom: '10px'
-                  }}>
-                    Portique {index}
-                  </div>
-
-                  {/* Poteau avant */}
-                  <div style={{ marginBottom: '10px' }}>
-                    <label style={{
-                      ...labelStyle,
-                      fontSize: '0.75rem',
-                      marginBottom: '4px',
-                      display: 'block'
-                    }}>
-                      🔵 Poteau Avant
-                    </label>
-                    <input
-                      type="number"
-                      style={{
-                        ...inputStyle,
-                        width: '100%',
-                        padding: '6px 8px',
-                        fontSize: '0.85rem',
-                        boxSizing: 'border-box'
-                      }}
-                      value={portal.frontPostYOffset}
-                      onChange={(e) => updatePortal(portal.portalIndex, 'frontPostYOffset', e.target.value)}
-                      min={-1000}
-                      max={1000}
-                      step={10}
-                      placeholder="0"
-                    />
-                    <div style={{
-                      fontSize: '0.65rem',
-                      color: '#94a3b8',
-                      marginTop: '2px'
-                    }}>
-                      {portal.frontPostYOffset < 0 && '⬇️ En creux'}
-                      {portal.frontPostYOffset > 0 && '⬆️ En relief'}
-                      {portal.frontPostYOffset === 0 && '➡️ Niveau'}
-                    </div>
-                  </div>
-
-                  {/* Poteau arrière */}
-                  <div>
-                    <label style={{
-                      ...labelStyle,
-                      fontSize: '0.75rem',
-                      marginBottom: '4px',
-                      display: 'block'
-                    }}>
-                      🔴 Poteau Arrière
-                    </label>
-                    <input
-                      type="number"
-                      style={{
-                        ...inputStyle,
-                        width: '100%',
-                        padding: '6px 8px',
-                        fontSize: '0.85rem',
-                        boxSizing: 'border-box'
-                      }}
-                      value={portal.backPostYOffset}
-                      onChange={(e) => updatePortal(portal.portalIndex, 'backPostYOffset', e.target.value)}
-                      min={-1000}
-                      max={1000}
-                      step={10}
-                      placeholder="0"
-                    />
-                    <div style={{
-                      fontSize: '0.65rem',
-                      color: '#94a3b8',
-                      marginTop: '2px'
-                    }}>
-                      {portal.backPostYOffset < 0 && '⬇️ En creux'}
-                      {portal.backPostYOffset > 0 && '⬆️ En relief'}
-                      {portal.backPostYOffset === 0 && '➡️ Niveau'}
-                    </div>
                   </div>
                 </div>
               ))}

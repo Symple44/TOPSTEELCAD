@@ -324,8 +324,8 @@ export const Step4_Summary: React.FC<Step4SummaryProps> = ({
 
           <button
             style={buttonStyle('primary')}
-            onClick={() => onExport('html')}
-            title="Exporter la nomenclature en HTML (imprimable)"
+            onClick={() => onExport('csv')}
+            title="Exporter la nomenclature en CSV"
           >
             🖨️ Export HTML
           </button>

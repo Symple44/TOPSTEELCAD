@@ -21,7 +21,7 @@ export type {
   CustomProfile,
   CustomProfileMetadata,
   CustomProfileLibrary,
-  CustomProfileStorage,
+  ICustomProfileStorage,
   CustomProfileExportFormat,
   CustomProfileWithDB,
 

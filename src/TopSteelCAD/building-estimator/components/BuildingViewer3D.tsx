@@ -7,7 +7,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three-stdlib';
 import { MonoPenteBuilding } from '../types';
-import { GeometryService, LevelOfDetail } from '../services/GeometryService';
+import { GeometryService } from '../services/GeometryService';
+
+type LevelOfDetail = 'low' | 'medium' | 'high';
 
 export interface BuildingViewer3DProps {
   /** Bâtiment à afficher */
@@ -143,10 +145,10 @@ export const BuildingViewer3D: React.FC<BuildingViewer3DProps> = ({
         // Générer le bâtiment 3D
         const buildingResult = GeometryService.generateBuilding3D(building, {
           levelOfDetail: currentLOD,
-          generateStructure: showStructure,
-          generateCladding: showCladding,
-          generateRoofing: showRoofing,
-          generateOpenings: showOpenings
+          showStructure: showStructure,
+          showCladding: showCladding,
+          showRoofing: showRoofing,
+          showOpenings: showOpenings
         });
 
         // Ajouter la scène générée

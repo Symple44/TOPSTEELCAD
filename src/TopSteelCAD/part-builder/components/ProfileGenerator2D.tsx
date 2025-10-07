@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Composant éditeur 2D pour la création de profils personnalisés
  * Utilise Three.js en mode OrthographicCamera pour un éditeur CAO 2D

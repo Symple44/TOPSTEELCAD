@@ -45,7 +45,7 @@ export class CladdingGenerator implements IStructureGenerator {
   /**
    * Génère la géométrie 3D du bardage/couverture
    */
-  generate(options?: CladdingGeneratorOptions): GenerationResult {
+  generate(options?: Partial<CladdingGeneratorOptions>): GenerationResult {
     const levelOfDetail = options?.levelOfDetail || 'medium';
 
     let mesh: Mesh | Group;
