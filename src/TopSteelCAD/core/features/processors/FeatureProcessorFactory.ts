@@ -310,5 +310,5 @@ export class FeatureProcessorFactory {
   }
 }
 
-// Export d'une instance par défaut pour faciliter l'utilisation
-export const featureProcessorFactory = FeatureProcessorFactory.getInstance();
+// NOTE: Removed pre-instantiated export to avoid circular dependency errors
+// Users should call FeatureProcessorFactory.getInstance() directly
