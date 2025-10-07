@@ -353,12 +353,12 @@ export class FeatureBatcher {
   private canParallelProcess(batch: FeatureBatch): boolean {
     // Seuls certains types peuvent être traités en parallèle
     // (ceux qui ne modifient pas la géométrie)
-    const parallelizableTypes = [
+    const parallelizableTypes: FeatureType[] = [
       FeatureType.MARKING,
       FeatureType.TEXT,
       FeatureType.WELD
     ];
-    
+
     return parallelizableTypes.includes(batch.type);
   }
   

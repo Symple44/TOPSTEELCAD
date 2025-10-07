@@ -15,86 +15,93 @@ interface PivotElement {
 
 /**
  * Types de features supportées
+ * Utilise un objet const au lieu d'enum pour une meilleure compatibilité avec Vite/esbuild
  */
-export enum FeatureType {
+export const FeatureType = {
   // Trous et perçages
-  HOLE = 'hole',
-  TAPPED_HOLE = 'tapped_hole',
-  COUNTERSINK = 'countersink',
-  COUNTERBORE = 'counterbore',
-  DRILL_PATTERN = 'drill_pattern',
-  THREAD = 'thread',
-  
+  HOLE: 'hole',
+  TAPPED_HOLE: 'tapped_hole',
+  COUNTERSINK: 'countersink',
+  COUNTERBORE: 'counterbore',
+  DRILL_PATTERN: 'drill_pattern',
+  THREAD: 'thread',
+
   // Découpes et contours
-  CUT = 'cut',
-  SLOT = 'slot',
-  CUTOUT = 'cutout',
-  CONTOUR = 'contour',
-  UNRESTRICTED_CONTOUR = 'unrestricted_contour',
-  NOTCH = 'notch',
-  CUT_WITH_NOTCHES = 'cut_with_notches',
-  COPING = 'coping',
-  END_CUT = 'end_cut',
-  
+  CUT: 'cut',
+  SLOT: 'slot',
+  CUTOUT: 'cutout',
+  CONTOUR: 'contour',
+  UNRESTRICTED_CONTOUR: 'unrestricted_contour',
+  NOTCH: 'notch',
+  CUT_WITH_NOTCHES: 'cut_with_notches',
+  COPING: 'coping',
+  END_CUT: 'end_cut',
+
   // Finitions et déformations
-  CHAMFER = 'chamfer',
-  BEVEL = 'bevel',
-  BEND = 'bend',
-  
+  CHAMFER: 'chamfer',
+  BEVEL: 'bevel',
+  BEND: 'bend',
+
   // Profils
-  PROFILE = 'profile',
-  
+  PROFILE: 'profile',
+
   // Marquages et textes
-  MARKING = 'marking',
-  TEXT = 'text',
-  
+  MARKING: 'marking',
+  TEXT: 'text',
+
   // Soudures
-  WELD = 'weld',
-  WELD_PREP = 'weld_preparation',
-  
+  WELD: 'weld',
+  WELD_PREP: 'weld_preparation',
+
   // Autres
-  PUNCH = 'punch',
-  WORK_PLANE = 'work_plane',
-  INFORMATION = 'information',
-  
+  PUNCH: 'punch',
+  WORK_PLANE: 'work_plane',
+  INFORMATION: 'information',
+
   // Blocs DSTV avancés pour 100% conformité
-  VOLUME = 'volume',
-  NUMERIC_CONTROL = 'numeric_control',
-  FREE_PROGRAM = 'free_program',
-  LINE_PROGRAM = 'line_program',
-  ROTATION = 'rotation',
-  WASHING = 'washing',
-  GROUP = 'group',
-  VARIABLE = 'variable'
-}
+  VOLUME: 'volume',
+  NUMERIC_CONTROL: 'numeric_control',
+  FREE_PROGRAM: 'free_program',
+  LINE_PROGRAM: 'line_program',
+  ROTATION: 'rotation',
+  WASHING: 'washing',
+  GROUP: 'group',
+  VARIABLE: 'variable'
+} as const;
+
+export type FeatureType = typeof FeatureType[keyof typeof FeatureType];
 
 /**
  * Système de coordonnées pour les features
  */
-export enum CoordinateSystem {
-  LOCAL = 'local',    // Relatif à l'élément
-  GLOBAL = 'global',  // Relatif à la scène
-  FACE = 'face',      // Relatif à une face spécifique
-  DSTV = 'DSTV',      // Système de coordonnées DSTV
-  STANDARD = 'standard' // Système de coordonnées standard unifié
-}
+export const CoordinateSystem = {
+  LOCAL: 'local',    // Relatif à l'élément
+  GLOBAL: 'global',  // Relatif à la scène
+  FACE: 'face',      // Relatif à une face spécifique
+  DSTV: 'DSTV',      // Système de coordonnées DSTV
+  STANDARD: 'standard' // Système de coordonnées standard unifié
+} as const;
+
+export type CoordinateSystem = typeof CoordinateSystem[keyof typeof CoordinateSystem];
 
 /**
  * Face d'un profil métallique
  */
-export enum ProfileFace {
-  WEB = 'web',
-  TOP_FLANGE = 'top_flange',
-  BOTTOM_FLANGE = 'bottom_flange',
-  LEFT_LEG = 'left_leg',
-  RIGHT_LEG = 'right_leg',
-  TOP = 'top',
-  BOTTOM = 'bottom',
-  LEFT = 'left',
-  RIGHT = 'right',
-  FRONT = 'front',
-  BACK = 'back'
-}
+export const ProfileFace = {
+  WEB: 'web',
+  TOP_FLANGE: 'top_flange',
+  BOTTOM_FLANGE: 'bottom_flange',
+  LEFT_LEG: 'left_leg',
+  RIGHT_LEG: 'right_leg',
+  TOP: 'top',
+  BOTTOM: 'bottom',
+  LEFT: 'left',
+  RIGHT: 'right',
+  FRONT: 'front',
+  BACK: 'back'
+} as const;
+
+export type ProfileFace = typeof ProfileFace[keyof typeof ProfileFace];
 
 /**
  * Interface de base pour une feature

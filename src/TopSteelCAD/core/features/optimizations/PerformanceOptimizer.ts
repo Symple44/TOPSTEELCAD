@@ -184,12 +184,12 @@ export class PerformanceOptimizer {
    */
   private canInstance(type: FeatureType, features: Feature[]): boolean {
     // Les trous et motifs sont de bons candidats pour l'instanciation
-    const instanceableTypes = [
+    const instanceableTypes: FeatureType[] = [
       FeatureType.HOLE,
       FeatureType.TAPPED_HOLE,
       FeatureType.DRILL_PATTERN
     ];
-    
+
     if (!instanceableTypes.includes(type)) {
       return false;
     }

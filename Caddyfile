@@ -1,0 +1,39 @@
+demo.topsteel.tech {
+    # Root directory pour les fichiers statiques
+    root * /srv/dist
+
+    # Activer la compression
+    encode gzip zstd
+
+    # Headers de sécurité
+    header {
+        # HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Prévenir le sniffing de type MIME
+        X-Content-Type-Options "nosniff"
+        # Prévenir le clickjacking
+        X-Frame-Options "SAMEORIGIN"
+        # CSP pour autoriser les ressources nécessaires
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; worker-src 'self' blob:;"
+        # Référer Policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Cache pour les assets avec hash dans le nom
+    @assets {
+        path /assets/*
+    }
+    header @assets Cache-Control "public, max-age=31536000, immutable"
+
+    # Servir les fichiers statiques
+    file_server
+
+    # SPA fallback - rediriger toutes les routes vers index.html
+    try_files {path} /index.html
+
+    # Logs
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}

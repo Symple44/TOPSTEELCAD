@@ -282,13 +282,13 @@ export class CutProcessorAdapter {
     if (!handler) {
       return false;
     }
-    
+
     // Liste des features bien supportées par la nouvelle architecture
-    const wellSupportedTypes = [
+    const wellSupportedTypes: FeatureType[] = [
       FeatureType.END_CUT,
       FeatureType.NOTCH
     ];
-    
+
     if (wellSupportedTypes.includes(feature.type)) {
       return true;
     }
