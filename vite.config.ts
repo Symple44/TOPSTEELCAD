@@ -19,6 +19,10 @@ export default defineConfig(({ mode }) => {
         })
       ] : [])
     ],
+    esbuild: {
+      keepNames: true,
+      legalComments: 'none'
+    },
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),
