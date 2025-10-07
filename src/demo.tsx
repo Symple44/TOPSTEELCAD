@@ -5,6 +5,7 @@ import { StandardViewer } from './TopSteelCAD/StandardViewer';
 import { ProfessionalViewer } from './TopSteelCAD/ProfessionalViewer';
 import { PartBuilder } from './TopSteelCAD/part-builder';
 import { ProfileCreatorApp } from './TopSteelCAD/custom-profile-creator/ProfileCreatorApp';
+import { BuildingEstimator } from './TopSteelCAD/building-estimator';
 import { PivotElement, MaterialType } from './types/viewer';
 
 // Initialiser le logger
@@ -147,7 +148,7 @@ const createTestElements = (): PivotElement[] => {
 };
 
 // Types de modes disponibles
-type ViewerMode = 'minimal' | 'standard' | 'professional' | 'part-builder' | 'profile-creator';
+type ViewerMode = 'minimal' | 'standard' | 'professional' | 'part-builder' | 'profile-creator' | 'building-estimator';
 
 // Composant de démonstration
 const DemoApp: React.FC = () => {
@@ -249,13 +250,14 @@ const DemoApp: React.FC = () => {
                 <option value="standard">🔷 Mode Standard</option>
                 <option value="professional">🔶 Mode Professionnel</option>
                 <option value="part-builder">🏗️ Part Builder</option>
-                <option value="profile-creator">✏️ Créateur de Profils (Nouveau!)</option>
+                <option value="profile-creator">✏️ Créateur de Profils</option>
+                <option value="building-estimator">🏢 Building Estimator (Nouveau!)</option>
               </select>
             </div>
             
             <button
               onClick={handleLoadTestElements}
-              disabled={isLoadingElements || mode === 'part-builder' || mode === 'profile-creator'}
+              disabled={isLoadingElements || mode === 'part-builder' || mode === 'profile-creator' || mode === 'building-estimator'}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: isLoadingElements 
@@ -367,11 +369,11 @@ const DemoApp: React.FC = () => {
       </div>
 
       {/* Zone du viewer */}
-      <div style={{ 
+      <div style={{
         flex: 1,
         position: 'relative',
-        overflow: 'hidden',
-        backgroundColor: theme === 'dark' ? '#0a0a0a' : '#f8fafc'
+        overflow: mode === 'building-estimator' ? 'auto' : 'hidden',
+        backgroundColor: mode === 'building-estimator' ? '#ffffff' : (theme === 'dark' ? '#0a0a0a' : '#f8fafc')
       }}>
         {mode === 'minimal' && (
           <MinimalViewer
@@ -410,6 +412,17 @@ const DemoApp: React.FC = () => {
         {mode === 'profile-creator' && (
           <ProfileCreatorApp />
         )}
+
+        {mode === 'building-estimator' && (
+          <BuildingEstimator
+            onBuildingGenerated={(building) => {
+              console.log('Bâtiment généré:', building);
+            }}
+            onExport={(building, format) => {
+              console.log(`Export ${format} effectué pour:`, building.name);
+            }}
+          />
+        )}
       </div>
 
       {/* Info bar */}
@@ -432,6 +445,7 @@ const DemoApp: React.FC = () => {
           {mode === 'professional' && '🔶 Interface complète avec tous les outils CAO avancés'}
           {mode === 'part-builder' && '🏗️ Module de création de pièces métalliques de A à Z'}
           {mode === 'profile-creator' && '✏️ Créez vos propres profils personnalisés avec un éditeur 2D intuitif'}
+          {mode === 'building-estimator' && '🏢 Module complet de métré et chiffrage de bâtiments métalliques avec export IFC'}
         </div>
       </div>
     </div>
