@@ -5,14 +5,16 @@
 
 import React from 'react';
 import { useBuildingEstimator } from '../hooks/useBuildingEstimator';
+import { useResponsive } from '../hooks/useResponsive';
 import { BuildingStep } from './types';
-import { MonoPenteBuilding } from '../types';
+import { Building, MonoPenteBuilding } from '../types';
 
 // Steps
 import { Step1_Dimensions } from './steps/Step1_Dimensions';
-import { Step2_Openings } from './steps/Step2_Openings';
-import { Step3_Finishes } from './steps/Step3_Finishes';
-import { Step4_Summary } from './steps/Step4_Summary';
+import { Step2_Equipment } from './steps/Step2_Equipment';
+import { Step3_Envelope } from './steps/Step3_Envelope';
+import { Step4_Finishing } from './steps/Step4_Finishing';
+import { Step5_Summary } from './steps/Step5_Summary';
 
 // Styles
 import {
@@ -31,13 +33,13 @@ import {
  */
 export interface BuildingEstimatorProps {
   /** Bâtiment existant à éditer (optionnel) */
-  initialBuilding?: MonoPenteBuilding;
+  initialBuilding?: Building;
 
   /** Callback lors de la génération du bâtiment */
-  onBuildingGenerated?: (building: MonoPenteBuilding) => void;
+  onBuildingGenerated?: (building: Building) => void;
 
   /** Callback lors de l'export */
-  onExport?: (building: MonoPenteBuilding, format: 'csv' | 'json' | 'ifc' | 'html') => void;
+  onExport?: (building: Building, format: 'csv' | 'json' | 'ifc' | 'html') => void;
 }
 
 /**
@@ -45,8 +47,9 @@ export interface BuildingEstimatorProps {
  */
 const STEPS = [
   { step: BuildingStep.DIMENSIONS, label: 'Dimensions', icon: '📐' },
-  { step: BuildingStep.OPENINGS, label: 'Ouvertures', icon: '🚪' },
-  { step: BuildingStep.FINISHES, label: 'Finitions', icon: '🎨' },
+  { step: BuildingStep.EQUIPMENT, label: 'Équipement', icon: '🛠️' },
+  { step: BuildingStep.ENVELOPE, label: 'Enveloppe', icon: '🏗️' },
+  { step: BuildingStep.FINISHING, label: 'Finitions', icon: '✨' },
   { step: BuildingStep.SUMMARY, label: 'Résumé', icon: '📋' }
 ];
 
@@ -73,11 +76,23 @@ export const BuildingEstimator: React.FC<BuildingEstimatorProps> = ({
     addExtension,
     updateExtension,
     deleteExtension,
+    setGuardrail,
+    setAcrotere,
+    setSolarArray,
+    setLocation,
+    setClading,
+    setRoofing,
+    setPainting,
+    setAccessories,
+    setOptions,
     setFinishes,
     generateBuilding,
     exportBuilding,
     resetForm
   } = useBuildingEstimator(initialBuilding);
+
+  // Hook responsive
+  const { isMobile } = useResponsive();
 
   /**
    * Gestion de l'export avec callback
@@ -103,7 +118,7 @@ export const BuildingEstimator: React.FC<BuildingEstimatorProps> = ({
    * Rendu du stepper
    */
   const renderStepper = () => (
-    <div style={stepperStyle}>
+    <div style={stepperStyle(isMobile)}>
       {STEPS.map((step, index) => {
         const isActive = state.currentStep === step.step;
         const isCompleted = state.currentStep > step.step;
@@ -112,16 +127,16 @@ export const BuildingEstimator: React.FC<BuildingEstimatorProps> = ({
         return (
           <div
             key={step.step}
-            style={stepStyle(isActive, isCompleted)}
+            style={stepStyle(isActive, isCompleted, isMobile)}
             onClick={() => canClick && goToStep(step.step)}
           >
-            <div style={stepNumberStyle(isActive, isCompleted)}>
+            <div style={stepNumberStyle(isActive, isCompleted, isMobile)}>
               {isCompleted ? '✓' : step.icon}
             </div>
-            <div style={stepLabelStyle(isActive)}>{step.label}</div>
+            <div style={stepLabelStyle(isActive, isMobile)}>{step.label}</div>
 
-            {/* Ligne de connexion (sauf pour le dernier) */}
-            {index < STEPS.length - 1 && (
+            {/* Ligne de connexion (sauf pour le dernier et sauf en mobile) */}
+            {!isMobile && index < STEPS.length - 1 && (
               <div
                 style={{
                   position: 'absolute',
@@ -163,24 +178,58 @@ export const BuildingEstimator: React.FC<BuildingEstimatorProps> = ({
           />
         );
 
-      case BuildingStep.OPENINGS:
+      case BuildingStep.EQUIPMENT:
         return (
-          <Step2_Openings
+          <Step2_Equipment
             openings={state.openings}
+            equipmentByStructure={state.equipmentByStructure}
+            extensions={state.extensions}
             buildingDimensions={state.dimensions}
+            buildingParameters={state.parameters}
+            buildingType={state.buildingType}
+            location={state.location}
             onAddOpening={addOpening}
             onUpdateOpening={updateOpening}
             onDeleteOpening={deleteOpening}
+            onSetGuardrail={setGuardrail}
+            onSetAcrotere={setAcrotere}
+            onSetSolarArray={setSolarArray}
+            onSetLocation={setLocation}
             onNext={nextStep}
             onPrevious={previousStep}
           />
         );
 
-      case BuildingStep.FINISHES:
+      case BuildingStep.ENVELOPE:
         return (
-          <Step3_Finishes
-            finishes={state.finishes}
-            onFinishesChange={setFinishes}
+          <Step3_Envelope
+            envelopeByStructure={state.envelopeByStructure}
+            extensions={state.extensions}
+            buildingDimensions={state.dimensions}
+            buildingParameters={state.parameters}
+            buildingType={state.buildingType}
+            openings={state.openings}
+            equipmentByStructure={state.equipmentByStructure}
+            onSetClading={setClading}
+            onSetRoofing={setRoofing}
+            onNext={nextStep}
+            onPrevious={previousStep}
+          />
+        );
+
+      case BuildingStep.FINISHING:
+        return (
+          <Step4_Finishing
+            finishingByStructure={state.finishingByStructure}
+            extensions={state.extensions}
+            buildingDimensions={state.dimensions}
+            buildingParameters={state.parameters}
+            buildingType={state.buildingType}
+            openings={state.openings}
+            equipmentByStructure={state.equipmentByStructure}
+            onSetPainting={setPainting}
+            onSetAccessories={setAccessories}
+            onSetOptions={setOptions}
             onNext={nextStep}
             onPrevious={previousStep}
           />
@@ -188,7 +237,7 @@ export const BuildingEstimator: React.FC<BuildingEstimatorProps> = ({
 
       case BuildingStep.SUMMARY:
         return (
-          <Step4_Summary
+          <Step5_Summary
             building={state.building}
             nomenclature={state.nomenclature}
             onExport={handleExport}
@@ -203,11 +252,11 @@ export const BuildingEstimator: React.FC<BuildingEstimatorProps> = ({
   };
 
   return (
-    <div style={containerStyle}>
+    <div style={containerStyle(isMobile)}>
       {/* Header */}
-      <div style={headerStyle}>
-        <h1 style={titleStyle}>🏗️ Building Estimator</h1>
-        <p style={subtitleStyle}>
+      <div style={headerStyle(isMobile)}>
+        <h1 style={titleStyle(isMobile)}>🏗️ Building Estimator</h1>
+        <p style={subtitleStyle(isMobile)}>
           Configurez votre bâtiment métallique et générez automatiquement la nomenclature
         </p>
       </div>

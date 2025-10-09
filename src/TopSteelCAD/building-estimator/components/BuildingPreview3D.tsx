@@ -6,14 +6,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three-stdlib';
-import { BuildingType, BuildingDimensions, BuildingParameters, BuildingExtension, ExtensionAttachmentType } from '../types';
-import { createProfileMesh } from '../utils/ProfileShapes';
+import { BuildingType, BuildingDimensions, BuildingParameters, BuildingExtension, ExtensionAttachmentType, BuildingOpening, OpeningPosition, OpeningType } from '../types';
+import { createProfileMesh, getProfileDimensions } from '../utils/ProfileShapes';
 
 interface BuildingPreview3DProps {
   buildingType: BuildingType;
   dimensions: BuildingDimensions | any;
   parameters?: BuildingParameters;
   extensions?: BuildingExtension[];
+  openings?: BuildingOpening[];
+  highlightStructureId?: string;
+  solarArray?: any;
   width?: number;
   height?: number;
 }
@@ -117,7 +120,8 @@ function createBuildingStructure(
   position: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 },
   color: number = 0x1e40af, // Bleu par défaut
   reversedSlope: boolean = false, // Inverser la pente
-  isDarkTheme: boolean = false // Thème sombre pour les marqueurs
+  isDarkTheme: boolean = false, // Thème sombre pour les marqueurs
+  solarArray?: any // Configuration des panneaux solaires
 ): THREE.Group {
   const buildingGroup = new THREE.Group();
   buildingGroup.position.set(position.x, position.y, position.z);
@@ -253,6 +257,10 @@ function createBuildingStructure(
     frontPostHeight = dimensions.heightWall;
     backPostHeight = dimensions.heightWall;
     ridgeHeight = dimensions.heightWall; // Pas de pente
+  } else if (buildingType === BuildingType.OMBRIERE) {
+    // Ombrière: structure pour panneaux solaires
+    frontPostHeight = dimensions.clearHeight || 2500;
+    backPostHeight = frontPostHeight + (dimensions.width * Math.tan((dimensions.slope || 5) * Math.PI / 180));
   }
 
   // Créer les portiques selon les positions calculées
@@ -319,6 +327,66 @@ function createBuildingStructure(
           intermediatePost.position.set(xPos, 0, zPos);
           buildingGroup.add(intermediatePost);
         }
+      }
+    } else if (buildingType === BuildingType.OMBRIERE) {
+      // Ombrière: poteaux selon variante structurelle
+      const structuralVariant = dimensions.structuralVariant || 'centered_post';
+
+      if (structuralVariant === 'y_shaped') {
+        // Variante Y: poteau central bas + 2 poteaux latéraux hauts
+        const centerZ = dimensions.width / 2;
+        const centralHeight = frontPostHeight - 500;
+
+        const centralPost = createProfileMesh(parameters.postProfile, centralHeight, color, 0.7);
+        centralPost.rotation.x = -Math.PI / 2;
+        centralPost.position.set(xPos, frontYOffset, centerZ);
+        buildingGroup.add(centralPost);
+
+        const sideOffset = dimensions.width * 0.3;
+        const leftPost = createProfileMesh(parameters.postProfile, backPostHeight - backYOffset, color, 0.7);
+        leftPost.rotation.x = -Math.PI / 2;
+        leftPost.position.set(xPos, backYOffset, sideOffset);
+        buildingGroup.add(leftPost);
+
+        const rightPost = createProfileMesh(parameters.postProfile, backPostHeight - backYOffset, color, 0.7);
+        rightPost.rotation.x = -Math.PI / 2;
+        rightPost.position.set(xPos, backYOffset, dimensions.width - sideOffset);
+        buildingGroup.add(rightPost);
+
+      } else if (structuralVariant === 'double_slope') {
+        // Double pente: 3 poteaux (avant bas, centre haut, arrière bas)
+        const centerZ = dimensions.width / 2;
+        const centerHeight = backPostHeight;
+
+        const frontPost = createProfileMesh(parameters.postProfile, frontPostHeight - frontYOffset, color, 0.7);
+        frontPost.rotation.x = -Math.PI / 2;
+        frontPost.position.set(xPos, frontYOffset, 0);
+        buildingGroup.add(frontPost);
+
+        const centerPost = createProfileMesh(parameters.postProfile, centerHeight - backYOffset, color, 0.7);
+        centerPost.rotation.x = -Math.PI / 2;
+        centerPost.position.set(xPos, backYOffset, centerZ);
+        buildingGroup.add(centerPost);
+
+        const backPost = createProfileMesh(parameters.postProfile, frontPostHeight - frontYOffset, color, 0.7);
+        backPost.rotation.x = -Math.PI / 2;
+        backPost.position.set(xPos, frontYOffset, dimensions.width);
+        buildingGroup.add(backPost);
+
+      } else if (structuralVariant === 'front_post') {
+        // Poteau avant uniquement
+        const frontPost = createProfileMesh(parameters.postProfile, frontPostHeight - frontYOffset, color, 0.7);
+        frontPost.rotation.x = -Math.PI / 2;
+        frontPost.position.set(xPos, frontYOffset, 0);
+        buildingGroup.add(frontPost);
+
+      } else {
+        // centered_post (défaut): poteau central
+        const centerZ = dimensions.width / 2;
+        const centerPost = createProfileMesh(parameters.postProfile, frontPostHeight - frontYOffset, color, 0.7);
+        centerPost.rotation.x = -Math.PI / 2;
+        centerPost.position.set(xPos, frontYOffset, centerZ);
+        buildingGroup.add(centerPost);
       }
     } else {
       // Monopente : poteaux des deux côtés, hauteurs différentes
@@ -430,6 +498,58 @@ function createBuildingStructure(
       rafter.rotation.set(-rafterAngle, 0, 0);
       rafter.position.set(xPos, frontPostHeight, 0);
       buildingGroup.add(rafter);
+    } else if (buildingType === BuildingType.OMBRIERE) {
+      // Arbalétriers pour ombrière selon variante
+      const structuralVariant = dimensions.structuralVariant || 'centered_post';
+      const slope = (dimensions.slope || 5) * Math.PI / 180;
+
+      if (structuralVariant === 'y_shaped') {
+        // Y: 2 arbalétriers du centre vers les côtés
+        const centerZ = dimensions.width / 2;
+        const centralHeight = frontPostHeight - 500;
+
+        const frontRafterLength = Math.sqrt(Math.pow(centerZ, 2) + Math.pow(frontPostHeight - centralHeight, 2));
+        const frontRafterAngle = Math.atan2(frontPostHeight - centralHeight, centerZ);
+        const frontRafter = createProfileMesh(parameters.rafterProfile, frontRafterLength, color, 0.7);
+        frontRafter.rotation.set(-frontRafterAngle, 0, 0);
+        frontRafter.position.set(xPos, centralHeight, centerZ);
+        buildingGroup.add(frontRafter);
+
+        const backRafterLength = Math.sqrt(Math.pow(centerZ, 2) + Math.pow(backPostHeight - centralHeight, 2));
+        const backRafterAngle = Math.atan2(backPostHeight - centralHeight, centerZ);
+        const backRafter = createProfileMesh(parameters.rafterProfile, backRafterLength, color, 0.7);
+        backRafter.rotation.set(backRafterAngle, 0, 0);
+        backRafter.position.set(xPos, centralHeight, centerZ);
+        buildingGroup.add(backRafter);
+
+      } else if (structuralVariant === 'double_slope') {
+        // Double pente: 2 arbalétriers
+        const centerZ = dimensions.width / 2;
+        const centerHeight = frontPostHeight + (centerZ * Math.tan(slope));
+
+        const frontRafterLength = Math.sqrt(Math.pow(centerZ, 2) + Math.pow(centerHeight - frontPostHeight, 2));
+        const frontRafterAngle = Math.atan2(centerHeight - frontPostHeight, centerZ);
+        const frontRafter = createProfileMesh(parameters.rafterProfile, frontRafterLength, color, 0.7);
+        frontRafter.rotation.set(-frontRafterAngle, 0, 0);
+        frontRafter.position.set(xPos, frontPostHeight, 0);
+        buildingGroup.add(frontRafter);
+
+        const backRafterLength = Math.sqrt(Math.pow(centerZ, 2) + Math.pow(centerHeight - frontPostHeight, 2));
+        const backRafterAngle = Math.atan2(centerHeight - frontPostHeight, centerZ);
+        const backRafter = createProfileMesh(parameters.rafterProfile, backRafterLength, color, 0.7);
+        backRafter.rotation.set(backRafterAngle, 0, 0);
+        backRafter.position.set(xPos, centerHeight, centerZ);
+        buildingGroup.add(backRafter);
+
+      } else {
+        // front_post ou centered_post: 1 arbalétrier
+        const rafterLength = Math.sqrt(Math.pow(dimensions.width, 2) + Math.pow(backPostHeight - frontPostHeight, 2));
+        const rafterAngle = Math.atan2(backPostHeight - frontPostHeight, dimensions.width);
+        const rafter = createProfileMesh(parameters.rafterProfile, rafterLength, color, 0.7);
+        rafter.rotation.set(-rafterAngle, 0, 0);
+        rafter.position.set(xPos, frontPostHeight, 0);
+        buildingGroup.add(rafter);
+      }
     }
   }
 
@@ -466,6 +586,23 @@ function createBuildingStructure(
   const purlinSpacing = parameters.purlinSpacing || 1500;
   const numPurlins = Math.floor(dimensions.width / purlinSpacing);
 
+  if (buildingType === BuildingType.OMBRIERE) {
+    console.log(`[OMBRIERE Pannes] width=${dimensions.width}, purlinSpacing=${purlinSpacing}, numPurlins=${numPurlins}, rafterOffset=${rafterOffset}`);
+  }
+
+  // Calculer l'offset pour les pannes et panneaux (arbalétrier + panne)
+  let rafterOffset = 0;
+  let totalPanelOffset = 0;
+  if (buildingType === BuildingType.OMBRIERE) {
+    const rafterProfile = parameters.rafterProfile || 'IPE200';
+    const purlinProfile = parameters.purlinProfile || 'Z150';
+    const rafterDims = getProfileDimensions(rafterProfile);
+    const purlinDims = getProfileDimensions(purlinProfile);
+    rafterOffset = rafterDims?.height || 200; // Pannes au-dessus des arbalétriers
+    const purlinOffsetHeight = purlinDims?.height || 150;
+    totalPanelOffset = rafterOffset + purlinOffsetHeight; // Panneaux au-dessus des pannes
+  }
+
   // Fonction pour calculer la hauteur d'une panne à une position Z donnée
   const calculatePurlinHeight = (zPos: number, baseYOffset: number = 0): number => {
     let baseHeight: number;
@@ -484,20 +621,45 @@ function createBuildingStructure(
         baseHeight = ridgeHeight - ((zPos - midZ) / midZ) * rise;
       }
     } else if (buildingType === BuildingType.BI_PENTE_ASYM) {
-      // Bipente asymétrique: deux pentes avec faîtage décentré et hauteurs différentes
-      const leftWallHeight = dimensions.leftWallHeight || dimensions.heightWall;
-      const rightWallHeight = dimensions.rightWallHeight || dimensions.heightWall;
-      const leftSlope = dimensions.leftSlope || dimensions.slope || 10;
-      const rightSlope = dimensions.rightSlope || dimensions.slope || 10;
+      // Bipente asymétrique: interpolation linéaire depuis les poteaux vers le faîtage
       const ridgeOffsetPercent = dimensions.ridgeOffset || 50;
       const ridgeZ = (dimensions.width * ridgeOffsetPercent) / 100;
 
-      if (zPos < ridgeZ) {
-        // Versant avant (gauche): monte vers le faîtage
-        baseHeight = leftWallHeight + (zPos * leftSlope) / 100;
+      if (zPos <= ridgeZ) {
+        // Versant avant (gauche): interpolation linéaire de frontPostHeight vers ridgeHeight
+        const ratio = ridgeZ > 0 ? zPos / ridgeZ : 0;
+        baseHeight = frontPostHeight + ratio * (ridgeHeight - frontPostHeight);
       } else {
-        // Versant arrière (droit): descend du faîtage
-        baseHeight = rightWallHeight + ((dimensions.width - zPos) * rightSlope) / 100;
+        // Versant arrière (droit): interpolation linéaire de ridgeHeight vers backPostHeight
+        const backSpan = dimensions.width - ridgeZ;
+        const ratio = backSpan > 0 ? (zPos - ridgeZ) / backSpan : 0;
+        baseHeight = ridgeHeight + ratio * (backPostHeight - ridgeHeight);
+      }
+    } else if (buildingType === BuildingType.OMBRIERE) {
+      // Ombrière: calcul selon variante structurelle
+      const structuralVariant = dimensions.structuralVariant || 'centered_post';
+      const slope = (dimensions.slope || 5) * Math.PI / 180;
+
+      if (structuralVariant === 'y_shaped') {
+        const centerZ = dimensions.width / 2;
+        const centralHeight = frontPostHeight - 500;
+
+        if (zPos < centerZ) {
+          baseHeight = centralHeight + ((centerZ - zPos) / centerZ) * (frontPostHeight - centralHeight);
+        } else {
+          baseHeight = centralHeight + ((zPos - centerZ) / centerZ) * (backPostHeight - centralHeight);
+        }
+      } else if (structuralVariant === 'double_slope') {
+        const centerZ = dimensions.width / 2;
+        const centerHeight = frontPostHeight + (centerZ * Math.tan(slope));
+
+        if (zPos < centerZ) {
+          baseHeight = frontPostHeight + (zPos / centerZ) * (centerHeight - frontPostHeight);
+        } else {
+          baseHeight = centerHeight - ((zPos - centerZ) / centerZ) * (centerHeight - frontPostHeight);
+        }
+      } else {
+        baseHeight = frontPostHeight + (zPos / dimensions.width) * (backPostHeight - frontPostHeight);
       }
     } else {
       // Monopente ou Auvent: pente linéaire
@@ -507,56 +669,133 @@ function createBuildingStructure(
     return baseHeight + baseYOffset;
   };
 
+  // Récupérer les débords pignon
+  const overhangLeft = dimensions.overhangGableLeft || 0;
+  const overhangRight = dimensions.overhangGableRight || 0;
+
   for (let i = 1; i < numPurlins; i++) {
     const zPos = i * purlinSpacing;
 
-    // Créer des segments de pannes entre chaque portique
-    for (let p = 0; p < portalPositions.length - 1; p++) {
-      const startPortal = portalPositions[p];
-      const endPortal = portalPositions[p + 1];
+    // Créer une panne continue sur toute la longueur (avec débords)
+    // Positions de début et fin en tenant compte des débords
+    const firstPortal = portalPositions[0];
+    const lastPortal = portalPositions[portalPositions.length - 1];
 
-      // Calculer la hauteur à chaque extrémité en tenant compte des yOffsets des portiques
-      // Pour simplifier, on prend la moyenne des yOffsets front/back pour chaque portique
-      const startYOffset = (startPortal.frontYOffset + startPortal.backYOffset) / 2;
-      const endYOffset = (endPortal.frontYOffset + endPortal.backYOffset) / 2;
+    const startX = firstPortal.x - overhangLeft;  // Prolonger à gauche si débord positif
+    const endX = lastPortal.x + overhangRight;    // Prolonger à droite si débord positif
 
-      const startHeight = calculatePurlinHeight(zPos, startYOffset);
-      const endHeight = calculatePurlinHeight(zPos, endYOffset);
+    // Calculer la hauteur à chaque extrémité en tenant compte des yOffsets des portiques
+    // Interpoler le yOffset selon la position Z de la panne
+    const startYOffset = firstPortal.frontYOffset + (firstPortal.backYOffset - firstPortal.frontYOffset) * (zPos / dimensions.width);
+    const endYOffset = lastPortal.frontYOffset + (lastPortal.backYOffset - lastPortal.frontYOffset) * (zPos / dimensions.width);
 
-      const purlinGeometry = new THREE.BufferGeometry();
-      const purlinVerts = new Float32Array([
-        startPortal.x, startHeight, zPos,
-        endPortal.x, endHeight, zPos
-      ]);
-      purlinGeometry.setAttribute('position', new THREE.BufferAttribute(purlinVerts, 3));
-      buildingGroup.add(new THREE.Line(purlinGeometry, wireMaterial));
+    // Calculer l'offset pour positionner la panne au-dessus de l'arbalétrier
+    const purlinProfile = parameters.purlinProfile || 'Z150';
+    const purlinDims = getProfileDimensions(purlinProfile);
+    const halfPurlinHeight = (purlinDims?.height || 150) / 2;
+
+    let baseOffset = 0;
+    if (buildingType === BuildingType.OMBRIERE) {
+      baseOffset = rafterOffset + halfPurlinHeight;
+    } else {
+      // Pour les autres types: obtenir la hauteur du profilé arbalétrier
+      const rafterProfile = parameters.rafterProfile || 'IPE200';
+      const rafterDims = getProfileDimensions(rafterProfile);
+      baseOffset = (rafterDims?.height || 200) / 2 + halfPurlinHeight;
     }
+
+    // L'offset vertical pour positionner les pannes (comme pour la couverture)
+    const purlinVerticalOffset = baseOffset;
+
+    // Calculer la hauteur de base à cette position Z (sans les yOffset des portiques)
+    const baseHeightAtZ = calculatePurlinHeight(zPos, 0);
+
+    // Ajouter les yOffset interpolés + l'offset des pannes
+    // Cette approche est cohérente avec le rendu de la couverture
+    const startHeight = baseHeightAtZ + startYOffset + purlinVerticalOffset;
+    const endHeight = baseHeightAtZ + endYOffset + purlinVerticalOffset;
+
+    // Calculer l'angle de la pente locale pour la rotation
+    const deltaZ = 10;
+    const baseHeightBefore = calculatePurlinHeight(Math.max(0, zPos - deltaZ), 0);
+    const baseHeightAfter = calculatePurlinHeight(Math.min(dimensions.width, zPos + deltaZ), 0);
+
+    // Interpoler les yOffset aux positions avant/après
+    const zBefore = Math.max(0, zPos - deltaZ);
+    const zAfter = Math.min(dimensions.width, zPos + deltaZ);
+    const totalLength = endX - startX;
+    const yOffsetBefore = startYOffset + (endYOffset - startYOffset) * ((zBefore - zPos) / dimensions.width);
+    const yOffsetAfter = startYOffset + (endYOffset - startYOffset) * ((zAfter - zPos) / dimensions.width);
+
+    const heightBefore = baseHeightBefore + yOffsetBefore + purlinVerticalOffset;
+    const heightAfter = baseHeightAfter + yOffsetAfter + purlinVerticalOffset;
+    const localSlopeAngle = Math.atan2(heightAfter - heightBefore, 2 * deltaZ);
+
+    // Créer une panne continue avec un profilé 3D (prolongée avec débords)
+    const purlinLength = Math.sqrt(
+      Math.pow(endX - startX, 2) +
+      Math.pow(endHeight - startHeight, 2)
+    );
+
+    const purlin = createProfileMesh(purlinProfile, purlinLength, color, 0.7);
+
+    // Rotation:
+    // - rotation.x = pente de la toiture (suit la pente en Z)
+    // - rotation.y = 90° pour orienter selon X
+    const longitudinalAngle = Math.atan2(endHeight - startHeight, endX - startX);
+    purlin.rotation.set(-localSlopeAngle, Math.PI / 2, 0);
+
+    // Position au début de la panne (avec débord gauche)
+    purlin.position.set(startX, startHeight, zPos);
+
+    buildingGroup.add(purlin);
   }
+
+  // Calculer l'offset de la couverture (au-dessus des pannes)
+  let roofOffset = 0;
+  const rafterProfile = parameters.rafterProfile || 'IPE200';
+  const purlinProfileForRoof = parameters.purlinProfile || 'Z150';
+  const rafterDimsForRoof = getProfileDimensions(rafterProfile);
+  const purlinDimsForRoof = getProfileDimensions(purlinProfileForRoof);
+  const roofThickness = 50; // Épaisseur approximative couverture
+
+  if (buildingType === BuildingType.OMBRIERE) {
+    roofOffset = totalPanelOffset + roofThickness / 2;
+  } else {
+    roofOffset = (rafterDimsForRoof?.height || 200) / 2 + (purlinDimsForRoof?.height || 150) + roofThickness / 2;
+  }
+
+  // Récupérer les débords pour la couverture
+  const overhangFront = dimensions.overhangLongPanFront || 0;
+  const overhangBack = dimensions.overhangLongPanBack || 0;
 
   // Couverture (faces transparentes)
   if (buildingType === BuildingType.MONO_PENTE) {
-    // Créer des segments de couverture entre chaque portique
-    for (let p = 0; p < portalPositions.length - 1; p++) {
-      const startPortal = portalPositions[p];
-      const endPortal = portalPositions[p + 1];
+    // Créer une surface de couverture unique avec débords
+    const firstPortal = portalPositions[0];
+    const lastPortal = portalPositions[portalPositions.length - 1];
 
-      const startFrontHeight = frontPostHeight + startPortal.frontYOffset;
-      const startBackHeight = backPostHeight + startPortal.backYOffset;
-      const endFrontHeight = frontPostHeight + endPortal.frontYOffset;
-      const endBackHeight = backPostHeight + endPortal.backYOffset;
+    const startX = firstPortal.x - overhangLeft;
+    const endX = lastPortal.x + overhangRight;
+    const frontZ = 0 - overhangFront;
+    const backZ = dimensions.width + overhangBack;
 
-      const roofGeometry = new THREE.BufferGeometry();
-      const roofVertices = new Float32Array([
-        startPortal.x, startFrontHeight, 0,
-        endPortal.x, endFrontHeight, 0,
-        endPortal.x, endBackHeight, dimensions.width,
-        startPortal.x, startBackHeight, dimensions.width
-      ]);
-      roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
-      roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
-      roofGeometry.computeVertexNormals();
-      buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
-    }
+    const startFrontHeight = frontPostHeight + firstPortal.frontYOffset + roofOffset;
+    const startBackHeight = backPostHeight + firstPortal.backYOffset + roofOffset;
+    const endFrontHeight = frontPostHeight + lastPortal.frontYOffset + roofOffset;
+    const endBackHeight = backPostHeight + lastPortal.backYOffset + roofOffset;
+
+    const roofGeometry = new THREE.BufferGeometry();
+    const roofVertices = new Float32Array([
+      startX, startFrontHeight, frontZ,
+      endX, endFrontHeight, frontZ,
+      endX, endBackHeight, backZ,
+      startX, startBackHeight, backZ
+    ]);
+    roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
+    roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+    roofGeometry.computeVertexNormals();
+    buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
 
   } else if (buildingType === BuildingType.BI_PENTE || buildingType === BuildingType.BI_PENTE_ASYM) {
     // Calculer la position du faîtage
@@ -568,98 +807,194 @@ function createBuildingStructure(
       ridgeZ = dimensions.width / 2; // Centré pour bipente symétrique
     }
 
-    // Créer des segments de couverture entre chaque portique
-    for (let p = 0; p < portalPositions.length - 1; p++) {
-      const startPortal = portalPositions[p];
-      const endPortal = portalPositions[p + 1];
+    // Créer une surface de couverture unique avec débords
+    const firstPortal = portalPositions[0];
+    const lastPortal = portalPositions[portalPositions.length - 1];
 
-      // Calculer les hauteurs aux 4 coins du segment
-      const startFrontYOffset = startPortal.frontYOffset;
-      const startBackYOffset = startPortal.backYOffset;
-      const endFrontYOffset = endPortal.frontYOffset;
-      const endBackYOffset = endPortal.backYOffset;
+    const startX = firstPortal.x - overhangLeft;
+    const endX = lastPortal.x + overhangRight;
+    const frontZ = 0 - overhangFront;
+    const backZ = dimensions.width + overhangBack;
 
-      const startFrontHeight = frontPostHeight + startFrontYOffset;
-      const startBackHeight = backPostHeight + startBackYOffset;
-      const endFrontHeight = frontPostHeight + endFrontYOffset;
-      const endBackHeight = backPostHeight + endBackYOffset;
+    const startFrontYOffset = firstPortal.frontYOffset;
+    const startBackYOffset = firstPortal.backYOffset;
+    const endFrontYOffset = lastPortal.frontYOffset;
+    const endBackYOffset = lastPortal.backYOffset;
 
-      // Calculer la hauteur au faîtage pour chaque extrémité du segment
-      // La hauteur au faîtage doit suivre la pente définie
-      const startRidgeHeight = ridgeHeight + ((startFrontYOffset + startBackYOffset) / 2);
-      const endRidgeHeight = ridgeHeight + ((endFrontYOffset + endBackYOffset) / 2);
+    const startFrontHeight = frontPostHeight + startFrontYOffset + roofOffset;
+    const startBackHeight = backPostHeight + startBackYOffset + roofOffset;
+    const endFrontHeight = frontPostHeight + endFrontYOffset + roofOffset;
+    const endBackHeight = backPostHeight + endBackYOffset + roofOffset;
 
-      // Versant avant (du bas vers le faîtage)
-      const frontRoofGeometry = new THREE.BufferGeometry();
-      const frontRoofVertices = new Float32Array([
-        startPortal.x, startFrontHeight, 0,
-        endPortal.x, endFrontHeight, 0,
-        endPortal.x, endRidgeHeight, ridgeZ,
-        startPortal.x, startRidgeHeight, ridgeZ
-      ]);
-      frontRoofGeometry.setAttribute('position', new THREE.BufferAttribute(frontRoofVertices, 3));
-      frontRoofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
-      frontRoofGeometry.computeVertexNormals();
-      buildingGroup.add(new THREE.Mesh(frontRoofGeometry, faceMaterial));
+    // Calculer la hauteur au faîtage
+    const startRidgeHeight = ridgeHeight + ((startFrontYOffset + startBackYOffset) / 2) + roofOffset;
+    const endRidgeHeight = ridgeHeight + ((endFrontYOffset + endBackYOffset) / 2) + roofOffset;
 
-      // Versant arrière (du faîtage vers le bas)
-      const backRoofGeometry = new THREE.BufferGeometry();
-      const backRoofVertices = new Float32Array([
-        startPortal.x, startRidgeHeight, ridgeZ,
-        endPortal.x, endRidgeHeight, ridgeZ,
-        endPortal.x, endBackHeight, dimensions.width,
-        startPortal.x, startBackHeight, dimensions.width
-      ]);
-      backRoofGeometry.setAttribute('position', new THREE.BufferAttribute(backRoofVertices, 3));
-      backRoofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
-      backRoofGeometry.computeVertexNormals();
-      buildingGroup.add(new THREE.Mesh(backRoofGeometry, faceMaterial));
-    }
+    // Versant avant (du bas vers le faîtage) avec débords
+    const frontRoofGeometry = new THREE.BufferGeometry();
+    const frontRoofVertices = new Float32Array([
+      startX, startFrontHeight, frontZ,
+      endX, endFrontHeight, frontZ,
+      endX, endRidgeHeight, ridgeZ,
+      startX, startRidgeHeight, ridgeZ
+    ]);
+    frontRoofGeometry.setAttribute('position', new THREE.BufferAttribute(frontRoofVertices, 3));
+    frontRoofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+    frontRoofGeometry.computeVertexNormals();
+    buildingGroup.add(new THREE.Mesh(frontRoofGeometry, faceMaterial));
+
+    // Versant arrière (du faîtage vers le bas) avec débords
+    const backRoofGeometry = new THREE.BufferGeometry();
+    const backRoofVertices = new Float32Array([
+      startX, startRidgeHeight, ridgeZ,
+      endX, endRidgeHeight, ridgeZ,
+      endX, endBackHeight, backZ,
+      startX, startBackHeight, backZ
+    ]);
+    backRoofGeometry.setAttribute('position', new THREE.BufferAttribute(backRoofVertices, 3));
+    backRoofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+    backRoofGeometry.computeVertexNormals();
+    buildingGroup.add(new THREE.Mesh(backRoofGeometry, faceMaterial));
 
   } else if (buildingType === BuildingType.AUVENT) {
-    // Créer des segments de couverture entre chaque portique
-    for (let p = 0; p < portalPositions.length - 1; p++) {
-      const startPortal = portalPositions[p];
-      const endPortal = portalPositions[p + 1];
+    // Créer une surface de couverture unique avec débords
+    const firstPortal = portalPositions[0];
+    const lastPortal = portalPositions[portalPositions.length - 1];
 
-      const startFrontHeight = frontPostHeight + startPortal.frontYOffset;
-      const startBackHeight = backPostHeight + startPortal.backYOffset;
-      const endFrontHeight = frontPostHeight + endPortal.frontYOffset;
-      const endBackHeight = backPostHeight + endPortal.backYOffset;
+    const startX = firstPortal.x - overhangLeft;
+    const endX = lastPortal.x + overhangRight;
+    const frontZ = 0 - overhangFront;
+    const backZ = dimensions.width + overhangBack;
 
-      const roofGeometry = new THREE.BufferGeometry();
-      const roofVertices = new Float32Array([
-        startPortal.x, startFrontHeight, 0,
-        endPortal.x, endFrontHeight, 0,
-        endPortal.x, endBackHeight, dimensions.width,
-        startPortal.x, startBackHeight, dimensions.width
-      ]);
-      roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
-      roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
-      roofGeometry.computeVertexNormals();
-      buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
-    }
+    const startFrontHeight = frontPostHeight + firstPortal.frontYOffset + roofOffset;
+    const startBackHeight = backPostHeight + firstPortal.backYOffset + roofOffset;
+    const endFrontHeight = frontPostHeight + lastPortal.frontYOffset + roofOffset;
+    const endBackHeight = backPostHeight + lastPortal.backYOffset + roofOffset;
+
+    const roofGeometry = new THREE.BufferGeometry();
+    const roofVertices = new Float32Array([
+      startX, startFrontHeight, frontZ,
+      endX, endFrontHeight, frontZ,
+      endX, endBackHeight, backZ,
+      startX, startBackHeight, backZ
+    ]);
+    roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
+    roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+    roofGeometry.computeVertexNormals();
+    buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+
   } else if (buildingType === BuildingType.PLANCHER) {
-    // Plancher: face plane horizontale - créer des segments entre chaque portique
-    for (let p = 0; p < portalPositions.length - 1; p++) {
-      const startPortal = portalPositions[p];
-      const endPortal = portalPositions[p + 1];
+    // Plancher: face plane horizontale avec débords
+    const firstPortal = portalPositions[0];
+    const lastPortal = portalPositions[portalPositions.length - 1];
 
-      // Pour un plancher, la hauteur est uniforme mais peut varier avec yOffset
-      const startHeight = frontPostHeight + ((startPortal.frontYOffset + startPortal.backYOffset) / 2);
-      const endHeight = frontPostHeight + ((endPortal.frontYOffset + endPortal.backYOffset) / 2);
+    const startX = firstPortal.x - overhangLeft;
+    const endX = lastPortal.x + overhangRight;
+    const frontZ = 0 - overhangFront;
+    const backZ = dimensions.width + overhangBack;
 
-      const roofGeometry = new THREE.BufferGeometry();
-      const roofVertices = new Float32Array([
-        startPortal.x, startHeight, 0,
-        endPortal.x, endHeight, 0,
-        endPortal.x, endHeight, dimensions.width,
-        startPortal.x, startHeight, dimensions.width
-      ]);
-      roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
-      roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
-      roofGeometry.computeVertexNormals();
-      buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+    const startHeight = frontPostHeight + ((firstPortal.frontYOffset + firstPortal.backYOffset) / 2) + roofOffset;
+    const endHeight = frontPostHeight + ((lastPortal.frontYOffset + lastPortal.backYOffset) / 2) + roofOffset;
+
+    const roofGeometry = new THREE.BufferGeometry();
+    const roofVertices = new Float32Array([
+      startX, startHeight, frontZ,
+      endX, endHeight, frontZ,
+      endX, endHeight, backZ,
+      startX, startHeight, backZ
+    ]);
+    roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
+    roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+    roofGeometry.computeVertexNormals();
+    buildingGroup.add(new THREE.Mesh(roofGeometry, faceMaterial));
+
+  } else if (buildingType === BuildingType.OMBRIERE && solarArray) {
+    // Ombrière avec panneaux photovoltaïques
+    if (solarArray.layout && solarArray.layout.elementPositions) {
+      const panelWidth = solarArray.elementDimensions?.width || 2278;
+      const panelHeight = solarArray.elementDimensions?.height || 1134;
+
+      const panelMaterial = new THREE.MeshPhongMaterial({
+        color: 0x1e3a8a,
+        transparent: true,
+        opacity: 0.7,
+        side: THREE.DoubleSide
+      });
+
+      const frameMaterial = new THREE.LineBasicMaterial({
+        color: 0x64748b,
+        linewidth: 2
+      });
+
+      solarArray.layout.elementPositions.forEach((position: any) => {
+        const panelX = position.x;
+        const panelZ = position.z;
+        const panelHeight3D = calculatePurlinHeight(panelZ, totalPanelOffset);
+
+        const isLandscape = position.orientation === 'landscape' || !position.orientation;
+        const actualWidth = isLandscape ? panelWidth : panelHeight;
+        const actualHeight = isLandscape ? panelHeight : panelWidth;
+
+        const panelGeometry = new THREE.BufferGeometry();
+        const halfWidth = actualWidth / 2;
+        const halfHeight = actualHeight / 2;
+
+        const panelVertices = new Float32Array([
+          panelX - halfWidth, panelHeight3D, panelZ - halfHeight,
+          panelX + halfWidth, panelHeight3D, panelZ - halfHeight,
+          panelX + halfWidth, panelHeight3D, panelZ + halfHeight,
+          panelX - halfWidth, panelHeight3D, panelZ + halfHeight
+        ]);
+
+        panelGeometry.setAttribute('position', new THREE.BufferAttribute(panelVertices, 3));
+        panelGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+        panelGeometry.computeVertexNormals();
+
+        buildingGroup.add(new THREE.Mesh(panelGeometry, panelMaterial));
+
+        const frameGeometry = new THREE.BufferGeometry();
+        const frameVertices = new Float32Array([
+          panelX - halfWidth, panelHeight3D + 5, panelZ - halfHeight,
+          panelX + halfWidth, panelHeight3D + 5, panelZ - halfHeight,
+          panelX + halfWidth, panelHeight3D + 5, panelZ + halfHeight,
+          panelX - halfWidth, panelHeight3D + 5, panelZ + halfHeight,
+          panelX - halfWidth, panelHeight3D + 5, panelZ - halfHeight
+        ]);
+        frameGeometry.setAttribute('position', new THREE.BufferAttribute(frameVertices, 3));
+
+        buildingGroup.add(new THREE.Line(frameGeometry, frameMaterial));
+      });
+    } else {
+      // Fallback: grille simple
+      for (let p = 0; p < portalPositions.length - 1; p++) {
+        const startPortal = portalPositions[p];
+        const endPortal = portalPositions[p + 1];
+
+        const startFrontHeight = frontPostHeight + startPortal.frontYOffset + totalPanelOffset;
+        const startBackHeight = backPostHeight + startPortal.backYOffset + totalPanelOffset;
+        const endFrontHeight = frontPostHeight + endPortal.frontYOffset + totalPanelOffset;
+        const endBackHeight = backPostHeight + endPortal.backYOffset + totalPanelOffset;
+
+        const roofGeometry = new THREE.BufferGeometry();
+        const roofVertices = new Float32Array([
+          startPortal.x, startFrontHeight, 0,
+          endPortal.x, endFrontHeight, 0,
+          endPortal.x, endBackHeight, dimensions.width,
+          startPortal.x, startBackHeight, dimensions.width
+        ]);
+        roofGeometry.setAttribute('position', new THREE.BufferAttribute(roofVertices, 3));
+        roofGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+        roofGeometry.computeVertexNormals();
+
+        const gridMaterial = new THREE.MeshPhongMaterial({
+          color: 0x1e3a8a,
+          transparent: true,
+          opacity: 0.6,
+          side: THREE.DoubleSide
+        });
+
+        buildingGroup.add(new THREE.Mesh(roofGeometry, gridMaterial));
+      }
     }
   }
 
@@ -905,6 +1240,7 @@ export const BuildingPreview3D: React.FC<BuildingPreview3DProps> = ({
   dimensions,
   parameters,
   extensions = [],
+  solarArray,
   width = 400,
   height = 300
 }) => {
@@ -1096,7 +1432,8 @@ export const BuildingPreview3D: React.FC<BuildingPreview3DProps> = ({
       { x: 0, y: 0, z: 0 },
       0x1e40af, // Bleu
       false, // reversedSlope
-      theme === 'dark' // isDarkTheme
+      theme === 'dark', // isDarkTheme
+      solarArray // Configuration panneaux solaires
     );
     mainGroup.add(buildingGroup);
     console.log('[BuildingPreview3D] ===== FIN CRÉATION BÂTIMENT PRINCIPAL =====');

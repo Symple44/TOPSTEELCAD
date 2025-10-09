@@ -10,13 +10,15 @@ import {
   BuildingStep
 } from '../components/types';
 import {
+  Building,
   BuildingType,
   CladdingType,
-  RoofingType,
-  MonoPenteBuilding
+  RoofingType
 } from '../types';
 import { BuildingEngine } from '../core/BuildingEngine';
+import { BuildingFactory } from '../core/BuildingFactory';
 import { NomenclatureBuilder } from '../core/NomenclatureBuilder';
+import { COMMON_SOLAR_PANELS } from '../types/ombriere.types';
 import {
   downloadNomenclatureCSV,
   downloadNomenclatureHTML,
@@ -51,6 +53,9 @@ const initialState: BuildingFormState = {
   },
   openings: [],
   extensions: [],
+  equipmentByStructure: {},
+  envelopeByStructure: {},
+  finishingByStructure: {},
   finishes: {
     cladding: {
       type: CladdingType.SANDWICH_80MM,
@@ -104,11 +109,57 @@ function buildingFormReducer(
       };
 
     case 'SET_BUILDING_TYPE':
-      return {
+      const newState = {
         ...state,
         buildingType: action.payload,
         hasUnsavedChanges: true
       };
+
+      // Si on passe à OMBRIERE, initialiser la configuration par défaut
+      if (action.payload === BuildingType.OMBRIERE) {
+        // Initialiser dimensions ombrière
+        newState.dimensions = {
+          ...state.dimensions,
+          length: state.dimensions.length || 50000,  // 50m par défaut
+          width: state.dimensions.width || 10000,    // 10m par défaut
+          clearHeight: (state.dimensions as any).clearHeight || 2500,  // 2.5m hauteur libre
+          slope: 0,  // Toujours 0 pour ombrière
+          tilt: (state.dimensions as any).tilt || 15  // 15° inclinaison panneaux
+        };
+
+        // Initialiser localisation par défaut (Lyon)
+        if (!state.location) {
+          newState.location = {
+            latitude: 45.75,
+            longitude: 4.85,
+            altitude: 200
+          };
+        }
+
+        // Initialiser configuration solaire par défaut si pas déjà présente
+        if (!state.equipmentByStructure['main']?.solarArray) {
+          newState.equipmentByStructure = {
+            ...state.equipmentByStructure,
+            main: {
+              ...state.equipmentByStructure['main'],
+              solarArray: {
+                panel: COMMON_SOLAR_PANELS['longi-540w'],
+                orientation: 'landscape',
+                rows: 4,
+                columns: 20,
+                rowSpacing: 100,
+                columnSpacing: 50,
+                tilt: 15,
+                azimuth: 180,
+                antiReflectiveCoating: true,
+                hailResistance: true
+              }
+            }
+          };
+        }
+      }
+
+      return newState;
 
     case 'SET_DIMENSIONS':
       return {
@@ -174,6 +225,117 @@ function buildingFormReducer(
         hasUnsavedChanges: true
       };
 
+    case 'SET_GUARDRAIL':
+      return {
+        ...state,
+        equipmentByStructure: {
+          ...state.equipmentByStructure,
+          [action.payload.structureId]: {
+            ...state.equipmentByStructure[action.payload.structureId],
+            guardrail: action.payload.config
+          }
+        },
+        hasUnsavedChanges: true
+      };
+
+    case 'SET_ACROTERE':
+      return {
+        ...state,
+        equipmentByStructure: {
+          ...state.equipmentByStructure,
+          [action.payload.structureId]: {
+            ...state.equipmentByStructure[action.payload.structureId],
+            acrotere: action.payload.config
+          }
+        },
+        hasUnsavedChanges: true
+      };
+
+    case 'SET_SOLAR_ARRAY':
+      return {
+        ...state,
+        equipmentByStructure: {
+          ...state.equipmentByStructure,
+          [action.payload.structureId]: {
+            ...state.equipmentByStructure[action.payload.structureId],
+            solarArray: action.payload.config
+          }
+        },
+        hasUnsavedChanges: true
+      };
+
+    case 'SET_LOCATION':
+      return {
+        ...state,
+        location: action.payload,
+        hasUnsavedChanges: true
+      };
+
+    case 'SET_CLADING':
+      return {
+        ...state,
+        envelopeByStructure: {
+          ...state.envelopeByStructure,
+          [action.payload.structureId]: {
+            ...state.envelopeByStructure[action.payload.structureId],
+            clading: action.payload.config
+          }
+        },
+        hasUnsavedChanges: true
+      };
+
+    case 'SET_ROOFING':
+      return {
+        ...state,
+        envelopeByStructure: {
+          ...state.envelopeByStructure,
+          [action.payload.structureId]: {
+            ...state.envelopeByStructure[action.payload.structureId],
+            roofing: action.payload.config
+          }
+        },
+        hasUnsavedChanges: true
+      };
+
+    case 'SET_PAINTING':
+      return {
+        ...state,
+        finishingByStructure: {
+          ...state.finishingByStructure,
+          [action.payload.structureId]: {
+            ...state.finishingByStructure[action.payload.structureId],
+            painting: action.payload.config
+          }
+        },
+        hasUnsavedChanges: true
+      };
+
+    case 'SET_ACCESSORIES':
+      return {
+        ...state,
+        finishingByStructure: {
+          ...state.finishingByStructure,
+          [action.payload.structureId]: {
+            ...state.finishingByStructure[action.payload.structureId],
+            accessories: action.payload.config
+          }
+        },
+        hasUnsavedChanges: true
+      };
+
+    case 'SET_OPTIONS':
+      return {
+        ...state,
+        finishingByStructure: {
+          ...state.finishingByStructure,
+          [action.payload.structureId]: {
+            ...state.finishingByStructure[action.payload.structureId],
+            options: action.payload.config
+          }
+        },
+        hasUnsavedChanges: true
+      };
+
     case 'SET_FINISHES':
       return {
         ...state,
@@ -220,7 +382,7 @@ function buildingFormReducer(
 /**
  * Hook principal
  */
-export function useBuildingEstimator(initialBuilding?: MonoPenteBuilding) {
+export function useBuildingEstimator(initialBuilding?: Building) {
   const [state, dispatch] = useReducer(buildingFormReducer, initialState);
 
   // Initialiser avec un bâtiment existant si fourni
@@ -233,7 +395,7 @@ export function useBuildingEstimator(initialBuilding?: MonoPenteBuilding) {
       dispatch({ type: 'SET_FINISHES', payload: initialBuilding.finishes });
 
       // Générer nomenclature
-      const nomenclature = NomenclatureBuilder.buildFromBuilding(initialBuilding);
+      const nomenclature = NomenclatureBuilder.buildFromBuilding(initialBuilding as any);
       dispatch({ type: 'SET_NOMENCLATURE', payload: nomenclature });
     }
   }, [initialBuilding]);
@@ -245,13 +407,24 @@ export function useBuildingEstimator(initialBuilding?: MonoPenteBuilding) {
     dispatch({ type: 'GENERATE_BUILDING' });
 
     try {
-      // Créer le bâtiment
-      const building = BuildingEngine.createMonoPenteBuilding({
+      // Pour ombrière, récupérer solarArray du bâtiment principal
+      const solarArray = state.buildingType === BuildingType.OMBRIERE
+        ? state.equipmentByStructure['main']?.solarArray
+        : undefined;
+
+      // Créer le bâtiment via BuildingFactory (supporte tous les types)
+      const building = BuildingFactory.create({
         name: state.name,
+        type: state.buildingType,
         dimensions: state.dimensions,
         parameters: state.parameters,
         openings: state.openings,
-        finishes: state.finishes
+        finishes: state.finishes,
+        // Pour ombrière, ajouter solarArray et location
+        ...(state.buildingType === BuildingType.OMBRIERE ? {
+          solarArray,
+          location: state.location
+        } : {})
       });
 
       // Valider
@@ -280,7 +453,7 @@ export function useBuildingEstimator(initialBuilding?: MonoPenteBuilding) {
         }
       });
     }
-  }, [state.name, state.dimensions, state.parameters, state.openings, state.finishes]);
+  }, [state.name, state.buildingType, state.dimensions, state.parameters, state.openings, state.finishes, state.equipmentByStructure, state.location]);
 
   /**
    * Passer à l'étape suivante
@@ -299,7 +472,7 @@ export function useBuildingEstimator(initialBuilding?: MonoPenteBuilding) {
         }
         break;
 
-      case BuildingStep.FINISHES:
+      case BuildingStep.FINISHING:
         // Générer le bâtiment avant d'aller au résumé
         generateBuilding();
         break;
@@ -407,6 +580,69 @@ export function useBuildingEstimator(initialBuilding?: MonoPenteBuilding) {
   }, []);
 
   /**
+   * Configurer le garde-corps pour une structure
+   */
+  const setGuardrail = useCallback((structureId: string, config: any) => {
+    dispatch({ type: 'SET_GUARDRAIL', payload: { structureId, config } });
+  }, []);
+
+  /**
+   * Configurer l'acrotère pour une structure
+   */
+  const setAcrotere = useCallback((structureId: string, config: any) => {
+    dispatch({ type: 'SET_ACROTERE', payload: { structureId, config } });
+  }, []);
+
+  /**
+   * Configurer les panneaux solaires pour une structure
+   */
+  const setSolarArray = useCallback((structureId: string, config: any) => {
+    dispatch({ type: 'SET_SOLAR_ARRAY', payload: { structureId, config } });
+  }, []);
+
+  /**
+   * Configurer la localisation (pour calculs solaires)
+   */
+  const setLocation = useCallback((location: any) => {
+    dispatch({ type: 'SET_LOCATION', payload: location });
+  }, []);
+
+  /**
+   * Configurer le bardage pour une structure
+   */
+  const setClading = useCallback((structureId: string, config: any) => {
+    dispatch({ type: 'SET_CLADING', payload: { structureId, config } });
+  }, []);
+
+  /**
+   * Configurer la couverture pour une structure
+   */
+  const setRoofing = useCallback((structureId: string, config: any) => {
+    dispatch({ type: 'SET_ROOFING', payload: { structureId, config } });
+  }, []);
+
+  /**
+   * Configurer la peinture pour une structure
+   */
+  const setPainting = useCallback((structureId: string, config: any) => {
+    dispatch({ type: 'SET_PAINTING', payload: { structureId, config } });
+  }, []);
+
+  /**
+   * Configurer les accessoires pour une structure
+   */
+  const setAccessories = useCallback((structureId: string, config: any) => {
+    dispatch({ type: 'SET_ACCESSORIES', payload: { structureId, config } });
+  }, []);
+
+  /**
+   * Configurer les options pour une structure
+   */
+  const setOptions = useCallback((structureId: string, config: any) => {
+    dispatch({ type: 'SET_OPTIONS', payload: { structureId, config } });
+  }, []);
+
+  /**
    * Réinitialiser le formulaire
    */
   const resetForm = useCallback(() => {
@@ -467,6 +703,21 @@ export function useBuildingEstimator(initialBuilding?: MonoPenteBuilding) {
     updateExtension,
     deleteExtension,
     setFinishes,
+
+    // Équipement (Step 2)
+    setGuardrail,
+    setAcrotere,
+    setSolarArray,
+    setLocation,
+
+    // Enveloppe (Step 3)
+    setClading,
+    setRoofing,
+
+    // Finitions (Step 4)
+    setPainting,
+    setAccessories,
+    setOptions,
 
     // Actions
     generateBuilding,

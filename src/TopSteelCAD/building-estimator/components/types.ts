@@ -3,17 +3,35 @@
  * Building Estimator - TopSteelCAD
  */
 
-import { MonoPenteBuilding, Opening, BuildingDimensions, BuildingParameters, Finishes, BuildingType, BuildingExtension } from '../types';
+import {
+  Building,
+  MonoPenteBuilding,
+  Opening,
+  BuildingDimensions,
+  BuildingParameters,
+  Finishes,
+  BuildingType,
+  BuildingExtension,
+  GuardrailConfig,
+  AcrotereConfig,
+  CladingConfig,
+  RoofingConfig,
+  PaintingConfig,
+  AccessoriesConfig,
+  OptionsConfig
+} from '../types';
+import { SolarArrayConfig, Location } from '../types/ombriere.types';
 import { Nomenclature } from '../types/nomenclature.types';
 
 /**
  * Étapes du workflow
  */
 export enum BuildingStep {
-  DIMENSIONS = 0,
-  OPENINGS = 1,
-  FINISHES = 2,
-  SUMMARY = 3
+  DIMENSIONS = 0,    // Structure principale (dimensions et composition)
+  EQUIPMENT = 1,     // Ossature secondaire (ouvertures + garde-corps + acrotères)
+  ENVELOPE = 2,      // Enveloppe (bardage + couverture)
+  FINISHING = 3,     // Finitions (peinture + accessoires + options)
+  SUMMARY = 4        // Résumé et export
 }
 
 /**
@@ -23,17 +41,48 @@ export interface BuildingFormState {
   // Étape courante
   currentStep: BuildingStep;
 
-  // Données du formulaire
+  // Données du formulaire - Step 1: Dimensions
   buildingType: BuildingType;
   name: string;
   dimensions: BuildingDimensions;
   parameters: BuildingParameters;
-  openings: Opening[];
   extensions: BuildingExtension[];
+
+  // Données du formulaire - Step 2: Equipment (ossature secondaire)
+  openings: Opening[];
+  equipmentByStructure: {
+    [structureId: string]: {
+      guardrail?: GuardrailConfig;
+      acrotere?: AcrotereConfig;
+      solarArray?: SolarArrayConfig; // Pour ombrières
+    }
+  };
+
+  // Localisation (pour calculs solaires)
+  location?: Location;
+
+  // Données du formulaire - Step 3: Envelope
+  envelopeByStructure: {
+    [structureId: string]: {
+      clading?: CladingConfig;
+      roofing?: RoofingConfig;
+    }
+  };
+
+  // Données du formulaire - Step 4: Finishing
+  finishingByStructure: {
+    [structureId: string]: {
+      painting?: PaintingConfig;
+      accessories?: AccessoriesConfig;
+      options?: OptionsConfig;
+    }
+  };
+
+  // Ancienne propriété finishes (conservée pour compatibilité)
   finishes: Finishes;
 
-  // Bâtiment généré
-  building: MonoPenteBuilding | null;
+  // Bâtiment généré (supporte tous les types)
+  building: Building | null;
   nomenclature: Nomenclature | null;
 
   // État UI
@@ -59,9 +108,18 @@ export type BuildingFormAction =
   | { type: 'ADD_EXTENSION'; payload: BuildingExtension }
   | { type: 'UPDATE_EXTENSION'; payload: { id: string; updates: Partial<BuildingExtension> } }
   | { type: 'DELETE_EXTENSION'; payload: string }
+  | { type: 'SET_GUARDRAIL'; payload: { structureId: string; config: GuardrailConfig | undefined } }
+  | { type: 'SET_ACROTERE'; payload: { structureId: string; config: AcrotereConfig | undefined } }
+  | { type: 'SET_SOLAR_ARRAY'; payload: { structureId: string; config: SolarArrayConfig | undefined } }
+  | { type: 'SET_LOCATION'; payload: Location | undefined }
+  | { type: 'SET_CLADING'; payload: { structureId: string; config: CladingConfig | undefined } }
+  | { type: 'SET_ROOFING'; payload: { structureId: string; config: RoofingConfig | undefined } }
+  | { type: 'SET_PAINTING'; payload: { structureId: string; config: PaintingConfig | undefined } }
+  | { type: 'SET_ACCESSORIES'; payload: { structureId: string; config: AccessoriesConfig | undefined } }
+  | { type: 'SET_OPTIONS'; payload: { structureId: string; config: OptionsConfig | undefined } }
   | { type: 'SET_FINISHES'; payload: Partial<Finishes> }
   | { type: 'GENERATE_BUILDING' }
-  | { type: 'SET_BUILDING'; payload: MonoPenteBuilding }
+  | { type: 'SET_BUILDING'; payload: Building }
   | { type: 'SET_NOMENCLATURE'; payload: Nomenclature }
   | { type: 'SET_ERROR'; payload: { field: string; message: string } }
   | { type: 'CLEAR_ERROR'; payload: string }
@@ -86,37 +144,98 @@ export interface Step1DimensionsProps {
 }
 
 /**
- * Props pour Step2_Openings
+ * Props pour Step2_Equipment (ossature secondaire)
  */
-export interface Step2OpeningsProps {
+export interface Step2EquipmentProps {
   openings: Opening[];
+  equipmentByStructure: {
+    [structureId: string]: {
+      guardrail?: GuardrailConfig;
+      acrotere?: AcrotereConfig;
+      solarArray?: SolarArrayConfig;
+    }
+  };
+  extensions: BuildingExtension[];
   buildingDimensions: BuildingDimensions;
+  buildingParameters: BuildingParameters;
+  buildingType: BuildingType;
+  location?: Location;
   onAddOpening: (opening: Opening) => void;
   onUpdateOpening: (id: string, updates: Partial<Opening>) => void;
   onDeleteOpening: (id: string) => void;
+  onSetGuardrail: (structureId: string, config: GuardrailConfig | undefined) => void;
+  onSetAcrotere: (structureId: string, config: AcrotereConfig | undefined) => void;
+  onSetSolarArray: (structureId: string, config: SolarArrayConfig | undefined) => void;
+  onSetLocation: (location: Location | undefined) => void;
   onNext: () => void;
   onPrevious: () => void;
 }
 
 /**
- * Props pour Step3_Finishes
+ * Props pour Step3_Envelope (enveloppe)
  */
-export interface Step3FinishesProps {
-  finishes: Finishes;
-  onFinishesChange: (finishes: Partial<Finishes>) => void;
+export interface Step3EnvelopeProps {
+  envelopeByStructure: {
+    [structureId: string]: {
+      clading?: CladingConfig;
+      roofing?: RoofingConfig;
+    }
+  };
+  extensions: BuildingExtension[];
+  buildingDimensions: BuildingDimensions;
+  buildingParameters: BuildingParameters;
+  buildingType: BuildingType;
+  openings: Opening[];
+  equipmentByStructure: {
+    [structureId: string]: {
+      guardrail?: GuardrailConfig;
+      acrotere?: AcrotereConfig;
+    }
+  };
+  onSetClading: (structureId: string, config: CladingConfig | undefined) => void;
+  onSetRoofing: (structureId: string, config: RoofingConfig | undefined) => void;
   onNext: () => void;
   onPrevious: () => void;
 }
 
 /**
- * Props pour Step4_Summary
+ * Props pour Step4_Finishing (finitions)
  */
-export interface Step4SummaryProps {
-  building: MonoPenteBuilding | null;
+export interface Step4FinishingProps {
+  finishingByStructure: {
+    [structureId: string]: {
+      painting?: PaintingConfig;
+      accessories?: AccessoriesConfig;
+      options?: OptionsConfig;
+    }
+  };
+  extensions: BuildingExtension[];
+  buildingDimensions: BuildingDimensions;
+  buildingParameters: BuildingParameters;
+  buildingType: BuildingType;
+  openings: Opening[];
+  equipmentByStructure: {
+    [structureId: string]: {
+      guardrail?: GuardrailConfig;
+      acrotere?: AcrotereConfig;
+    }
+  };
+  onSetPainting: (structureId: string, config: PaintingConfig | undefined) => void;
+  onSetAccessories: (structureId: string, config: AccessoriesConfig | undefined) => void;
+  onSetOptions: (structureId: string, config: OptionsConfig | undefined) => void;
+  onNext: () => void;
+  onPrevious: () => void;
+}
+
+/**
+ * Props pour Step5_Summary
+ */
+export interface Step5SummaryProps {
+  building: Building | null;
   nomenclature: Nomenclature | null;
   isGenerating?: boolean;
   onPrevious: () => void;
-  onExport: (format: 'csv' | 'json' | 'ifc') => void;
+  onExport: (format: 'csv' | 'json' | 'ifc' | 'html') => void;
   onReset: () => void;
 }
 
@@ -125,10 +244,10 @@ export interface Step4SummaryProps {
  */
 export interface BuildingEstimatorProps {
   // Bâtiment initial (pour édition)
-  initialBuilding?: MonoPenteBuilding;
+  initialBuilding?: Building;
 
   // Callbacks
-  onComplete?: (building: MonoPenteBuilding, nomenclature: Nomenclature) => void;
+  onComplete?: (building: Building, nomenclature: Nomenclature) => void;
   onCancel?: () => void;
 
   // Options

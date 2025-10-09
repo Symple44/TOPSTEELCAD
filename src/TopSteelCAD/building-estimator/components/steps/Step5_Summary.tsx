@@ -1,10 +1,10 @@
 /**
- * Étape 4 : Résumé et nomenclature
+ * Étape 5 : Résumé et nomenclature
  * Building Estimator - TopSteelCAD
  */
 
 import React, { useState } from 'react';
-import { Step4SummaryProps } from '../types';
+import { Step5SummaryProps } from '../types';
 import { NomenclatureSection, Unit } from '../../types';
 import { BuildingViewer3D } from '../BuildingViewer3D';
 import {
@@ -14,6 +14,8 @@ import {
   labelStyle,
   buttonGroupStyle,
   buttonStyle,
+  buttonGroupStyleResponsive,
+  buttonStyleResponsive,
   cardTitleStyle,
   tableStyle,
   thStyle,
@@ -23,7 +25,7 @@ import {
   viewer3DStyle
 } from '../../styles/buildingEstimator.styles';
 
-export const Step4_Summary: React.FC<Step4SummaryProps> = ({
+export const Step5_Summary: React.FC<Step5SummaryProps> = ({
   building,
   nomenclature,
   onExport,
@@ -32,6 +34,14 @@ export const Step4_Summary: React.FC<Step4SummaryProps> = ({
 }) => {
   const [showViewer3D, setShowViewer3D] = useState(true);
   const [viewerError, setViewerError] = useState<Error | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+
+  // Détecter le redimensionnement
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (!building || !nomenclature) {
     return (
@@ -313,37 +323,37 @@ export const Step4_Summary: React.FC<Step4SummaryProps> = ({
       <div style={formSectionStyle}>
         <h3 style={cardTitleStyle}>💾 Export</h3>
 
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', flexWrap: 'wrap' }}>
           <button
-            style={buttonStyle('primary')}
+            style={buttonStyleResponsive('primary', isMobile)}
             onClick={() => onExport('csv')}
             title="Exporter la nomenclature en CSV (compatible Excel)"
           >
-            📊 Export CSV
+            {isMobile ? '📊 CSV' : '📊 Export CSV'}
           </button>
 
           <button
-            style={buttonStyle('primary')}
-            onClick={() => onExport('csv')}
-            title="Exporter la nomenclature en CSV"
+            style={buttonStyleResponsive('primary', isMobile)}
+            onClick={() => onExport('html')}
+            title="Exporter la nomenclature en HTML"
           >
-            🖨️ Export HTML
+            {isMobile ? '🖨️ HTML' : '🖨️ Export HTML'}
           </button>
 
           <button
-            style={buttonStyle('primary')}
+            style={buttonStyleResponsive('primary', isMobile)}
             onClick={() => onExport('json')}
             title="Exporter le bâtiment en JSON (données complètes)"
           >
-            📄 Export JSON
+            {isMobile ? '📄 JSON' : '📄 Export JSON'}
           </button>
 
           <button
-            style={buttonStyle('primary')}
+            style={buttonStyleResponsive('primary', isMobile)}
             onClick={() => onExport('ifc')}
             title="Exporter le bâtiment en IFC (format BIM)"
           >
-            🏗️ Export IFC
+            {isMobile ? '🏗️ IFC' : '🏗️ Export IFC'}
           </button>
         </div>
 
@@ -353,12 +363,12 @@ export const Step4_Summary: React.FC<Step4SummaryProps> = ({
       </div>
 
       {/* Navigation */}
-      <div style={buttonGroupStyle}>
-        <button style={buttonStyle('secondary')} onClick={onPrevious}>
+      <div style={buttonGroupStyleResponsive(isMobile)}>
+        <button style={buttonStyleResponsive('secondary', isMobile)} onClick={onPrevious}>
           ← Retour
         </button>
-        <button style={buttonStyle('danger')} onClick={onReset}>
-          🔄 Nouveau Bâtiment
+        <button style={buttonStyleResponsive('danger', isMobile)} onClick={onReset}>
+          {isMobile ? '🔄 Nouveau' : '🔄 Nouveau Bâtiment'}
         </button>
       </div>
     </div>

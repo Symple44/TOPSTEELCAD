@@ -11,7 +11,9 @@ import { BuildingPreview3D } from '../BuildingPreview3D';
 import { BuildingOrExtensionForm } from '../BuildingOrExtensionForm';
 import {
   buttonGroupStyle,
-  buttonStyle
+  buttonStyle,
+  buttonGroupStyleResponsive,
+  buttonStyleResponsive
 } from '../../styles/buildingEstimator.styles';
 
 export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
@@ -34,6 +36,7 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
   const [showViewer, setShowViewer] = React.useState(false);
   // État pour détecter si on est sur desktop ou mobile
   const [isDesktop, setIsDesktop] = React.useState(window.innerWidth >= 1024);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 640);
   // État pour masquer le viewer sur desktop
   const [viewerHidden, setViewerHidden] = React.useState(false);
 
@@ -41,6 +44,7 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
   React.useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 1024);
+      setIsMobile(window.innerWidth < 640);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -200,51 +204,55 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
       {/* Onglets horizontaux */}
       <div style={{
         display: 'flex',
-        gap: '8px',
-        marginBottom: '20px',
+        gap: isMobile ? '4px' : '8px',
+        marginBottom: isMobile ? '16px' : '20px',
         borderBottom: '2px solid #e2e8f0',
-        overflowX: 'auto'
+        overflowX: 'auto',
+        paddingBottom: '0px',
+        WebkitOverflowScrolling: 'touch'
       }}>
         {/* Onglet Bâtiment principal */}
         <button
           onClick={() => setActiveTab('main')}
           style={{
-            padding: '12px 20px',
+            padding: isMobile ? '8px 12px' : '12px 20px',
             border: 'none',
             borderBottom: activeTab === 'main' ? `3px solid ${getColorByLevel('main').border}` : '3px solid transparent',
             background: activeTab === 'main' ? getColorByLevel('main').bg : 'transparent',
             color: activeTab === 'main' ? getColorByLevel('main').text : '#64748b',
             cursor: 'pointer',
             fontWeight: activeTab === 'main' ? '700' : '500',
-            fontSize: '1rem',
+            fontSize: isMobile ? '0.8rem' : '1rem',
             transition: 'all 0.2s',
             whiteSpace: 'nowrap'
           }}
         >
-          🏢 Bâtiment principal
+          {isMobile ? '🏢 Principal' : '🏢 Bâtiment principal'}
         </button>
 
         {/* Onglets Extensions */}
         {extensions.map((ext, index) => {
           const colors = getColorByLevel(index);
+          const shortName = isMobile && ext.name.length > 10 ? `${ext.name.substring(0, 8)}...` : ext.name;
           return (
             <button
               key={ext.id}
               onClick={() => setActiveTab(index)}
               style={{
-                padding: '12px 20px',
+                padding: isMobile ? '8px 10px' : '12px 20px',
                 border: 'none',
                 borderBottom: activeTab === index ? `3px solid ${colors.border}` : '3px solid transparent',
                 background: activeTab === index ? colors.bg : 'transparent',
                 color: activeTab === index ? colors.text : '#64748b',
                 cursor: 'pointer',
                 fontWeight: activeTab === index ? '700' : '500',
-                fontSize: '1rem',
+                fontSize: isMobile ? '0.75rem' : '1rem',
                 transition: 'all 0.2s',
                 whiteSpace: 'nowrap'
               }}
+              title={isMobile ? ext.name : undefined}
             >
-              ➕ {ext.name}
+              ➕ {shortName}
             </button>
           );
         })}
@@ -253,14 +261,14 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
         <button
           onClick={handleAddNewExtension}
           style={{
-            padding: '12px 20px',
+            padding: isMobile ? '8px 12px' : '12px 20px',
             border: 'none',
             borderBottom: '3px solid transparent',
             background: 'transparent',
             color: '#10b981',
             cursor: 'pointer',
             fontWeight: '700',
-            fontSize: '1.2rem',
+            fontSize: isMobile ? '1rem' : '1.2rem',
             transition: 'all 0.2s',
             whiteSpace: 'nowrap'
           }}
@@ -285,9 +293,9 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
 
           {/* Boutons de navigation (seulement sur l'onglet bâtiment principal) */}
           {activeTab === 'main' && (
-            <div style={buttonGroupStyle}>
-              <button style={buttonStyle('primary')} onClick={onNext}>
-                Suivant : Ouvertures →
+            <div style={buttonGroupStyleResponsive(isMobile)}>
+              <button style={buttonStyleResponsive('primary', isMobile)} onClick={onNext}>
+                {isMobile ? 'Suivant →' : 'Suivant : Équipement →'}
               </button>
             </div>
           )}

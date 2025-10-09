@@ -20,45 +20,50 @@ const COLORS = {
 };
 
 // Container principal
-export const containerStyle: CSSProperties = {
+export const containerStyle = (isMobile: boolean = false): CSSProperties => ({
   maxWidth: '1400px',
   margin: '0 auto',
-  padding: '20px',
+  padding: isMobile ? '12px' : '20px',
   fontFamily: 'system-ui, -apple-system, sans-serif',
   background: COLORS.white,
   minHeight: '100vh'
-};
+});
 
 // Header
-export const headerStyle: CSSProperties = {
-  marginBottom: '30px',
+export const headerStyle = (isMobile: boolean = false): CSSProperties => ({
+  marginBottom: isMobile ? '20px' : '30px',
   borderBottom: `2px solid ${COLORS.border}`,
-  paddingBottom: '20px'
-};
+  paddingBottom: isMobile ? '12px' : '20px'
+});
 
-export const titleStyle: CSSProperties = {
-  fontSize: '28px',
+export const titleStyle = (isMobile: boolean = false): CSSProperties => ({
+  fontSize: isMobile ? '20px' : '28px',
   fontWeight: '600',
   color: COLORS.text,
-  margin: 0
-};
+  margin: 0,
+  lineHeight: 1.2
+});
 
-export const subtitleStyle: CSSProperties = {
-  fontSize: '16px',
+export const subtitleStyle = (isMobile: boolean = false): CSSProperties => ({
+  fontSize: isMobile ? '13px' : '16px',
   color: COLORS.textLight,
-  margin: '8px 0 0 0'
-};
+  margin: '8px 0 0 0',
+  lineHeight: 1.4
+});
 
 // Stepper
-export const stepperStyle: CSSProperties = {
+export const stepperStyle = (isMobile: boolean = false): CSSProperties => ({
   display: 'flex',
   justifyContent: 'space-between',
-  marginBottom: '40px',
-  padding: '0 20px'
-};
+  marginBottom: isMobile ? '24px' : '40px',
+  padding: isMobile ? '0 8px' : '0 20px',
+  overflowX: isMobile ? 'auto' : 'visible',
+  gap: isMobile ? '8px' : '0'
+});
 
-export const stepStyle = (isActive: boolean, isCompleted: boolean): CSSProperties => ({
-  flex: 1,
+export const stepStyle = (isActive: boolean, isCompleted: boolean, isMobile: boolean = false): CSSProperties => ({
+  flex: isMobile ? '0 0 auto' : 1,
+  minWidth: isMobile ? '70px' : 'auto',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -66,9 +71,9 @@ export const stepStyle = (isActive: boolean, isCompleted: boolean): CSSPropertie
   cursor: isCompleted ? 'pointer' : 'default'
 });
 
-export const stepNumberStyle = (isActive: boolean, isCompleted: boolean): CSSProperties => ({
-  width: '40px',
-  height: '40px',
+export const stepNumberStyle = (isActive: boolean, isCompleted: boolean, isMobile: boolean = false): CSSProperties => ({
+  width: isMobile ? '32px' : '40px',
+  height: isMobile ? '32px' : '40px',
   borderRadius: '50%',
   background: isActive || isCompleted ? COLORS.primary : COLORS.secondary,
   color: COLORS.white,
@@ -76,18 +81,23 @@ export const stepNumberStyle = (isActive: boolean, isCompleted: boolean): CSSPro
   alignItems: 'center',
   justifyContent: 'center',
   fontWeight: '600',
-  marginBottom: '8px',
-  fontSize: '18px'
+  marginBottom: isMobile ? '4px' : '8px',
+  fontSize: isMobile ? '14px' : '18px',
+  flexShrink: 0
 });
 
-export const stepLabelStyle = (isActive: boolean): CSSProperties => ({
-  fontSize: '14px',
+export const stepLabelStyle = (isActive: boolean, isMobile: boolean = false): CSSProperties => ({
+  fontSize: isMobile ? '11px' : '14px',
   color: isActive ? COLORS.primary : COLORS.textLight,
   fontWeight: isActive ? '600' : '400',
-  textAlign: 'center'
+  textAlign: 'center',
+  whiteSpace: isMobile ? 'nowrap' : 'normal',
+  overflow: isMobile ? 'hidden' : 'visible',
+  textOverflow: isMobile ? 'ellipsis' : 'clip',
+  maxWidth: isMobile ? '70px' : 'none'
 });
 
-// Form
+// Form (compatibilité avec anciens composants)
 export const formSectionStyle: CSSProperties = {
   background: COLORS.white,
   borderRadius: '8px',
@@ -102,6 +112,22 @@ export const formRowStyle: CSSProperties = {
   gap: '20px',
   marginBottom: '20px'
 };
+
+// Versions responsive (nouvelles)
+export const formSectionStyleResponsive = (isMobile: boolean = false): CSSProperties => ({
+  background: COLORS.white,
+  borderRadius: isMobile ? '6px' : '8px',
+  padding: isMobile ? '16px' : '30px',
+  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  marginBottom: isMobile ? '12px' : '20px'
+});
+
+export const formRowStyleResponsive = (isMobile: boolean = false): CSSProperties => ({
+  display: 'grid',
+  gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
+  gap: isMobile ? '12px' : '20px',
+  marginBottom: isMobile ? '12px' : '20px'
+});
 
 export const formGroupStyle: CSSProperties = {
   display: 'flex',
@@ -136,7 +162,7 @@ export const errorStyle: CSSProperties = {
   marginTop: '4px'
 };
 
-// Buttons
+// Buttons (compatibilité)
 export const buttonGroupStyle: CSSProperties = {
   display: 'flex',
   gap: '12px',
@@ -163,6 +189,40 @@ export const buttonStyle = (variant: 'primary' | 'secondary' | 'danger' = 'prima
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'background 0.2s'
+  };
+};
+
+// Buttons responsive
+export const buttonGroupStyleResponsive = (isMobile: boolean = false): CSSProperties => ({
+  display: 'flex',
+  gap: isMobile ? '8px' : '12px',
+  justifyContent: isMobile ? 'center' : 'flex-end',
+  marginTop: isMobile ? '20px' : '30px',
+  flexWrap: isMobile ? 'wrap' : 'nowrap'
+});
+
+export const buttonStyleResponsive = (variant: 'primary' | 'secondary' | 'danger' = 'primary', isMobile: boolean = false): CSSProperties => {
+  const colors = {
+    primary: { bg: COLORS.primary, hover: COLORS.primaryHover, text: COLORS.white },
+    secondary: { bg: COLORS.secondary, hover: '#475569', text: COLORS.white },
+    danger: { bg: COLORS.danger, hover: '#dc2626', text: COLORS.white }
+  };
+
+  const color = colors[variant];
+
+  return {
+    padding: isMobile ? '8px 12px' : '10px 20px',
+    background: color.bg,
+    color: color.text,
+    border: 'none',
+    borderRadius: isMobile ? '4px' : '6px',
+    fontSize: isMobile ? '0.8rem' : '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+    whiteSpace: isMobile ? 'nowrap' : 'normal',
+    flex: isMobile ? '1 1 auto' : '0 0 auto',
+    minWidth: isMobile ? '0' : 'auto'
   };
 };
 
