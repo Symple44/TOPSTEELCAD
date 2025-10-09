@@ -64,6 +64,9 @@ export interface OmbriereDimensions {
   clearHeight: number;               // Hauteur libre pour véhicules (mm)
   slope: number;                     // Pente (toujours 0 pour ombrière - structure plane)
 
+  // Spécifique variante double poteau
+  doublePostSpacing?: number;        // Espacement entre les 2 poteaux pour DOUBLE_CENTERED_POST (mm, défaut: 2000mm)
+
   // Spécifique ombrière
   tilt: number;                      // Inclinaison panneaux solaires (degrés, 0-30°)
   numberOfParkingSpaces?: number;    // Nombre de places de parking

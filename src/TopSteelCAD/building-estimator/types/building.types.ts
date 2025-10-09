@@ -426,6 +426,9 @@ export interface BuildingExtension {
   bayIndex?: number;                         // Index de la travée (si TRAVEE)
   side: 'front' | 'back' | 'left' | 'right'; // Côté d'attachement
 
+  // Couleur
+  colorIndex?: number;                       // Index de couleur permanent (0-7 dans palette)
+
   // Dimensions
   dimensions: BuildingDimensions;
   parameters: BuildingParameters;

@@ -9,6 +9,10 @@ import { Step1DimensionsProps } from '../types';
 import { BuildingType, BuildingExtension, BuildingDimensions, ExtensionAttachmentType } from '../../types';
 import { BuildingPreview3D } from '../BuildingPreview3D';
 import { BuildingOrExtensionForm } from '../BuildingOrExtensionForm';
+import { BuildingSummary } from '../BuildingSummary';
+import { ExtensionTreeView } from '../ExtensionTreeView';
+import { ConfirmDialog } from '../ConfirmDialog';
+import { getMainBuildingColor, getExtensionColor, getNextColorIndex } from '../../utils/extensionColors';
 import {
   buttonGroupStyle,
   buttonStyle,
@@ -30,15 +34,22 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
   onDeleteExtension,
   onNext
 }) => {
-  // État pour gérer les onglets : 'main' pour bâtiment principal, index pour extensions
-  const [activeTab, setActiveTab] = React.useState<'main' | number>('main');
+  // État pour gérer les onglets : 'main' pour bâtiment principal, 'summary' pour synthèse, index pour extensions
+  const [activeTab, setActiveTab] = React.useState<'main' | 'summary' | number>('main');
   // État pour afficher/masquer le viewer 3D
-  const [showViewer, setShowViewer] = React.useState(false);
+  const [viewerVisible, setViewerVisible] = React.useState(false);
   // État pour détecter si on est sur desktop ou mobile
   const [isDesktop, setIsDesktop] = React.useState(window.innerWidth >= 1024);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 640);
-  // État pour masquer le viewer sur desktop
-  const [viewerHidden, setViewerHidden] = React.useState(false);
+  // État pour le plein écran
+  const [fullscreenViewer, setFullscreenViewer] = React.useState(false);
+  // État pour la dialog de confirmation
+  const [deleteDialog, setDeleteDialog] = React.useState<{
+    isOpen: boolean;
+    extensionId: string;
+    extensionName: string;
+    descendantsCount: number;
+  }>({ isOpen: false, extensionId: '', extensionName: '', descendantsCount: 0 });
 
   // Détecter le redimensionnement de la fenêtre
   React.useEffect(() => {
@@ -50,51 +61,27 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fonction pour obtenir le niveau d'une extension (profondeur dans la hiérarchie)
-  const getExtensionLevel = (extension: BuildingExtension): number => {
-    if (!extension.parentId) return 1; // Directement attachée au bâtiment principal
-
-    const parent = extensions.find(e => e.id === extension.parentId);
-    if (!parent) return 1;
-
-    return 1 + getExtensionLevel(parent);
-  };
-
-  // Fonction pour obtenir la couleur selon le niveau
+  // Fonction pour obtenir la couleur selon le niveau (bâtiment principal ou extension)
   const getColorByLevel = (level: 'main' | number): { border: string; bg: string; text: string } => {
     if (level === 'main') {
-      return {
-        border: '#1e40af',
-        bg: '#dbeafe',
-        text: '#1e40af'
-      };
+      return getMainBuildingColor();
     }
-
-    const extensionLevel = getExtensionLevel(extensions[level as number]);
-
-    if (extensionLevel === 1) {
-      return {
-        border: '#f59e0b',
-        bg: '#fef3c7',
-        text: '#f59e0b'
-      };
-    } else if (extensionLevel === 2) {
-      return {
-        border: '#a855f7',
-        bg: '#f3e8ff',
-        text: '#a855f7'
-      };
-    } else {
-      return {
-        border: '#ec4899',
-        bg: '#fce7f3',
-        text: '#ec4899'
-      };
-    }
+    return getExtensionColor(extensions[level as number], extensions);
   };
 
   // Fonction pour ajouter une nouvelle extension
   const handleAddNewExtension = () => {
+    // Déterminer le parent : la dernière extension ou le bâtiment principal
+    const lastExtension = extensions.length > 0 ? extensions[extensions.length - 1] : null;
+    const parentId = lastExtension ? lastExtension.id : undefined;
+
+    // Dimensions du parent pour la nouvelle extension
+    const parentDims = lastExtension ? lastExtension.dimensions : dimensions;
+    const parentParams = lastExtension ? lastExtension.parameters : parameters;
+
+    // Obtenir le prochain index de couleur
+    const colorIndex = getNextColorIndex(extensions);
+
     const newExt: BuildingExtension = {
       id: `ext-${Date.now()}`,
       name: `Extension ${extensions.length + 1}`,
@@ -102,18 +89,31 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
       attachmentType: ExtensionAttachmentType.LONG_PAN,
       side: 'front',
       bayIndex: 0,
-      parentId: undefined,
+      parentId: parentId,
+      colorIndex: colorIndex,
       dimensions: {
-        length: dimensions.length,
+        length: parentDims.length,
         width: 5000,
         heightWall: 3000,
         slope: 10
       },
-      parameters: parameters,
+      parameters: parentParams,
       reversedSlope: false
     };
     onAddExtension(newExt);
     setActiveTab(extensions.length); // Activer le nouvel onglet
+  };
+
+  // Fonction pour compter les descendants d'une extension
+  const countDescendants = (extensionId: string): number => {
+    const children = extensions.filter(ext => ext.parentId === extensionId);
+    if (children.length === 0) return 0;
+
+    let count = children.length;
+    children.forEach(child => {
+      count += countDescendants(child.id);
+    });
+    return count;
   };
 
   // Helper pour obtenir les infos du parent d'une extension
@@ -163,6 +163,16 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
           onParametersChange={onParametersChange}
         />
       );
+    } else if (activeTab === 'summary') {
+      // Synthèse - TreeView
+      return (
+        <ExtensionTreeView
+          extensions={extensions}
+          onUpdateExtension={onUpdateExtension}
+          onDeleteExtension={onDeleteExtension}
+          onAddExtension={onAddExtension}
+        />
+      );
     } else {
       // Extension
       const extension = extensions[activeTab as number];
@@ -190,10 +200,6 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
             parameters: { ...extension.parameters, ...params }
           })}
           onExtensionFieldChange={(field, value) => onUpdateExtension(extension.id, { [field]: value })}
-          onDelete={() => {
-            onDeleteExtension(extension.id);
-            setActiveTab('main'); // Retourner au bâtiment principal
-          }}
         />
       );
     }
@@ -276,194 +282,157 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
         >
           +
         </button>
+
+        {/* Onglet Synthèse - Tout à droite */}
+        {extensions.length > 0 && (
+          <button
+            onClick={() => setActiveTab('summary')}
+            style={{
+              padding: isMobile ? '8px 12px' : '12px 20px',
+              border: 'none',
+              borderBottom: activeTab === 'summary' ? '3px solid #10b981' : '3px solid transparent',
+              background: activeTab === 'summary' ? '#d1fae5' : 'transparent',
+              color: activeTab === 'summary' ? '#10b981' : '#64748b',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'summary' ? '700' : '500',
+              fontSize: isMobile ? '0.75rem' : '1rem',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
+              marginLeft: 'auto'
+            }}
+            title="Synthèse"
+          >
+            {isMobile ? '🌳' : '🌳 Synthèse'}
+          </button>
+        )}
       </div>
 
       {/* Contenu */}
       <div style={{
-        display: isDesktop && !viewerHidden ? 'grid' : 'block',
-        gridTemplateColumns: isDesktop && !viewerHidden ? '1fr 450px' : '1fr',
+        display: isDesktop ? 'grid' : 'block',
+        gridTemplateColumns: isDesktop ? '1fr 450px' : '1fr',
         gap: '20px',
-        alignItems: 'start',
-        maxWidth: isDesktop && !viewerHidden ? 'none' : '1200px',
-        margin: '0 auto'
+        alignItems: 'start'
       }}>
         {/* Formulaire actif */}
         <div>
           {renderActiveTab()}
 
-          {/* Boutons de navigation (seulement sur l'onglet bâtiment principal) */}
-          {activeTab === 'main' && (
-            <div style={buttonGroupStyleResponsive(isMobile)}>
-              <button style={buttonStyleResponsive('primary', isMobile)} onClick={onNext}>
-                {isMobile ? 'Suivant →' : 'Suivant : Équipement →'}
+          {/* Boutons de navigation - toujours visible */}
+          <div style={{
+            ...buttonGroupStyleResponsive(isMobile),
+            display: 'flex',
+            gap: '12px',
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
+            {/* Bouton supprimer (si extension active) */}
+            {activeTab !== 'main' && activeTab !== 'summary' && extensions[activeTab as number] && (
+              <button
+                onClick={() => {
+                  const extension = extensions[activeTab as number];
+                  const descendantsCount = countDescendants(extension.id);
+                  setDeleteDialog({
+                    isOpen: true,
+                    extensionId: extension.id,
+                    extensionName: extension.name,
+                    descendantsCount
+                  });
+                }}
+                style={buttonStyleResponsive('danger', isMobile)}
+              >
+                {isMobile ? '🗑️ Supprimer' : '🗑️ Supprimer cette extension'}
               </button>
-            </div>
-          )}
+            )}
+            <button style={buttonStyleResponsive('primary', isMobile)} onClick={onNext}>
+              {isMobile ? 'Suivant →' : 'Suivant : Équipement →'}
+            </button>
+          </div>
         </div>
 
         {/* Viewer 3D sur desktop (sticky à droite) */}
-        {isDesktop && !viewerHidden && (
+        {isDesktop && (
           <div style={{ position: 'sticky', top: '20px' }}>
             <div style={{
-              padding: '20px',
-              background: '#1a1a1a',
-              borderRadius: '12px',
-              marginBottom: '0',
-              position: 'relative'
+              background: '#f8fafc',
+              border: '2px solid #e2e8f0',
+              borderRadius: '8px',
+              overflow: 'hidden'
             }}>
-              {/* Bouton masquer */}
-              <button
-                onClick={() => setViewerHidden(true)}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '50%',
-                  background: '#475569',
-                  color: '#fff',
-                  border: 'none',
-                  fontSize: '1rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease',
-                  zIndex: 10
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#334155';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#475569';
-                }}
-                title="Masquer le viewer"
-              >
-                ×
-              </button>
-
-              <h3 style={{
-                fontSize: '1.1rem',
-                fontWeight: '700',
-                color: '#f1f5f9',
-                marginBottom: '15px',
-                marginTop: 0,
-                paddingRight: '40px'
+              <div style={{
+                padding: '12px 16px',
+                background: '#fff',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
               }}>
-                🎨 Aperçu 3D
-              </h3>
+                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>📐 Aperçu 3D</span>
+                <button
+                  onClick={() => setFullscreenViewer(true)}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    color: '#2563eb',
+                    fontWeight: '500'
+                  }}
+                  title="Plein écran"
+                >
+                  ⛶
+                </button>
+              </div>
               <BuildingPreview3D
                 buildingType={buildingType}
                 dimensions={dimensions}
                 parameters={parameters}
                 extensions={extensions}
-                width={410}
-                height={500}
+                width={450}
+                height={400}
               />
-              <div style={{
-                marginTop: '15px',
-                padding: '12px',
-                background: '#0f172a',
-                borderRadius: '6px',
-                fontSize: '0.85rem',
-                color: '#94a3b8'
-              }}>
-                <div style={{ marginBottom: '8px', fontWeight: '600', color: '#cbd5e1' }}>
-                  📏 Dimensions actuelles:
-                </div>
-                <div>• Longueur: {(dimensions.length / 1000).toFixed(1)}m</div>
-                <div>• Largeur: {(dimensions.width / 1000).toFixed(1)}m</div>
-                <div>• Hauteur: {(dimensions.heightWall / 1000).toFixed(1)}m</div>
-                {buildingType === BuildingType.MONO_PENTE && (
-                  <div>• Pente: {dimensions.slope}%</div>
-                )}
-
-                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #1e293b' }}>
-                  <div style={{ marginBottom: '8px', fontWeight: '600', color: '#cbd5e1' }}>
-                    🏗️ Profils structurels:
-                  </div>
-                  <div>• Poteaux: {parameters.postProfile}</div>
-                  <div>• Arbalétriers: {parameters.rafterProfile}</div>
-                  <div>• Pannes: {parameters.purlinProfile}</div>
-                  <div>• Lisses: {parameters.railProfile}</div>
-                </div>
-
-                {extensions.length > 0 && (
-                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #1e293b' }}>
-                    <div style={{ marginBottom: '8px', fontWeight: '600', color: '#cbd5e1' }}>
-                      🎨 Légende des couleurs:
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ width: '12px', height: '12px', background: '#1e40af', borderRadius: '2px', display: 'inline-block' }}></span>
-                      <span>Bâtiment principal</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ width: '12px', height: '12px', background: '#f59e0b', borderRadius: '2px', display: 'inline-block' }}></span>
-                      <span>Extension niveau 1</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ width: '12px', height: '12px', background: '#a855f7', borderRadius: '2px', display: 'inline-block' }}></span>
-                      <span>Extension niveau 2</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '12px', height: '12px', background: '#ec4899', borderRadius: '2px', display: 'inline-block' }}></span>
-                      <span>Extension niveau 3+</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <BuildingSummary
+                dimensions={dimensions}
+                parameters={parameters}
+                buildingType={buildingType}
+                extensions={extensions}
+              />
             </div>
           </div>
         )}
       </div>
 
-      {/* Bouton flottant 3D (mobile OU desktop quand viewer caché) */}
-      {(!isDesktop || viewerHidden) && (
+      {/* Bouton flottant 3D - Mobile uniquement */}
+      {!isDesktop && (
         <button
-          onClick={() => {
-            if (isDesktop) {
-              setViewerHidden(false);
-            } else {
-              setShowViewer(!showViewer);
-            }
-          }}
+          onClick={() => setViewerVisible(!viewerVisible)}
           style={{
             position: 'fixed',
-            bottom: '30px',
-            right: '30px',
-            width: '60px',
-            height: '60px',
+            bottom: '20px',
+            right: '20px',
+            width: '56px',
+            height: '56px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: '#2563eb',
             color: '#fff',
             border: 'none',
-            fontSize: '1.2rem',
-            fontWeight: '700',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             cursor: 'pointer',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
-            transition: 'all 0.3s ease',
-            zIndex: 1000,
+            fontSize: '1.5rem',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            zIndex: 1000
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.1)';
-            e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
-          }}
-          title="Aperçu 3D"
         >
-          3D
+          📐
         </button>
       )}
 
-      {/* Modal/Overlay du viewer 3D (mobile uniquement) */}
-      {!isDesktop && showViewer && (
+      {/* Modal mobile 3D */}
+      {!isDesktop && viewerVisible && (
         <div
           style={{
             position: 'fixed',
@@ -471,147 +440,146 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 1001,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={() => setViewerVisible(false)}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '90vw',
+              maxHeight: '85vh',
+              overflow: 'hidden',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              padding: '16px',
+              background: '#f8fafc',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ fontWeight: '600', fontSize: '1rem' }}>📐 Aperçu 3D</span>
+              <button
+                onClick={() => setViewerVisible(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '4px 8px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <BuildingPreview3D
+              buildingType={buildingType}
+              dimensions={dimensions}
+              parameters={parameters}
+              extensions={extensions}
+              width={Math.min(window.innerWidth * 0.9 - 40, 800)}
+              height={Math.min(window.innerHeight * 0.85 - 80, 600)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal plein écran - Desktop et Mobile */}
+      {fullscreenViewer && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.9)',
             zIndex: 2000,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '20px',
-            backdropFilter: 'blur(4px)'
+            padding: '20px'
           }}
-          onClick={() => setShowViewer(false)}
+          onClick={() => setFullscreenViewer(false)}
         >
           <div
             style={{
-              position: 'relative',
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              background: '#1a1a1a',
-              borderRadius: '16px',
-              padding: '20px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-              animation: 'fadeIn 0.2s ease'
+              background: '#fff',
+              borderRadius: '12px',
+              width: '95vw',
+              height: '95vh',
+              overflow: 'hidden',
+              position: 'relative'
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Bouton fermer */}
-            <button
-              onClick={() => setShowViewer(false)}
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                background: '#ef4444',
-                color: '#fff',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s ease',
-                zIndex: 10
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#dc2626';
-                e.currentTarget.style.transform = 'scale(1.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#ef4444';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-              title="Fermer"
-            >
-              ×
-            </button>
-
-            <h3 style={{
-              fontSize: '1.3rem',
-              fontWeight: '700',
-              color: '#f1f5f9',
-              marginBottom: '20px',
-              marginTop: 0,
-              paddingRight: '50px'
+            <div style={{
+              padding: '16px 20px',
+              background: '#f8fafc',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
             }}>
-              🎨 Aperçu 3D du Bâtiment
-            </h3>
-
-            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-              {/* Viewer 3D */}
-              <div style={{ flex: '1 1 500px', minWidth: '300px' }}>
-                <BuildingPreview3D
-                  buildingType={buildingType}
-                  dimensions={dimensions}
-                  parameters={parameters}
-                  extensions={extensions}
-                  width={Math.min(window.innerWidth * 0.5, 600)}
-                  height={Math.min(window.innerHeight * 0.6, 500)}
-                />
-              </div>
-
-              {/* Informations */}
-              <div style={{
-                flex: '1 1 300px',
-                minWidth: '250px',
-                padding: '16px',
-                background: '#0f172a',
-                borderRadius: '8px',
-                fontSize: '0.9rem',
-                color: '#94a3b8',
-                maxHeight: '500px',
-                overflowY: 'auto'
-              }}>
-                <div style={{ marginBottom: '8px', fontWeight: '600', color: '#cbd5e1', fontSize: '1rem' }}>
-                  📏 Dimensions actuelles:
-                </div>
-                <div>• Longueur: {(dimensions.length / 1000).toFixed(1)}m</div>
-                <div>• Largeur: {(dimensions.width / 1000).toFixed(1)}m</div>
-                <div>• Hauteur: {(dimensions.heightWall / 1000).toFixed(1)}m</div>
-                {buildingType === BuildingType.MONO_PENTE && (
-                  <div>• Pente: {dimensions.slope}%</div>
-                )}
-
-                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1e293b' }}>
-                  <div style={{ marginBottom: '8px', fontWeight: '600', color: '#cbd5e1', fontSize: '1rem' }}>
-                    🏗️ Profils structurels:
-                  </div>
-                  <div>• Poteaux: {parameters.postProfile}</div>
-                  <div>• Arbalétriers: {parameters.rafterProfile}</div>
-                  <div>• Pannes: {parameters.purlinProfile}</div>
-                  <div>• Lisses: {parameters.railProfile}</div>
-                </div>
-
-                {extensions.length > 0 && (
-                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1e293b' }}>
-                    <div style={{ marginBottom: '8px', fontWeight: '600', color: '#cbd5e1', fontSize: '1rem' }}>
-                      🎨 Légende des couleurs:
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span style={{ width: '16px', height: '16px', background: '#1e40af', borderRadius: '3px', display: 'inline-block' }}></span>
-                      <span>Bâtiment principal</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span style={{ width: '16px', height: '16px', background: '#f59e0b', borderRadius: '3px', display: 'inline-block' }}></span>
-                      <span>Extension niveau 1</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span style={{ width: '16px', height: '16px', background: '#a855f7', borderRadius: '3px', display: 'inline-block' }}></span>
-                      <span>Extension niveau 2</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '16px', height: '16px', background: '#ec4899', borderRadius: '3px', display: 'inline-block' }}></span>
-                      <span>Extension niveau 3+</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>📐 Aperçu 3D - Plein écran</span>
+              <button
+                onClick={() => setFullscreenViewer(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1.8rem',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  color: '#64748b'
+                }}
+              >
+                ✕
+              </button>
             </div>
+            <BuildingPreview3D
+              buildingType={buildingType}
+              dimensions={dimensions}
+              parameters={parameters}
+              extensions={extensions}
+              width={window.innerWidth * 0.95 - 40}
+              height={window.innerHeight * 0.95 - 100}
+            />
           </div>
         </div>
       )}
+
+      {/* Dialog de confirmation de suppression */}
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        title="Supprimer cette extension ?"
+        message={
+          deleteDialog.descendantsCount > 0
+            ? `Vous êtes sur le point de supprimer "${deleteDialog.extensionName}" et ses ${deleteDialog.descendantsCount} extension(s) fille(s).\n\nCette action supprimera également toutes les extensions rattachées et est irréversible.`
+            : `Êtes-vous sûr de vouloir supprimer "${deleteDialog.extensionName}" ?\n\nCette action est irréversible.`
+        }
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        danger={true}
+        onConfirm={() => {
+          onDeleteExtension(deleteDialog.extensionId);
+          setActiveTab('main');
+          setDeleteDialog({ isOpen: false, extensionId: '', extensionName: '', descendantsCount: 0 });
+        }}
+        onCancel={() => {
+          setDeleteDialog({ isOpen: false, extensionId: '', extensionName: '', descendantsCount: 0 });
+        }}
+      />
     </div>
   );
 };

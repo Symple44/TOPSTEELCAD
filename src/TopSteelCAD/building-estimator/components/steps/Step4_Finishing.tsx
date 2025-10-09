@@ -15,6 +15,7 @@ import { PaintingEditor } from '../PaintingEditor';
 import { AccessoriesEditor } from '../AccessoriesEditor';
 import { OptionsEditor } from '../OptionsEditor';
 import { BuildingPreview3D } from '../BuildingPreview3D';
+import { BuildingSummary } from '../BuildingSummary';
 import { OpeningType, OpeningPosition } from '../../types';
 import { getBuildingTypeConfig } from '../../core/BuildingTypeConfigRegistry';
 import {
@@ -43,6 +44,7 @@ export const Step4_Finishing: React.FC<Step4FinishingProps> = ({
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
   const [viewerVisible, setViewerVisible] = useState(false);
+  const [fullscreenViewer, setFullscreenViewer] = useState(false);
 
   // Récupérer la configuration du type de bâtiment
   const typeConfig = getBuildingTypeConfig(buildingType);
@@ -213,6 +215,22 @@ export const Step4_Finishing: React.FC<Step4FinishingProps> = ({
                 alignItems: 'center'
               }}>
                 <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>📐 Aperçu 3D</span>
+                <button
+                  onClick={() => setFullscreenViewer(true)}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    color: '#2563eb',
+                    fontWeight: '500'
+                  }}
+                  title="Plein écran"
+                >
+                  ⛶
+                </button>
               </div>
               <BuildingPreview3D
                 buildingType={buildingType}
@@ -221,7 +239,13 @@ export const Step4_Finishing: React.FC<Step4FinishingProps> = ({
                 extensions={extensions}
                 openings={convertedOpenings}
                 width={450}
-                height={500}
+                height={400}
+              />
+              <BuildingSummary
+                dimensions={buildingDimensions}
+                parameters={buildingParameters}
+                buildingType={buildingType}
+                extensions={extensions}
               />
             </div>
           </div>
@@ -278,8 +302,8 @@ export const Step4_Finishing: React.FC<Step4FinishingProps> = ({
                   background: '#fff',
                   borderRadius: '12px',
                   width: '100%',
-                  maxWidth: '500px',
-                  maxHeight: '80vh',
+                  maxWidth: '90vw',
+                  maxHeight: '85vh',
                   overflow: 'hidden',
                   position: 'relative'
                 }}
@@ -313,13 +337,78 @@ export const Step4_Finishing: React.FC<Step4FinishingProps> = ({
                   parameters={parametersWithEquipment}
                   extensions={extensions}
                   openings={convertedOpenings}
-                  width={Math.min(window.innerWidth - 80, 440)}
-                  height={400}
+                  width={Math.min(window.innerWidth * 0.9 - 40, 800)}
+                  height={Math.min(window.innerHeight * 0.85 - 80, 600)}
                 />
               </div>
             </div>
           )}
         </>
+      )}
+
+      {/* Modal plein écran - Desktop et Mobile */}
+      {fullscreenViewer && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={() => setFullscreenViewer(false)}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: '12px',
+              width: '95vw',
+              height: '95vh',
+              overflow: 'hidden',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              padding: '16px 20px',
+              background: '#f8fafc',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>📐 Aperçu 3D - Plein écran</span>
+              <button
+                onClick={() => setFullscreenViewer(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1.8rem',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  color: '#64748b'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <BuildingPreview3D
+              buildingType={buildingType}
+              dimensions={buildingDimensions}
+              parameters={parametersWithEquipment}
+              extensions={extensions}
+              openings={convertedOpenings}
+              width={window.innerWidth * 0.95 - 40}
+              height={window.innerHeight * 0.95 - 100}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

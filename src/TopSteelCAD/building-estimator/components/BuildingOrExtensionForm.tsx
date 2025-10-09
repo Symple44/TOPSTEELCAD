@@ -75,6 +75,20 @@ export const BuildingOrExtensionForm: React.FC<BuildingOrExtensionFormProps> = (
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  /**
+   * Vérifie si targetExtension est un descendant (fille, petite-fille, etc.) de currentExtension
+   */
+  const isDescendantOf = (currentExtension: BuildingExtension, targetExtension: BuildingExtension): boolean => {
+    if (!targetExtension.parentId) return false;
+    if (targetExtension.parentId === currentExtension.id) return true;
+
+    // Recherche récursive dans les parents
+    const parent = extensions.find(e => e.id === targetExtension.parentId);
+    if (!parent) return false;
+
+    return isDescendantOf(currentExtension, parent);
+  };
+
   // Récupérer la configuration du type de bâtiment
   const typeConfig = getBuildingTypeConfig(type);
 
@@ -95,11 +109,23 @@ export const BuildingOrExtensionForm: React.FC<BuildingOrExtensionFormProps> = (
                 onChange={(e) => onExtensionFieldChange?.('parentId', e.target.value || undefined)}
               >
                 <option value="">🏢 Bâtiment principal</option>
-                {extensions.filter(ext => ext.id !== extension.id).map((ext) => (
-                  <option key={ext.id} value={ext.id}>
-                    ➕ {ext.name} ({ext.type})
-                  </option>
-                ))}
+                {extensions
+                  .filter(ext => ext.id !== extension.id) // Ne pas se sélectionner soi-même
+                  .map((ext) => {
+                    // Vérifier si ext est un descendant de l'extension courante
+                    const isDescendant = isDescendantOf(extension, ext);
+                    return (
+                      <option
+                        key={ext.id}
+                        value={ext.id}
+                        disabled={isDescendant}
+                        style={{ color: isDescendant ? '#9ca3af' : 'inherit' }}
+                      >
+                        ➕ {ext.name} ({ext.type}) {isDescendant ? '(⚠️ fille)' : ''}
+                      </option>
+                    );
+                  })
+                }
               </select>
             </div>
           )}
@@ -811,19 +837,6 @@ export const BuildingOrExtensionForm: React.FC<BuildingOrExtensionFormProps> = (
         parameters={parameters}
         onParametersChange={onParametersChange}
       />
-
-
-      {/* Bouton supprimer (Extensions uniquement) */}
-      {isExtension && onDelete && (
-        <div style={{ marginTop: '20px' }}>
-          <button
-            onClick={onDelete}
-            style={buttonStyle('danger')}
-          >
-            🗑️ Supprimer cette extension
-          </button>
-        </div>
-      )}
     </div>
   );
 };

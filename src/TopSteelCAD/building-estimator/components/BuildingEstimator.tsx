@@ -282,23 +282,7 @@ export const BuildingEstimator: React.FC<BuildingEstimatorProps> = ({
         )}
       </div>
 
-      {/* Footer info */}
-      {state.hasUnsavedChanges && (
-        <div
-          style={{
-            marginTop: '30px',
-            padding: '12px 20px',
-            background: '#fef3c7',
-            border: '1px solid #fde68a',
-            borderRadius: '6px',
-            fontSize: '14px',
-            color: '#92400e',
-            textAlign: 'center'
-          }}
-        >
-          ⚠️ Modifications non sauvegardées
-        </div>
-      )}
+      {/* Footer info - Supprimé car sauvegarde automatique */}
     </div>
   );
 };
