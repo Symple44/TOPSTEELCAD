@@ -26,6 +26,7 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
   parameters,
   extensions,
   errors,
+  equipmentByStructure,
   onBuildingTypeChange,
   onDimensionsChange,
   onParametersChange,
@@ -390,6 +391,7 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
                 dimensions={dimensions}
                 parameters={parameters}
                 extensions={extensions}
+                solarArray={equipmentByStructure['main']?.solarArray}
                 width={450}
                 height={400}
               />
@@ -488,6 +490,7 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
               dimensions={dimensions}
               parameters={parameters}
               extensions={extensions}
+              solarArray={equipmentByStructure['main']?.solarArray}
               width={Math.min(window.innerWidth * 0.9 - 40, 800)}
               height={Math.min(window.innerHeight * 0.85 - 80, 600)}
             />
@@ -552,6 +555,7 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
               dimensions={dimensions}
               parameters={parameters}
               extensions={extensions}
+              solarArray={equipmentByStructure['main']?.solarArray}
               width={window.innerWidth * 0.95 - 40}
               height={window.innerHeight * 0.95 - 100}
             />

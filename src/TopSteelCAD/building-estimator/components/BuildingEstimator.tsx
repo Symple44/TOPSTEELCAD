@@ -168,6 +168,7 @@ export const BuildingEstimator: React.FC<BuildingEstimatorProps> = ({
             parameters={state.parameters}
             extensions={state.extensions}
             errors={state.errors}
+            equipmentByStructure={state.equipmentByStructure}
             onBuildingTypeChange={setBuildingType}
             onDimensionsChange={setDimensions}
             onParametersChange={setParameters}

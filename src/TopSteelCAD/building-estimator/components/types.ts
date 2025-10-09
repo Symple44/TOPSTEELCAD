@@ -134,6 +134,13 @@ export interface Step1DimensionsProps {
   parameters: BuildingParameters;
   extensions: BuildingExtension[];
   errors: Record<string, string>;
+  equipmentByStructure: {
+    [structureId: string]: {
+      guardrail?: GuardrailConfig;
+      acrotere?: AcrotereConfig;
+      solarArray?: SolarArrayConfig;
+    }
+  };
   onBuildingTypeChange: (type: BuildingType) => void;
   onDimensionsChange: (dimensions: Partial<BuildingDimensions>) => void;
   onParametersChange: (parameters: Partial<BuildingParameters>) => void;
