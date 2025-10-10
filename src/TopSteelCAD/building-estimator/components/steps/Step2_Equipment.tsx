@@ -8,7 +8,7 @@
  * - Acrotères
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Step2EquipmentProps } from '../types';
 import { StructureTabs, Structure } from '../StructureTabs';
 import { OpeningEditor } from '../OpeningEditor';
@@ -18,8 +18,10 @@ import { SolarArrayEditor } from '../SolarArrayEditor';
 import { LocationEditor } from '../LocationEditor';
 import { BuildingPreview3D } from '../BuildingPreview3D';
 import { BuildingSummary } from '../BuildingSummary';
+import { DetachedViewer3D } from '../DetachedViewer3D';
 import { BuildingOpening, OpeningType, OpeningPosition, ExtensionAttachmentType, BuildingType } from '../../types';
 import { getBuildingTypeConfig } from '../../core/BuildingTypeConfigRegistry';
+import { useDetachedWindow } from '../../hooks/useDetachedWindow';
 import {
   buttonGroupStyle,
   buttonStyle,
@@ -52,6 +54,13 @@ export const Step2_Equipment: React.FC<Step2EquipmentProps> = ({
   const [viewerVisible, setViewerVisible] = useState(false);
   const [fullscreenViewer, setFullscreenViewer] = useState(false);
 
+  // Hook pour la fenêtre détachée
+  const detachedWindow = useDetachedWindow({
+    title: '📐 Aperçu 3D - Building Estimator',
+    width: 1400,
+    height: 900
+  });
+
   // Récupérer la configuration du type de bâtiment
   const typeConfig = getBuildingTypeConfig(buildingType);
 
@@ -80,24 +89,27 @@ export const Step2_Equipment: React.FC<Step2EquipmentProps> = ({
     }))
   ];
 
-  // Filtrer les ouvertures pour la structure active
-  const currentStructureOpenings: BuildingOpening[] = openings
-    .filter(o => (o.structureId || 'main') === activeStructureId)
-    .map(o => ({
-      ...o,
-      type: o.type as unknown as OpeningType,
-      position: OpeningPosition.LONG_PAN_FRONT, // Valeur par défaut, à adapter
-      offsetY: o.position.z || 0,
-      dimensions: {
-        width: o.dimensions.width,
-        height: o.dimensions.height
-      },
-      framing: {
-        verticalPosts: true,
-        lintel: true,
-        sill: false
-      }
-    }));
+  // Filtrer les ouvertures pour la structure active (mémorisé pour éviter les re-renders)
+  const currentStructureOpenings = React.useMemo<BuildingOpening[]>(() => {
+    return openings
+      .filter(o => (o.structureId || 'main') === activeStructureId)
+      .map(o => ({
+        ...o,
+        type: o.type as unknown as OpeningType,
+        position: OpeningPosition.LONG_PAN_FRONT, // Valeur par défaut, à adapter
+        offsetY: o.position.z || 0,
+        dimensions: {
+          width: o.dimensions.width,
+          height: o.dimensions.height
+        },
+        framing: {
+          verticalPosts: true,
+          lintel: true,
+          sill: false,
+          cheveture: false
+        }
+      }));
+  }, [openings, activeStructureId]);
 
   // Calculer le nombre de travées (approximatif)
   const maxBays = Math.ceil(buildingDimensions.length / 5000);
@@ -138,8 +150,10 @@ export const Step2_Equipment: React.FC<Step2EquipmentProps> = ({
     acrotere: equipmentByStructure['main']?.acrotere
   }), [buildingParameters, equipmentByStructure]);
 
-  // Récupérer solarArray de la structure active
-  const currentSolarArray = equipmentByStructure[activeStructureId]?.solarArray;
+  // Récupérer solarArray de la structure active (mémorisé pour éviter les re-renders)
+  const currentSolarArray = React.useMemo(() => {
+    return equipmentByStructure[activeStructureId]?.solarArray;
+  }, [equipmentByStructure, activeStructureId]);
 
   // Convertir les ouvertures du format Opening vers BuildingOpening pour le viewer 3D
   const convertedOpenings = React.useMemo(() => {
@@ -166,11 +180,42 @@ export const Step2_Equipment: React.FC<Step2EquipmentProps> = ({
         framing: {
           verticalPosts: true,
           lintel: true,
-          sill: false
+          sill: false,
+          cheveture: false
         }
       };
     });
   }, [openings]);
+
+  // Mettre à jour la fenêtre détachée quand les données changent (avec debounce)
+  useEffect(() => {
+    if (!detachedWindow.isOpen) return;
+
+    // Debounce pour éviter trop de re-renders
+    const timeoutId = setTimeout(() => {
+      detachedWindow.renderInWindow(
+        <DetachedViewer3D
+          buildingType={buildingType}
+          dimensions={buildingDimensions}
+          parameters={parametersWithEquipment}
+          extensions={extensions}
+          openings={convertedOpenings}
+          solarArray={currentSolarArray}
+          onClose={detachedWindow.closeWindow}
+        />
+      );
+    }, 300); // Attendre 300ms après la dernière modification
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    detachedWindow.isOpen,
+    buildingType,
+    buildingDimensions,
+    parametersWithEquipment,
+    extensions,
+    convertedOpenings,
+    currentSolarArray
+  ]);
 
   return (
     <div>
@@ -298,22 +343,40 @@ export const Step2_Equipment: React.FC<Step2EquipmentProps> = ({
                 alignItems: 'center'
               }}>
                 <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>📐 Aperçu 3D</span>
-                <button
-                  onClick={() => setFullscreenViewer(true)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    color: '#2563eb',
-                    fontWeight: '500'
-                  }}
-                  title="Plein écran"
-                >
-                  ⛶
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={detachedWindow.openWindow}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      color: '#10b981',
+                      fontWeight: '500'
+                    }}
+                    title="Ouvrir dans une nouvelle fenêtre"
+                  >
+                    🪟
+                  </button>
+                  <button
+                    onClick={() => setFullscreenViewer(true)}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      color: '#2563eb',
+                      fontWeight: '500'
+                    }}
+                    title="Plein écran"
+                  >
+                    ⛶
+                  </button>
+                </div>
               </div>
               <BuildingPreview3D
                 buildingType={buildingType}
@@ -330,6 +393,7 @@ export const Step2_Equipment: React.FC<Step2EquipmentProps> = ({
                 parameters={buildingParameters}
                 buildingType={buildingType}
                 extensions={extensions}
+                solarArray={currentSolarArray}
               />
             </div>
           </div>

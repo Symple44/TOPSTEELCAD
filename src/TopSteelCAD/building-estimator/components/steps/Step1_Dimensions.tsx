@@ -4,7 +4,7 @@
  * VERSION REFONTE : Système d'onglets unifié
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Step1DimensionsProps } from '../types';
 import { BuildingType, BuildingExtension, BuildingDimensions, ExtensionAttachmentType } from '../../types';
 import { BuildingPreview3D } from '../BuildingPreview3D';
@@ -12,7 +12,9 @@ import { BuildingOrExtensionForm } from '../BuildingOrExtensionForm';
 import { BuildingSummary } from '../BuildingSummary';
 import { ExtensionTreeView } from '../ExtensionTreeView';
 import { ConfirmDialog } from '../ConfirmDialog';
+import { DetachedViewer3D } from '../DetachedViewer3D';
 import { getMainBuildingColor, getExtensionColor, getNextColorIndex } from '../../utils/extensionColors';
+import { useDetachedWindow } from '../../hooks/useDetachedWindow';
 import {
   buttonGroupStyle,
   buttonStyle,
@@ -52,6 +54,13 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
     descendantsCount: number;
   }>({ isOpen: false, extensionId: '', extensionName: '', descendantsCount: 0 });
 
+  // Hook pour la fenêtre détachée
+  const detachedWindow = useDetachedWindow({
+    title: '📐 Aperçu 3D - Building Estimator',
+    width: 1400,
+    height: 900
+  });
+
   // Détecter le redimensionnement de la fenêtre
   React.useEffect(() => {
     const handleResize = () => {
@@ -61,6 +70,35 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Mettre à jour la fenêtre détachée quand les données changent (avec debounce)
+  useEffect(() => {
+    if (!detachedWindow.isOpen) return;
+
+    // Debounce pour éviter trop de re-renders
+    const timeoutId = setTimeout(() => {
+      detachedWindow.renderInWindow(
+        <DetachedViewer3D
+          buildingType={buildingType}
+          dimensions={dimensions}
+          parameters={parameters}
+          extensions={extensions}
+          openings={[]}
+          solarArray={equipmentByStructure['main']?.solarArray}
+          onClose={detachedWindow.closeWindow}
+        />
+      );
+    }, 300); // Attendre 300ms après la dernière modification
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    detachedWindow.isOpen,
+    buildingType,
+    dimensions,
+    parameters,
+    extensions,
+    equipmentByStructure
+  ]);
 
   // Fonction pour obtenir la couleur selon le niveau (bâtiment principal ou extension)
   const getColorByLevel = (level: 'main' | number): { border: string; bg: string; text: string } => {
@@ -369,22 +407,40 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
                 alignItems: 'center'
               }}>
                 <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>📐 Aperçu 3D</span>
-                <button
-                  onClick={() => setFullscreenViewer(true)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    color: '#2563eb',
-                    fontWeight: '500'
-                  }}
-                  title="Plein écran"
-                >
-                  ⛶
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={detachedWindow.openWindow}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      color: '#10b981',
+                      fontWeight: '500'
+                    }}
+                    title="Ouvrir dans une nouvelle fenêtre"
+                  >
+                    🪟
+                  </button>
+                  <button
+                    onClick={() => setFullscreenViewer(true)}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      color: '#2563eb',
+                      fontWeight: '500'
+                    }}
+                    title="Plein écran"
+                  >
+                    ⛶
+                  </button>
+                </div>
               </div>
               <BuildingPreview3D
                 buildingType={buildingType}
@@ -400,6 +456,7 @@ export const Step1_Dimensions: React.FC<Step1DimensionsProps> = ({
                 parameters={parameters}
                 buildingType={buildingType}
                 extensions={extensions}
+                solarArray={equipmentByStructure['main']?.solarArray}
               />
             </div>
           </div>

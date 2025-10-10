@@ -124,12 +124,19 @@ export interface CustomBay {
 
 /**
  * Portique personnalisé pour le mode personnalisé
- * Chaque portique a 2 poteaux (avant et arrière)
+ * Support flexible pour différents types de poteaux selon la variante structurelle
  */
 export interface CustomPortal {
   portalIndex: number;       // Index du portique (0-based)
-  frontPostYOffset: number;  // Décalage vertical poteau avant (mm)
-  backPostYOffset: number;   // Décalage vertical poteau arrière (mm)
+
+  // Nouveau système: offsets nommés par position de poteau
+  postOffsets?: {
+    [key: string]: number;   // Clés possibles: 'front', 'back', 'center', 'left', 'right', etc.
+  };
+
+  // Ancien système (rétro-compatibilité): sera migré vers postOffsets
+  frontPostYOffset?: number;  // Décalage vertical poteau avant (mm) - deprecated
+  backPostYOffset?: number;   // Décalage vertical poteau arrière (mm) - deprecated
 }
 
 /**

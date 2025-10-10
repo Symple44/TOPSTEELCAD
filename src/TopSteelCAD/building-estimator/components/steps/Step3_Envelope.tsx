@@ -7,15 +7,17 @@
  * - Couverture (roofing)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Step3EnvelopeProps } from '../types';
 import { StructureTabs, Structure } from '../StructureTabs';
 import { CladingEditor } from '../CladingEditor';
 import { RoofingEditor } from '../RoofingEditor';
 import { BuildingPreview3D } from '../BuildingPreview3D';
 import { BuildingSummary } from '../BuildingSummary';
+import { DetachedViewer3D } from '../DetachedViewer3D';
 import { OpeningType, OpeningPosition } from '../../types';
 import { getBuildingTypeConfig } from '../../core/BuildingTypeConfigRegistry';
+import { useDetachedWindow } from '../../hooks/useDetachedWindow';
 import {
   buttonGroupStyle,
   buttonStyle,
@@ -42,6 +44,13 @@ export const Step3_Envelope: React.FC<Step3EnvelopeProps> = ({
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [fullscreenViewer, setFullscreenViewer] = useState(false);
+
+  // Hook pour la fenêtre détachée
+  const detachedWindow = useDetachedWindow({
+    title: '📐 Aperçu 3D - Building Estimator',
+    width: 1400,
+    height: 900
+  });
 
   // Récupérer la configuration du type de bâtiment
   const typeConfig = getBuildingTypeConfig(buildingType);
@@ -88,7 +97,8 @@ export const Step3_Envelope: React.FC<Step3EnvelopeProps> = ({
         framing: {
           verticalPosts: true,
           lintel: true,
-          sill: false
+          sill: false,
+          cheveture: false
         }
       };
     });
@@ -108,6 +118,34 @@ export const Step3_Envelope: React.FC<Step3EnvelopeProps> = ({
       parentId: ext.parentId
     }))
   ];
+
+  // Mettre à jour la fenêtre détachée quand les données changent (avec debounce)
+  useEffect(() => {
+    if (!detachedWindow.isOpen) return;
+
+    // Debounce pour éviter trop de re-renders
+    const timeoutId = setTimeout(() => {
+      detachedWindow.renderInWindow(
+        <DetachedViewer3D
+          buildingType={buildingType}
+          dimensions={buildingDimensions}
+          parameters={parametersWithEquipment}
+          extensions={extensions}
+          openings={convertedOpenings}
+          onClose={detachedWindow.closeWindow}
+        />
+      );
+    }, 300); // Attendre 300ms après la dernière modification
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    detachedWindow.isOpen,
+    buildingType,
+    buildingDimensions,
+    parametersWithEquipment,
+    extensions,
+    convertedOpenings
+  ]);
 
   return (
     <div>
@@ -200,22 +238,40 @@ export const Step3_Envelope: React.FC<Step3EnvelopeProps> = ({
                 alignItems: 'center'
               }}>
                 <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>📐 Aperçu 3D</span>
-                <button
-                  onClick={() => setFullscreenViewer(true)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    color: '#2563eb',
-                    fontWeight: '500'
-                  }}
-                  title="Plein écran"
-                >
-                  ⛶
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={detachedWindow.openWindow}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      color: '#10b981',
+                      fontWeight: '500'
+                    }}
+                    title="Ouvrir dans une nouvelle fenêtre"
+                  >
+                    🪟
+                  </button>
+                  <button
+                    onClick={() => setFullscreenViewer(true)}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      color: '#2563eb',
+                      fontWeight: '500'
+                    }}
+                    title="Plein écran"
+                  >
+                    ⛶
+                  </button>
+                </div>
               </div>
               <BuildingPreview3D
                 buildingType={buildingType}

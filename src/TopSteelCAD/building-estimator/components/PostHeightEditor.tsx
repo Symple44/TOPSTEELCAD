@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { CustomPortal, BuildingParameters } from '../types';
+import { CustomPortal, BuildingParameters, BuildingType, BuildingDimensions } from '../types';
 import {
   formSectionStyle,
   labelStyle,
@@ -15,17 +15,62 @@ import {
 
 interface PostHeightEditorProps {
   buildingLength: number;
+  buildingType: BuildingType;
+  dimensions: BuildingDimensions;
   parameters: BuildingParameters;
   onParametersChange: (params: Partial<BuildingParameters>) => void;
 }
 
 export const PostHeightEditor: React.FC<PostHeightEditorProps> = ({
   buildingLength,
+  buildingType,
+  dimensions,
   parameters,
   onParametersChange
 }) => {
   const [isActive, setIsActive] = React.useState(false);
   const customPortals = parameters.customPortals || [];
+
+  // Déterminer quels poteaux sont utilisés selon le type de bâtiment et la variante
+  const getUsedPosts = (): Array<{ key: string; label: string; emoji: string }> => {
+    if (buildingType === BuildingType.OMBRIERE) {
+      const variant = dimensions.structuralVariant || 'centered_post';
+      switch (variant) {
+        case 'centered_post':
+          return [{ key: 'center', label: 'Poteau Centre', emoji: '🟡' }];
+        case 'double_centered_post':
+          return [
+            { key: 'left', label: 'Poteau Gauche', emoji: '🔵' },
+            { key: 'right', label: 'Poteau Droit', emoji: '🔴' }
+          ];
+        case 'y_shaped':
+          return [{ key: 'center', label: 'Poteau Centre', emoji: '🟡' }];
+        case 'offset_post':
+          return [{ key: 'front', label: 'Poteau Avant', emoji: '🔵' }];
+        default:
+          return [{ key: 'center', label: 'Poteau Centre', emoji: '🟡' }];
+      }
+    } else if (buildingType === BuildingType.AUVENT) {
+      // Auvent: seulement poteaux avant
+      return [{ key: 'front', label: 'Poteau Avant', emoji: '🔵' }];
+    } else if (buildingType === BuildingType.PLANCHER) {
+      // Plancher: poteaux avant et arrière
+      const posts = [
+        { key: 'front', label: 'Poteau Avant', emoji: '🔵' },
+        { key: 'back', label: 'Poteau Arrière', emoji: '🔴' }
+      ];
+      // TODO: ajouter poteaux intermédiaires si nécessaire
+      return posts;
+    } else {
+      // Monopente, Bipente, etc.: poteaux avant et arrière
+      return [
+        { key: 'front', label: 'Poteau Avant', emoji: '🔵' },
+        { key: 'back', label: 'Poteau Arrière', emoji: '🔴' }
+      ];
+    }
+  };
+
+  const usedPosts = getUsedPosts();
 
   // Calculer le nombre de portiques selon le mode
   const getPortalCount = (): number => {
@@ -48,23 +93,46 @@ export const PostHeightEditor: React.FC<PostHeightEditorProps> = ({
       const portals: CustomPortal[] = [];
       for (let i = 0; i < portalCount; i++) {
         const existingPortal = customPortals.find(p => p.portalIndex === i);
-        portals.push(existingPortal || {
-          portalIndex: i,
-          frontPostYOffset: 0,
-          backPostYOffset: 0
-        });
+
+        if (existingPortal) {
+          // Migration de l'ancien format vers le nouveau si nécessaire
+          if (!existingPortal.postOffsets && (existingPortal.frontPostYOffset !== undefined || existingPortal.backPostYOffset !== undefined)) {
+            portals.push({
+              portalIndex: i,
+              postOffsets: {
+                front: existingPortal.frontPostYOffset || 0,
+                back: existingPortal.backPostYOffset || 0
+              }
+            });
+          } else {
+            portals.push(existingPortal);
+          }
+        } else {
+          // Nouveau portique: initialiser avec les poteaux utilisés
+          const initialOffsets: { [key: string]: number } = {};
+          usedPosts.forEach(post => {
+            initialOffsets[post.key] = 0;
+          });
+          portals.push({
+            portalIndex: i,
+            postOffsets: initialOffsets
+          });
+        }
       }
       onParametersChange({ customPortals: portals });
     }
   }, [portalCount, customPortals.length]);
 
   // Mettre à jour un portique
-  const updatePortal = (portalIndex: number, field: 'frontPostYOffset' | 'backPostYOffset', value: string) => {
+  const updatePortal = (portalIndex: number, postKey: string, value: string) => {
     const updatedPortals = [...customPortals];
     const portal = updatedPortals.find(p => p.portalIndex === portalIndex);
     if (portal) {
       const numValue = parseFloat(value);
-      portal[field] = isNaN(numValue) ? 0 : numValue;
+      if (!portal.postOffsets) {
+        portal.postOffsets = {};
+      }
+      portal.postOffsets[postKey] = isNaN(numValue) ? 0 : numValue;
       onParametersChange({ customPortals: updatedPortals });
     }
   };
@@ -73,10 +141,13 @@ export const PostHeightEditor: React.FC<PostHeightEditorProps> = ({
   const resetHeights = () => {
     const portals: CustomPortal[] = [];
     for (let i = 0; i < portalCount; i++) {
+      const initialOffsets: { [key: string]: number } = {};
+      usedPosts.forEach(post => {
+        initialOffsets[post.key] = 0;
+      });
       portals.push({
         portalIndex: i,
-        frontPostYOffset: 0,
-        backPostYOffset: 0
+        postOffsets: initialOffsets
       });
     }
     onParametersChange({ customPortals: portals });
@@ -110,7 +181,9 @@ export const PostHeightEditor: React.FC<PostHeightEditorProps> = ({
         }}>
           <strong>Mode Standard :</strong> Tous les poteaux ont la même hauteur de départ (niveau du sol).
           <br />
-          <strong>Nombre de portiques :</strong> {portalCount} ({portalCount * 2} poteaux)
+          <strong>Nombre de portiques :</strong> {portalCount} ({portalCount * usedPosts.length} poteaux au total)
+          <br />
+          <strong>Type de poteaux :</strong> {usedPosts.map(p => p.label).join(', ')}
           <br />
           <br />
           💡 <em>Activez cette option pour ajuster individuellement la hauteur de départ de chaque poteau (pieds de poteaux).</em>
@@ -128,7 +201,9 @@ export const PostHeightEditor: React.FC<PostHeightEditorProps> = ({
             marginBottom: '20px',
             border: '1px solid #bbf7d0'
           }}>
-            <strong>Nombre de portiques :</strong> {portalCount} ({portalCount * 2} poteaux)
+            <strong>Nombre de portiques :</strong> {portalCount} ({portalCount * usedPosts.length} poteaux au total)
+            <br />
+            <strong>Type de poteaux :</strong> {usedPosts.map(p => p.label).join(', ')}
             <br />
             💡 <em>Ajustez individuellement la hauteur de départ de chaque poteau (pieds de poteaux)</em>
           </div>
@@ -155,100 +230,73 @@ export const PostHeightEditor: React.FC<PostHeightEditorProps> = ({
           gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
           gap: '12px'
         }}>
-          {customPortals.map((portal, index) => (
-            <div
-              key={portal.portalIndex}
-              style={{
-                padding: '12px',
-                background: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '6px'
-              }}
-            >
-              <div style={{
-                fontSize: '0.85rem',
-                fontWeight: '700',
-                color: '#10b981',
-                marginBottom: '10px'
-              }}>
-                Portique {index}
-              </div>
+          {customPortals.map((portal, index) => {
+            const postOffsets = portal.postOffsets || {};
 
-              {/* Poteau avant */}
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{
-                  ...labelStyle,
-                  fontSize: '0.75rem',
-                  marginBottom: '4px',
-                  display: 'block'
-                }}>
-                  🔵 Poteau Avant
-                </label>
-                <input
-                  type="number"
-                  style={{
-                    ...inputStyle,
-                    width: '100%',
-                    padding: '6px 8px',
-                    fontSize: '0.85rem',
-                    boxSizing: 'border-box'
-                  }}
-                  value={portal.frontPostYOffset}
-                  onChange={(e) => updatePortal(portal.portalIndex, 'frontPostYOffset', e.target.value)}
-                  min={-1000}
-                  max={1000}
-                  step={10}
-                  placeholder="0"
-                />
+            return (
+              <div
+                key={portal.portalIndex}
+                style={{
+                  padding: '12px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px'
+                }}
+              >
                 <div style={{
-                  fontSize: '0.65rem',
-                  color: '#94a3b8',
-                  marginTop: '2px'
+                  fontSize: '0.85rem',
+                  fontWeight: '700',
+                  color: '#10b981',
+                  marginBottom: '10px'
                 }}>
-                  {portal.frontPostYOffset < 0 && '⬇️ En creux'}
-                  {portal.frontPostYOffset > 0 && '⬆️ En relief'}
-                  {portal.frontPostYOffset === 0 && '➡️ Niveau'}
+                  Portique {index}
                 </div>
-              </div>
 
-              {/* Poteau arrière */}
-              <div>
-                <label style={{
-                  ...labelStyle,
-                  fontSize: '0.75rem',
-                  marginBottom: '4px',
-                  display: 'block'
-                }}>
-                  🔴 Poteau Arrière
-                </label>
-                <input
-                  type="number"
-                  style={{
-                    ...inputStyle,
-                    width: '100%',
-                    padding: '6px 8px',
-                    fontSize: '0.85rem',
-                    boxSizing: 'border-box'
-                  }}
-                  value={portal.backPostYOffset}
-                  onChange={(e) => updatePortal(portal.portalIndex, 'backPostYOffset', e.target.value)}
-                  min={-1000}
-                  max={1000}
-                  step={10}
-                  placeholder="0"
-                />
-                <div style={{
-                  fontSize: '0.65rem',
-                  color: '#94a3b8',
-                  marginTop: '2px'
-                }}>
-                  {portal.backPostYOffset < 0 && '⬇️ En creux'}
-                  {portal.backPostYOffset > 0 && '⬆️ En relief'}
-                  {portal.backPostYOffset === 0 && '➡️ Niveau'}
-                </div>
+                {/* Afficher uniquement les poteaux utilisés */}
+                {usedPosts.map((post, postIndex) => {
+                  const offsetValue = postOffsets[post.key] || 0;
+
+                  return (
+                    <div key={post.key} style={{ marginBottom: postIndex < usedPosts.length - 1 ? '10px' : '0' }}>
+                      <label style={{
+                        ...labelStyle,
+                        fontSize: '0.75rem',
+                        marginBottom: '4px',
+                        display: 'block'
+                      }}>
+                        {post.emoji} {post.label}
+                      </label>
+                      <input
+                        type="number"
+                        style={{
+                          ...inputStyle,
+                          width: '100%',
+                          padding: '6px 8px',
+                          fontSize: '0.85rem',
+                          boxSizing: 'border-box'
+                        }}
+                        value={offsetValue}
+                        onChange={(e) => updatePortal(portal.portalIndex, post.key, e.target.value)}
+                        min={-1000}
+                        max={1000}
+                        step={10}
+                        placeholder="0"
+                      />
+                      <div style={{
+                        fontSize: '0.65rem',
+                        color: '#94a3b8',
+                        marginTop: '2px'
+                      }}>
+                        {offsetValue < 0 && '⬇️ En creux'}
+                        {offsetValue > 0 && '⬆️ En relief'}
+                        {offsetValue === 0 && '➡️ Niveau'}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -834,6 +834,8 @@ export const BuildingOrExtensionForm: React.FC<BuildingOrExtensionFormProps> = (
       {/* Ajustement des hauteurs de poteaux (toujours actif) */}
       <PostHeightEditor
         buildingLength={isMain ? dimensions.length : (parentLength || dimensions.length || 20000)}
+        buildingType={type}
+        dimensions={dimensions}
         parameters={parameters}
         onParametersChange={onParametersChange}
       />
